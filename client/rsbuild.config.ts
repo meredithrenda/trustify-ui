@@ -168,6 +168,7 @@ export default defineConfig({
     },
   },
   output: {
+    injectStyles: isGitHubPages,
     assetPrefix: isGitHubPages ? basePath : "/",
     copy: [
       {
