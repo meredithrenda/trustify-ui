@@ -11,8 +11,13 @@ import {
   SERVER_ENV_KEYS,
   TRUSTIFICATION_ENV,
   brandingStrings,
+  buildTrustificationEnv,
   encodeEnv,
 } from "@trustify-ui/common";
+
+const isGitHubPages = !!process.env.GITHUB_PAGES;
+const basePath = process.env.BASE_PATH || "/";
+const routerBasename = basePath.replace(/\/$/, "") || "/";
 
 /**
  * Return the `node_modules/` resolved path for the branding assets.
@@ -82,11 +87,28 @@ export const ignoreProcessEnv = (): RsbuildPlugin => ({
   },
 });
 
+export const githubPages = (ghBasePath: string): RsbuildPlugin => ({
+  name: "github-pages",
+  setup(api) {
+    api.onAfterBuild(() => {
+      const distDir = path.resolve(__dirname, "dist");
+      const indexPath = path.join(distDir, "index.html");
+
+      if (fs.existsSync(indexPath)) {
+        let html = fs.readFileSync(indexPath, "utf-8");
+        html = html.replace('<base href="/"/>', `<base href="${ghBasePath}"/>`);
+        fs.writeFileSync(indexPath, html);
+        fs.copyFileSync(indexPath, path.join(distDir, "404.html"));
+      }
+    });
+  },
+});
+
 export default defineConfig({
   plugins: [
     pluginReact(),
     pluginTypeCheck({
-      enable: process.env.NODE_ENV === "production",
+      enable: process.env.NODE_ENV === "production" && !isGitHubPages,
       tsCheckerOptions: {
         issue: {
           exclude: [
@@ -98,14 +120,19 @@ export default defineConfig({
         },
       },
     }),
-    renameIndex(),
+    ...(isGitHubPages ? [githubPages(basePath)] : [renameIndex()]),
     ignoreProcessEnv(),
   ],
   html: {
     template: path.join(__dirname, "index.html"),
     templateParameters: {
-      ...(process.env.NODE_ENV === "development" && {
-        _env: encodeEnv(TRUSTIFICATION_ENV, SERVER_ENV_KEYS),
+      ...((process.env.NODE_ENV === "development" || isGitHubPages) && {
+        _env: encodeEnv(
+          isGitHubPages
+            ? buildTrustificationEnv({ AUTH_REQUIRED: "false" })
+            : TRUSTIFICATION_ENV,
+          SERVER_ENV_KEYS,
+        ),
         branding: brandingStrings,
       }),
     },
@@ -113,11 +140,11 @@ export default defineConfig({
   tools: {
     rspack(_config, { addRules }) {
       addRules([
-        ...(process.env.NODE_ENV === "production"
+        ...(process.env.NODE_ENV === "production" && !isGitHubPages
           ? [
               {
                 test: /\.html$/,
-                use: "raw-loader", // Ensures HTML remains unprocessed
+                use: "raw-loader",
               },
             ]
           : []),
@@ -134,7 +161,13 @@ export default defineConfig({
       },
     },
   },
+  source: {
+    define: {
+      __BASENAME__: JSON.stringify(routerBasename),
+    },
+  },
   output: {
+    assetPrefix: isGitHubPages ? basePath : "/",
     copy: [
       {
         from: manifestPath,

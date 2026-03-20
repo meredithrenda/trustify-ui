@@ -81,6 +81,8 @@ export const usePathFromParams = (
   return value;
 };
 
+declare const __BASENAME__: string;
+
 export const AppRoutes = createBrowserRouter([
   {
     path: "/",
@@ -267,7 +269,9 @@ export const AppRoutes = createBrowserRouter([
       },
     ],
   },
-]);
+], {
+  basename: __BASENAME__,
+});
 
 export const useRouteParams = (pathParam: PathParam) => {
   const params = useParams();
