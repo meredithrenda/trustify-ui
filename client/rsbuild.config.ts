@@ -164,6 +164,7 @@ export default defineConfig({
   source: {
     define: {
       __BASENAME__: JSON.stringify(routerBasename),
+      __GITHUB_PAGES__: JSON.stringify(isGitHubPages),
     },
   },
   output: {

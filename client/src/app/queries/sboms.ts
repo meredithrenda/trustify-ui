@@ -26,11 +26,14 @@ import {
 } from "@app/client";
 import { FILTER_NULL_VALUE } from "@app/Constants";
 import { useUpload } from "@app/hooks/useUpload";
+import { mockSboms } from "@app/mocks/sboms";
 
 import {
   labelRequestParamsQuery,
   requestParamsQuery,
 } from "../hooks/table-controls";
+
+declare const __GITHUB_PAGES__: boolean;
 
 export const SBOMsQueryKey = "sboms";
 
@@ -38,6 +41,9 @@ export const useFetchSBOMLabels = (filterText: string) => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [SBOMsQueryKey, "labels", filterText],
     queryFn: () => {
+      if (__GITHUB_PAGES__) {
+        return Promise.resolve({ data: [] });
+      }
       return listSbomLabels({
         client,
         query: { limit: 10, filter_text: filterText },
@@ -65,8 +71,13 @@ export const useFetchSBOMs = (
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [SBOMsQueryKey, params, labelQuery],
-    queryFn: () =>
-      listSboms({
+    queryFn: () => {
+      if (__GITHUB_PAGES__) {
+        return Promise.resolve({
+          data: { items: mockSboms, total: mockSboms.length },
+        });
+      }
+      return listSboms({
         client,
         query: {
           ...rest,
@@ -75,7 +86,8 @@ export const useFetchSBOMs = (
         path: {
           group: groups,
         },
-      }),
+      });
+    },
     enabled: !disableQuery,
   });
   return {
@@ -220,6 +232,9 @@ export const useFetchSbomsAdvisory = (sbomId: string) => {
   const { data, isLoading, error } = useQuery({
     queryKey: [SBOMsQueryKey, sbomId, "advisory"],
     queryFn: () => {
+      if (__GITHUB_PAGES__) {
+        return Promise.resolve({ data: [] });
+      }
       return getSbomAdvisories({
         client,
         path: { id: sbomId },
