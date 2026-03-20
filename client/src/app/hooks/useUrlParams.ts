@@ -3,6 +3,8 @@ import { objectKeys } from "@app/utils/utils";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+declare const __BASENAME__: string;
+
 // useUrlParams is a generic hook similar to React.useState which stores its state in the URL search params string.
 // The state is retained on a page reload, when using the browser back/forward buttons, or when bookmarking the page.
 // It can be used to store a value of any type (`TDeserializedParams`) in one or more URL params by providing:
@@ -82,7 +84,14 @@ export const useUrlParams = <
     // In case setParams is called multiple times synchronously from the same rendered instance,
     // we use document.location here as the current params so these calls never overwrite each other.
     // This also retains any unrelated params that might be present and allows newParams to be a partial update.
-    const { pathname, search } = document.location;
+    const { pathname: fullPathname, search } = document.location;
+    const base =
+      typeof __BASENAME__ !== "undefined" && __BASENAME__ !== "/"
+        ? __BASENAME__
+        : "";
+    const pathname = fullPathname.startsWith(base)
+      ? fullPathname.slice(base.length) || "/"
+      : fullPathname;
     const existingSearchParams = new URLSearchParams(search);
     // We prefix the params object here so the serialize function doesn't have to care about the keyPrefix.
     const newPrefixedSerializedParams = withPrefixes(serialize(newParams));
