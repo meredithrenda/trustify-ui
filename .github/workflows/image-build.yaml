@@ -2,12 +2,6 @@ name: Multiple Architecture Image Build
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "main"
-      - "release/*"
-    tags:
-      - "v*"
 
 concurrency:
   group: build-${{ github.ref }}

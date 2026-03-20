@@ -1,12 +1,6 @@
 name: Tag Dist Build
 
 on:
-  push:
-    branches:
-      - "main"
-      - "release/*"
-    tags:
-      - "v*"
   workflow_dispatch:
 
 concurrency:
