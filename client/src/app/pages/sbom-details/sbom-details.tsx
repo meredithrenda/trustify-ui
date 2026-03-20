@@ -46,6 +46,7 @@ import { useDeleteSbomMutation, useFetchSBOMById } from "@app/queries/sboms";
 import { Overview } from "./overview";
 import { PackagesBySbom } from "./packages-by-sbom";
 import { VulnerabilitiesBySbom } from "./vulnerabilities-by-sbom";
+import { Cryptography } from "./cryptography";
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
 
 export const SbomDetails: React.FC = () => {
@@ -96,12 +97,13 @@ export const SbomDetails: React.FC = () => {
   } = useTabControls({
     persistenceKeyPrefix: "sd", // sb="sbom details"
     persistTo: "urlParams",
-    tabKeys: ["info", "packages", "vulnerabilities"],
+    tabKeys: ["info", "packages", "vulnerabilities", "cryptography"],
   });
 
   const infoTabRef = React.createRef<HTMLElement>();
   const packagesTabRef = React.createRef<HTMLElement>();
   const vulnerabilitiesTabRef = React.createRef<HTMLElement>();
+  const cryptographyTabRef = React.createRef<HTMLElement>();
 
   // Tabs popover refs
   const vulnerabilitiesTabPopoverRef = React.createRef<HTMLElement>();
@@ -227,6 +229,11 @@ export const SbomDetails: React.FC = () => {
               </>
             }
           />
+          <Tab
+            {...getTabProps("cryptography")}
+            title={<TabTitleText>Cryptography</TabTitleText>}
+            tabContentRef={cryptographyTabRef}
+          />
         </Tabs>
       </PageSection>
       <PageSection>
@@ -252,6 +259,13 @@ export const SbomDetails: React.FC = () => {
           aria-label="Vulnerabilities within the SBOM"
         >
           {sbomId && <VulnerabilitiesBySbom sbomId={sbomId} />}
+        </TabContent>
+        <TabContent
+          {...getTabContentProps("cryptography")}
+          ref={cryptographyTabRef}
+          aria-label="Cryptographic libraries in the SBOM"
+        >
+          <Cryptography />
         </TabContent>
       </PageSection>
 

@@ -1,27 +1,37 @@
 import type React from "react";
 
-import { PageSection, Stack, StackItem } from "@patternfly/react-core";
+import { PageSection, Title, Content } from "@patternfly/react-core";
 
-import { MonitoringSection } from "./components/MonitoringSection";
-import { WatchedSbomsSection } from "./components/WatchedSbomsSection";
-import { WatchedSbomsProvider } from "./watched-sboms-context";
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
+
+import { MetricsSection } from "./components/MetricsSection";
+import { GettingStartedSection } from "./components/GettingStartedSection";
 
 export const Home: React.FC = () => {
   return (
     <>
-      <DocumentMetadata title={"Dashboard"} />
-      <PageSection hasBodyWrapper={false}>
-        <Stack hasGutter>
-          <StackItem>
-            <MonitoringSection />
-          </StackItem>
-          <StackItem>
-            <WatchedSbomsProvider>
-              <WatchedSbomsSection />
-            </WatchedSbomsProvider>
-          </StackItem>
-        </Stack>
+      <DocumentMetadata title={"Home"} />
+      
+      {/* Hero Section */}
+      <PageSection variant="light">
+        <Title headingLevel="h1" size="2xl">
+          Home
+        </Title>
+        <Content>
+          Manage your software supply chain security with Red Hat Trusted
+          Product Advisor. Upload SBOMs, analyze vulnerabilities, and
+          generate security reports.
+        </Content>
+      </PageSection>
+
+      {/* Getting Started Section */}
+      <PageSection>
+        <GettingStartedSection />
+      </PageSection>
+
+      {/* Metrics Section */}
+      <PageSection variant="light">
+        <MetricsSection />
       </PageSection>
     </>
   );

@@ -25,3 +25,24 @@ export const getSbomFilteredByLicenseUrl = (
     search: params,
   };
 };
+
+export const getSbomFilteredByAlgorithmUrl = (
+  algorithms: string[],
+): Pick<Path, "pathname" | "search"> => {
+  const prefix = (key: string) => `${TablePersistenceKeyPrefixes.sboms}:${key}`;
+
+  const filterParams = serializeFilterUrlParams({
+    algorithm: algorithms,
+  });
+
+  const params = `${trimAndStringifyUrlParams({
+    newPrefixedSerializedParams: {
+      [prefix("filters")]: filterParams.filters,
+    },
+  })}`;
+
+  return {
+    pathname: Paths.sboms,
+    search: params,
+  };
+};

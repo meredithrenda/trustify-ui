@@ -39,6 +39,7 @@ const SBOMDetails = lazy(() => import("./pages/sbom-details"));
 const Search = lazy(() => import("./pages/search"));
 const ImporterList = lazy(() => import("./pages/importer-list"));
 const LicenseList = lazy(() => import("./pages/license-list"));
+const CBOMInventory = lazy(() => import("./pages/cbom-inventory"));
 const NotFound = lazy(() => import("./pages/not-found"));
 
 export enum PathParam {
@@ -64,6 +65,7 @@ export const Paths = {
   search: "/search",
   importers: "/importers",
   licenses: "/licenses",
+  cbomInventory: "/cbom-prototype",
 } as const;
 
 export const usePathFromParams = (
@@ -247,6 +249,15 @@ export const AppRoutes = createBrowserRouter([
             vulnerability: response.data,
           };
         },
+      },
+      {
+        path: Paths.cbomInventory,
+        element: (
+          <LazyRouteElement
+            identifier="cbom-inventory"
+            component={<CBOMInventory />}
+          />
+        ),
       },
       {
         path: "*",

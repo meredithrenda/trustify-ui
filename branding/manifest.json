@@ -1,6 +1,6 @@
 {
-  "short_name": "trustification-ui",
-  "name": "Trustification UI",
+  "short_name": "RHTPA",
+  "name": "Red Hat Trusted Product Advisor",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#CC0000",
   "background_color": "#ffffff"
 }

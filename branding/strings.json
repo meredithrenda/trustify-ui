@@ -1,22 +1,22 @@
 {
   "application": {
-    "title": "Trustification",
-    "name": "Trustification UI",
-    "description": "Trustification UI"
+    "title": "Red Hat Trusted Product Advisor",
+    "name": "Red Hat Trusted Product Advisor",
+    "description": "Red Hat Trusted Product Advisor (RHTPA)"
   },
   "about": {
-    "displayName": "Trustification",
+    "displayName": "Red Hat Trusted Product Advisor",
     "imageSrc": "<%= brandingRoot %>/images/masthead-logo.svg",
-    "documentationUrl": "https://trustification.io/"
+    "documentationUrl": "https://www.redhat.com/"
   },
   "masthead": {
     "leftBrand": {
       "src": "<%= brandingRoot %>/images/masthead-logo.svg",
-      "alt": "brand",
+      "alt": "Red Hat",
       "height": "40px"
     },
     "leftTitle": null,
     "rightBrand": null,
-    "supportUrl": "https://github.com/trustification/trustify/issues"
+    "supportUrl": "https://access.redhat.com/support"
   }
 }

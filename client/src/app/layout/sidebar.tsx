@@ -105,6 +105,16 @@ export const SidebarApp: React.FC = () => {
               Importers
             </NavLink>
           </li>
+          <li className={nav.navItem}>
+            <NavLink
+              to={Paths.cbomInventory}
+              className={({ isActive }) => {
+                return css(LINK_CLASS, isActive ? ACTIVE_LINK_CLASS : "");
+              }}
+            >
+              Cryptography
+            </NavLink>
+          </li>
           <NavItem
             to={`${window.location.origin}/openapi`}
             target="_blank"

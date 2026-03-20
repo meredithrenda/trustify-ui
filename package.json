@@ -38,7 +38,8 @@
     "e2e"
   ],
   "dependencies": {
-    "typescript": "^5.7.3"
+    "@patternfly/react-topology": "^6.4.0",
+    "typescript": "~5.7.3"
   },
   "peerDependencies": {
     "react": "^19.1.1",
