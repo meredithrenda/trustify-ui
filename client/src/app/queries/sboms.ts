@@ -33,7 +33,7 @@ import {
   requestParamsQuery,
 } from "../hooks/table-controls";
 
-declare const __GITHUB_PAGES__: boolean;
+declare const __MOCK_DATA__: boolean;
 
 export const SBOMsQueryKey = "sboms";
 
@@ -41,7 +41,7 @@ export const useFetchSBOMLabels = (filterText: string) => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [SBOMsQueryKey, "labels", filterText],
     queryFn: () => {
-      if (__GITHUB_PAGES__) {
+      if (__MOCK_DATA__) {
         return Promise.resolve({ data: [] });
       }
       return listSbomLabels({
@@ -72,7 +72,7 @@ export const useFetchSBOMs = (
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [SBOMsQueryKey, params, labelQuery],
     queryFn: () => {
-      if (__GITHUB_PAGES__) {
+      if (__MOCK_DATA__) {
         return Promise.resolve({
           data: { items: mockSboms, total: mockSboms.length },
         });
@@ -232,7 +232,7 @@ export const useFetchSbomsAdvisory = (sbomId: string) => {
   const { data, isLoading, error } = useQuery({
     queryKey: [SBOMsQueryKey, sbomId, "advisory"],
     queryFn: () => {
-      if (__GITHUB_PAGES__) {
+      if (__MOCK_DATA__) {
         return Promise.resolve({ data: [] });
       }
       return getSbomAdvisories({

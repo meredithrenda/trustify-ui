@@ -6,7 +6,7 @@ import { client } from "@app/axios-config/apiInit";
 import { listLicenses } from "@app/client";
 import { requestParamsQuery } from "@app/hooks/table-controls";
 
-declare const __GITHUB_PAGES__: boolean;
+declare const __MOCK_DATA__: boolean;
 
 export const LicensesQueryKey = "licenses";
 
@@ -17,7 +17,7 @@ export const useFetchLicenses = (
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [LicensesQueryKey, params],
     queryFn: () => {
-      if (__GITHUB_PAGES__) {
+      if (__MOCK_DATA__) {
         return Promise.resolve({ data: { items: [], total: 0 } });
       }
       return listLicenses({

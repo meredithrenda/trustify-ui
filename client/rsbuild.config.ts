@@ -16,6 +16,7 @@ import {
 } from "@trustify-ui/common";
 
 const isGitHubPages = !!process.env.GITHUB_PAGES;
+const useMockData = isGitHubPages || !!process.env.MOCK_DATA;
 const basePath = process.env.BASE_PATH || "/";
 const routerBasename = basePath.replace(/\/$/, "") || "/";
 
@@ -128,7 +129,7 @@ export default defineConfig({
     templateParameters: {
       ...((process.env.NODE_ENV === "development" || isGitHubPages) && {
         _env: encodeEnv(
-          isGitHubPages
+          useMockData
             ? buildTrustificationEnv({ AUTH_REQUIRED: "false" })
             : TRUSTIFICATION_ENV,
           SERVER_ENV_KEYS,
@@ -165,6 +166,7 @@ export default defineConfig({
     define: {
       __BASENAME__: JSON.stringify(routerBasename),
       __GITHUB_PAGES__: JSON.stringify(isGitHubPages),
+      __MOCK_DATA__: JSON.stringify(useMockData),
     },
   },
   output: {

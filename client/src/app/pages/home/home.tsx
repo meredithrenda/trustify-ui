@@ -1,37 +1,28 @@
 import type React from "react";
 
-import { PageSection, Title, Content } from "@patternfly/react-core";
+import { PageSection } from "@patternfly/react-core";
 
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
 
-import { MetricsSection } from "./components/MetricsSection";
-import { GettingStartedSection } from "./components/GettingStartedSection";
+import { AskAgentSection } from "./components/AskAgentSection";
+import { AnalysisBriefsSection } from "./components/AnalysisBriefsSection";
+import { RecommendedActionsSection } from "./components/RecommendedActionsSection";
 
 export const Home: React.FC = () => {
   return (
     <>
       <DocumentMetadata title={"Home"} />
-      
-      {/* Hero Section */}
+
       <PageSection variant="light">
-        <Title headingLevel="h1" size="2xl">
-          Home
-        </Title>
-        <Content>
-          Manage your software supply chain security with Red Hat Trusted
-          Product Advisor. Upload SBOMs, analyze vulnerabilities, and
-          generate security reports.
-        </Content>
+        <AskAgentSection />
       </PageSection>
 
-      {/* Getting Started Section */}
       <PageSection>
-        <GettingStartedSection />
+        <AnalysisBriefsSection />
       </PageSection>
 
-      {/* Metrics Section */}
       <PageSection variant="light">
-        <MetricsSection />
+        <RecommendedActionsSection />
       </PageSection>
     </>
   );

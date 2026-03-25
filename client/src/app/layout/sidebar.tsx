@@ -1,15 +1,12 @@
 import type React from "react";
 import { NavLink } from "react-router-dom";
 import {
-  Icon,
   Nav,
   NavExpandable,
-  NavItem,
   NavList,
   PageSidebar,
   PageSidebarBody,
 } from "@patternfly/react-core";
-import ExternalLinkAltIcon from "@patternfly/react-icons/dist/esm/icons/external-link-alt-icon";
 import { css } from "@patternfly/react-styles";
 import nav from "@patternfly/react-styles/css/components/Nav/nav";
 
@@ -30,7 +27,7 @@ export const SidebarApp: React.FC = () => {
                 return css(LINK_CLASS, isActive ? ACTIVE_LINK_CLASS : "");
               }}
             >
-              Dashboard
+              Home
             </NavLink>
           </li>
           <li className={nav.navItem}>
@@ -115,16 +112,16 @@ export const SidebarApp: React.FC = () => {
               Cryptography
             </NavLink>
           </li>
-          <NavItem
-            to={`${window.location.origin}/openapi`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            API&nbsp;
-            <Icon isInline>
-              <ExternalLinkAltIcon />
-            </Icon>
-          </NavItem>
+          <li className={nav.navItem}>
+            <NavLink
+              to={Paths.csafVisualizer}
+              className={({ isActive }) => {
+                return css(LINK_CLASS, isActive ? ACTIVE_LINK_CLASS : "");
+              }}
+            >
+              CSAF VEX Visualizer
+            </NavLink>
+          </li>
         </NavList>
       </Nav>
     );
