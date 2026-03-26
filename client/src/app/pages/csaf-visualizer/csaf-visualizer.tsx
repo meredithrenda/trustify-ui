@@ -26,6 +26,7 @@ import type { CsafDocument } from "./types";
 import { DocumentOverview } from "./components/DocumentOverview";
 import { VulnerabilitySection } from "./components/VulnerabilitySection";
 import { ProductsTable } from "./components/ProductsTable";
+import { RelationshipTree } from "./components/RelationshipTree";
 
 const DEFAULT_URL =
   "https://security.access.redhat.com/data/csaf/v2/vex/2024/cve-2024-0232.json";
@@ -191,6 +192,17 @@ export const CsafVisualizer: React.FC = () => {
                   eventKey={2}
                   title={<TabTitleText>Products</TabTitleText>}
                 />
+                <Tab
+                  eventKey={3}
+                  title={
+                    <TabTitleText>
+                      Relationship Tree
+                      {data.product_tree.relationships
+                        ? ` (${data.product_tree.relationships.length})`
+                        : ""}
+                    </TabTitleText>
+                  }
+                />
               </Tabs>
             </StackItem>
 
@@ -204,12 +216,18 @@ export const CsafVisualizer: React.FC = () => {
                 <TabContent eventKey={1}>
                   <VulnerabilitySection
                     vulnerabilities={data.vulnerabilities}
+                    productTree={data.product_tree}
                   />
                 </TabContent>
               )}
               {activeTab === 2 && (
                 <TabContent eventKey={2}>
                   <ProductsTable data={data} />
+                </TabContent>
+              )}
+              {activeTab === 3 && (
+                <TabContent eventKey={3}>
+                  <RelationshipTree data={data} />
                 </TabContent>
               )}
             </StackItem>

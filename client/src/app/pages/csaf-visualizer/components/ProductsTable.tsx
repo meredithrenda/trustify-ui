@@ -1,21 +1,35 @@
 import React from "react";
 
+import ReactEChartsCore from "echarts-for-react/lib/core";
+import * as echarts from "echarts/core";
+import { TreeChart } from "echarts/charts";
+import { TooltipComponent } from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
+
 import {
   Card,
   CardBody,
   Content,
-  Label,
   Stack,
   StackItem,
   Title,
-  TreeView,
-  type TreeViewDataItem,
 } from "@patternfly/react-core";
 
-import type { CsafDocument, Branch, Relationship } from "../types";
+import type { CsafDocument, Branch } from "../types";
+
+echarts.use([TreeChart, TooltipComponent, CanvasRenderer]);
 
 interface Props {
   data: CsafDocument;
+}
+
+interface EChartsTreeNode {
+  name: string;
+  value?: string;
+  itemStyle?: { color: string; borderColor: string };
+  label?: { color?: string; fontWeight?: string };
+  children?: EChartsTreeNode[];
+  collapsed?: boolean;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -33,63 +47,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   specification: "#2B9AF3",
 };
 
-const CategoryDot: React.FC<{ category: string }> = ({ category }) => (
-  <span
-    style={{
-      display: "inline-block",
-      width: 10,
-      height: 10,
-      borderRadius: "50%",
-      backgroundColor: CATEGORY_COLORS[category] ?? "#8A8D90",
-      marginRight: 6,
-      flexShrink: 0,
-    }}
-  />
-);
-
-function branchToTreeData(branch: Branch): TreeViewDataItem {
-  const hasChildren = branch.branches && branch.branches.length > 0;
-  const product = branch.product;
-
-  const nameNode = (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-      <CategoryDot category={branch.category} />
-      <strong>{branch.name}</strong>
-      {product && (
-        <Content
-          component="small"
-          style={{
-            color: "var(--pf-v6-global--Color--200)",
-            marginLeft: 8,
-            fontFamily: "var(--pf-v6-global--FontFamily--mono)",
-            fontSize: "var(--pf-v6-global--FontSize--xs)",
-          }}
-        >
-          {product.product_id}
-        </Content>
-      )}
-      {product?.product_identification_helper?.cpe && (
-        <Label
-          variant="outline"
-          isCompact
-          style={{ marginLeft: 8 }}
-        >
-          {product.product_identification_helper.cpe}
-        </Label>
-      )}
-    </span>
-  );
-
-  return {
-    name: nameNode,
-    id: product?.product_id ?? `${branch.category}-${branch.name}`,
-    defaultExpanded: true,
-    children: hasChildren
-      ? branch.branches!.map(branchToTreeData)
-      : undefined,
-  };
-}
-
 const CATEGORY_LABELS = [
   "vendor",
   "product_name",
@@ -105,141 +62,171 @@ const CATEGORY_LABELS = [
   "specification",
 ];
 
+function countLeaves(branch: Branch): number {
+  if (!branch.branches || branch.branches.length === 0) return 1;
+  return branch.branches.reduce((sum, b) => sum + countLeaves(b), 0);
+}
+
+function branchToEChartsNode(branch: Branch): EChartsTreeNode {
+  const color = CATEGORY_COLORS[branch.category] ?? "#8A8D90";
+  const hasChildren = branch.branches && branch.branches.length > 0;
+  const shouldCollapse = hasChildren && countLeaves(branch) > 40;
+
+  return {
+    name: branch.name,
+    value: branch.product?.product_id,
+    itemStyle: { color, borderColor: color },
+    children: hasChildren
+      ? branch.branches!.map(branchToEChartsNode)
+      : undefined,
+    collapsed: shouldCollapse,
+  };
+}
+
 export const ProductsTable: React.FC<Props> = ({ data }) => {
-  const treeData = React.useMemo(
-    () => data.product_tree.branches.map(branchToTreeData),
-    [data.product_tree.branches]
+  const treeData = React.useMemo(() => {
+    const roots = data.product_tree.branches.map(branchToEChartsNode);
+    if (roots.length === 1) return roots[0];
+    return {
+      name: "Products",
+      children: roots,
+      itemStyle: { color: "#8A8D90", borderColor: "#8A8D90" },
+    };
+  }, [data.product_tree.branches]);
+
+  const leafCount = React.useMemo(() => {
+    function count(node: EChartsTreeNode): number {
+      if (!node.children || node.children.length === 0) return 1;
+      return node.children.reduce((s, c) => s + count(c), 0);
+    }
+    return count(treeData);
+  }, [treeData]);
+
+  const chartHeight = Math.max(500, leafCount * 28);
+
+  const option = React.useMemo(
+    () => ({
+      tooltip: {
+        trigger: "item" as const,
+        triggerOn: "mousemove" as const,
+        formatter: (params: { name: string; value?: string }) => {
+          let html = `<strong>${params.name}</strong>`;
+          if (params.value) {
+            html += `<br/><span style="color:#999">ID:</span> ${params.value}`;
+          }
+          return html;
+        },
+      },
+      series: [
+        {
+          type: "tree" as const,
+          data: [treeData],
+          left: "8%",
+          right: "24%",
+          top: "2%",
+          bottom: "2%",
+          orient: "LR" as const,
+          symbol: "circle",
+          symbolSize: 10,
+          edgeShape: "curve" as const,
+          lineStyle: {
+            width: 1.5,
+            color: "#C9C9C9",
+            curveness: 0.5,
+          },
+          label: {
+            position: "right" as const,
+            verticalAlign: "middle" as const,
+            align: "left" as const,
+            fontSize: 12,
+            fontFamily:
+              "RedHatText, Overpass, overpass, helvetica, arial, sans-serif",
+            color: "#151515",
+            distance: 8,
+          },
+          leaves: {
+            label: {
+              position: "right" as const,
+              verticalAlign: "middle" as const,
+              align: "left" as const,
+            },
+          },
+          expandAndCollapse: true,
+          initialTreeDepth: 3,
+          animationDuration: 550,
+          animationDurationUpdate: 750,
+          roam: true,
+        },
+      ],
+    }),
+    [treeData]
   );
 
-  const relationships = data.product_tree.relationships ?? [];
-
   return (
-    <Stack hasGutter>
-      <StackItem>
-        <Card>
-          <CardBody>
-            <Stack hasGutter>
-              <StackItem>
-                <Title headingLevel="h3" size="md">
-                  Product tree
-                </Title>
-                <Content
-                  component="small"
+    <Card>
+      <CardBody>
+        <Stack hasGutter>
+          <StackItem>
+            <Title headingLevel="h3" size="md">
+              Product tree
+            </Title>
+            <Content
+              component="small"
+              style={{
+                color: "var(--pf-v6-global--Color--200)",
+                marginTop: "var(--pf-v6-global--spacer--xs)",
+              }}
+            >
+              Click a node to expand or collapse. Scroll to zoom, drag to
+              pan.
+            </Content>
+          </StackItem>
+
+          <StackItem>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "var(--pf-v6-global--spacer--sm)",
+                marginBottom: "var(--pf-v6-global--spacer--xs)",
+              }}
+            >
+              {CATEGORY_LABELS.map((cat) => (
+                <span
+                  key={cat}
                   style={{
-                    color: "var(--pf-v6-global--Color--200)",
-                    marginTop: "var(--pf-v6-global--spacer--xs)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    fontSize: "var(--pf-v6-global--FontSize--xs)",
                   }}
                 >
-                  Click a node to expand or collapse
-                </Content>
-              </StackItem>
-
-              <StackItem>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "var(--pf-v6-global--spacer--sm)",
-                    marginBottom: "var(--pf-v6-global--spacer--md)",
-                  }}
-                >
-                  {CATEGORY_LABELS.map((cat) => (
-                    <span
-                      key={cat}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        fontSize: "var(--pf-v6-global--FontSize--xs)",
-                      }}
-                    >
-                      <CategoryDot category={cat} />
-                      {cat.replace(/_/g, " ")}
-                    </span>
-                  ))}
-                </div>
-              </StackItem>
-
-              <StackItem>
-                <TreeView
-                  data={treeData}
-                  hasGuides
-                  defaultAllExpanded
-                  aria-label="Product tree"
-                />
-              </StackItem>
-            </Stack>
-          </CardBody>
-        </Card>
-      </StackItem>
-
-      {relationships.length > 0 && (
-        <StackItem>
-          <Card>
-            <CardBody>
-              <Stack hasGutter>
-                <StackItem>
-                  <Title headingLevel="h3" size="md">
-                    Relationships ({relationships.length})
-                  </Title>
-                </StackItem>
-                <StackItem>
-                  <table
+                  <span
                     style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
+                      display: "inline-block",
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: CATEGORY_COLORS[cat] ?? "#8A8D90",
+                      marginRight: 6,
                     }}
-                  >
-                    <thead>
-                      <tr
-                        style={{
-                          borderBottom:
-                            "1px solid var(--pf-v6-global--BorderColor--100)",
-                          textAlign: "left",
-                        }}
-                      >
-                        <th style={{ padding: "8px" }}>Product</th>
-                        <th style={{ padding: "8px" }}>Relationship</th>
-                        <th style={{ padding: "8px" }}>Relates to</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {relationships.map((rel: Relationship) => (
-                        <tr
-                          key={rel.full_product_name.product_id}
-                          style={{
-                            borderBottom:
-                              "1px solid var(--pf-v6-global--BorderColor--100)",
-                          }}
-                        >
-                          <td style={{ padding: "8px" }}>
-                            {rel.full_product_name.name}
-                          </td>
-                          <td style={{ padding: "8px" }}>
-                            <Label variant="outline" isCompact>
-                              {rel.category.replace(/_/g, " ")}
-                            </Label>
-                          </td>
-                          <td style={{ padding: "8px" }}>
-                            <Content
-                              component="small"
-                              style={{
-                                fontFamily:
-                                  "var(--pf-v6-global--FontFamily--mono)",
-                              }}
-                            >
-                              {rel.relates_to_product_reference}
-                            </Content>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </StackItem>
-              </Stack>
-            </CardBody>
-          </Card>
-        </StackItem>
-      )}
-    </Stack>
+                  />
+                  {cat.replace(/_/g, " ")}
+                </span>
+              ))}
+            </div>
+          </StackItem>
+
+          <StackItem>
+            <ReactEChartsCore
+              echarts={echarts}
+              option={option}
+              style={{ height: `${chartHeight}px`, width: "100%" }}
+              notMerge
+              lazyUpdate
+            />
+          </StackItem>
+        </Stack>
+      </CardBody>
+    </Card>
   );
 };

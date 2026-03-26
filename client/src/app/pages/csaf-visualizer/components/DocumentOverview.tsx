@@ -19,8 +19,15 @@ import {
   StackItem,
   Title,
 } from "@patternfly/react-core";
-import { ChartDonut } from "@patternfly/react-charts/victory";
-import { Chart, ChartBar, ChartAxis } from "@patternfly/react-charts/victory";
+import ExternalLinkAltIcon from "@patternfly/react-icons/dist/esm/icons/external-link-alt-icon";
+import {
+  Chart,
+  ChartAxis,
+  ChartBar,
+  ChartDonut,
+  ChartStack,
+  ChartTooltip,
+} from "@patternfly/react-charts/victory";
 
 import type { CsafDocument } from "../types";
 import { collectProducts, collectRelationshipProducts } from "../types";
@@ -28,16 +35,6 @@ import { collectProducts, collectRelationshipProducts } from "../types";
 interface Props {
   data: CsafDocument;
 }
-
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: "#C9190B",
-  important: "#EC7A08",
-  high: "#EC7A08",
-  moderate: "#F0AB00",
-  medium: "#F0AB00",
-  low: "#0066CC",
-  unknown: "#8A8D90",
-};
 
 const severityLabelColor = (
   severity?: string
@@ -79,19 +76,60 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
   const relationshipProducts = collectRelationshipProducts(product_tree);
   const totalProducts = branchProducts.length + relationshipProducts.length;
 
-  const severityCounts = React.useMemo(() => {
-    const counts: Record<string, number> = {};
+  const SEVERITY_COLORS: Record<string, string> = {
+    critical: "#C9190B",
+    important: "#EC7A08",
+    high: "#EC7A08",
+    moderate: "#F0AB00",
+    medium: "#F0AB00",
+    low: "#0066CC",
+    unknown: "#8A8D90",
+  };
+
+  const SEVERITY_ORDER: Record<string, number> = {
+    critical: 0,
+    important: 1,
+    high: 1,
+    moderate: 2,
+    medium: 2,
+    low: 3,
+    unknown: 4,
+  };
+
+  const impactData = React.useMemo(() => {
+    const rows: {
+      severity: string;
+      cveCount: number;
+      productCount: number;
+      color: string;
+    }[] = [];
+    const seen: Record<string, { cves: number; products: Set<string> }> = {};
+
     for (const vuln of vulnerabilities) {
       const sev = (
         vuln.scores?.[0]?.cvss_v3?.baseSeverity ?? "unknown"
       ).toLowerCase();
-      counts[sev] = (counts[sev] || 0) + 1;
+      if (!seen[sev]) seen[sev] = { cves: 0, products: new Set() };
+      seen[sev].cves += 1;
+      for (const pid of vuln.scores?.[0]?.products ?? []) {
+        seen[sev].products.add(pid);
+      }
     }
-    return Object.entries(counts).map(([severity, count]) => ({
-      severity,
-      count,
-      color: SEVERITY_COLORS[severity] ?? SEVERITY_COLORS.unknown,
-    }));
+
+    for (const [severity, data] of Object.entries(seen)) {
+      rows.push({
+        severity,
+        cveCount: data.cves,
+        productCount: data.products.size,
+        color: SEVERITY_COLORS[severity] ?? SEVERITY_COLORS.unknown,
+      });
+    }
+
+    return rows.sort(
+      (a, b) =>
+        (SEVERITY_ORDER[a.severity] ?? 99) -
+        (SEVERITY_ORDER[b.severity] ?? 99)
+    );
   }, [vulnerabilities]);
 
   const remediationCounts = React.useMemo(() => {
@@ -132,6 +170,7 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
 
   return (
     <Stack hasGutter>
+      {/* Document metadata */}
       <StackItem>
         <Card>
           <CardBody>
@@ -148,11 +187,29 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                       {doc.title}
                     </Title>
                   </FlexItem>
-                  {doc.distribution?.tlp && (
-                    <FlexItem>
-                      <Label>TLP: {doc.distribution.tlp.label}</Label>
-                    </FlexItem>
-                  )}
+                  <FlexItem>
+                    <Flex gap={{ default: "gapSm" }}>
+                      {doc.aggregate_severity && (
+                        <FlexItem>
+                          <Label
+                            color={severityLabelColor(
+                              doc.aggregate_severity.text
+                            )}
+                          >
+                            Severity:{" "}
+                            {doc.aggregate_severity.text}
+                          </Label>
+                        </FlexItem>
+                      )}
+                      {doc.distribution?.tlp && (
+                        <FlexItem>
+                          <Label>
+                            TLP: {doc.distribution.tlp.label}
+                          </Label>
+                        </FlexItem>
+                      )}
+                    </Flex>
+                  </FlexItem>
                 </Flex>
               </StackItem>
 
@@ -188,7 +245,7 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                     <DescriptionListTerm>Publisher</DescriptionListTerm>
                     <DescriptionListDescription>
                       {doc.publisher.name}{" "}
-                      <Label variant="outline" color="gold">
+                      <Label variant="outline" isCompact>
                         {doc.publisher.category}
                       </Label>
                     </DescriptionListDescription>
@@ -221,142 +278,352 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
         </Card>
       </StackItem>
 
+      {/* Summary cards */}
       <StackItem>
         <Grid hasGutter>
-          <GridItem md={4}>
+          <GridItem md={6}>
             <Card isFullHeight>
               <CardBody>
-                <Title headingLevel="h3" size="md">
-                  Vulnerabilities
-                </Title>
-                <Content
-                  component="p"
-                  style={{ fontSize: "var(--pf-v6-global--FontSize--3xl)" }}
-                >
-                  <strong>{vulnerabilities.length}</strong>{" "}
-                  <Content
-                    component="small"
-                    style={{ color: "var(--pf-v6-global--Color--200)" }}
-                  >
-                    total
-                  </Content>
-                </Content>
-                {severityCounts.length > 0 && (
-                  <div style={{ height: "120px", width: "100%" }}>
-                    <Chart
-                      height={120}
-                      padding={{ top: 10, bottom: 30, left: 80, right: 20 }}
-                      domainPadding={{ x: 15 }}
+                <Stack hasGutter>
+                  <StackItem>
+                    <Title headingLevel="h3" size="md">
+                      Impact summary
+                    </Title>
+                    <Content
+                      component="small"
+                      style={{ color: "var(--pf-v6-global--Color--200)" }}
                     >
-                      <ChartAxis
-                        style={{
-                          tickLabels: { fontSize: 12 },
-                          axis: { stroke: "transparent" },
+                      {vulnerabilities.length} CVE
+                      {vulnerabilities.length !== 1 ? "s" : ""} affecting{" "}
+                      {totalProducts} product
+                      {totalProducts !== 1 ? "s" : ""}
+                    </Content>
+                  </StackItem>
+                  <StackItem>
+                    <div
+                      style={{
+                        height: Math.max(120, impactData.length * 50 + 40),
+                        width: "100%",
+                      }}
+                    >
+                      <Chart
+                        height={Math.max(
+                          120,
+                          impactData.length * 50 + 40
+                        )}
+                        padding={{
+                          top: 10,
+                          bottom: 35,
+                          left: 90,
+                          right: 30,
                         }}
-                      />
-                      <ChartAxis
-                        dependentAxis
-                        style={{
-                          tickLabels: { fontSize: 10 },
-                          axis: { stroke: "transparent" },
-                          grid: { stroke: "#D2D2D2", strokeDasharray: "3,3" },
-                        }}
-                      />
-                      <ChartBar
-                        horizontal
-                        data={severityCounts.map((s) => ({
-                          x: s.severity.charAt(0).toUpperCase() + s.severity.slice(1),
-                          y: s.count,
-                        }))}
-                        style={{
-                          data: {
-                            fill: ({ datum }: { datum: { x: string } }) => {
-                              return (
-                                SEVERITY_COLORS[datum.x.toLowerCase()] ??
-                                SEVERITY_COLORS.unknown
-                              );
+                        domainPadding={{ x: 15 }}
+                      >
+                        <ChartAxis
+                          style={{
+                            tickLabels: { fontSize: 12 },
+                            axis: { stroke: "transparent" },
+                          }}
+                        />
+                        <ChartAxis
+                          dependentAxis
+                          style={{
+                            tickLabels: { fontSize: 10 },
+                            axis: { stroke: "transparent" },
+                            grid: {
+                              stroke: "#D2D2D2",
+                              strokeDasharray: "3,3",
                             },
-                          },
+                          }}
+                        />
+                        <ChartStack horizontal>
+                          <ChartBar
+                            data={impactData.map((d) => ({
+                              x:
+                                d.severity.charAt(0).toUpperCase() +
+                                d.severity.slice(1),
+                              y: d.cveCount,
+                              label: `${d.cveCount} CVE${d.cveCount !== 1 ? "s" : ""}`,
+                            }))}
+                            style={{
+                              data: {
+                                fill: ({
+                                  datum,
+                                }: {
+                                  datum: { x: string };
+                                }) =>
+                                  SEVERITY_COLORS[
+                                    datum.x.toLowerCase()
+                                  ] ?? SEVERITY_COLORS.unknown,
+                              },
+                            }}
+                            barWidth={20}
+                            labelComponent={
+                              <ChartTooltip constrainToVisibleArea />
+                            }
+                          />
+                          <ChartBar
+                            data={impactData.map((d) => ({
+                              x:
+                                d.severity.charAt(0).toUpperCase() +
+                                d.severity.slice(1),
+                              y: d.productCount,
+                              label: `${d.productCount} product${d.productCount !== 1 ? "s" : ""} affected`,
+                            }))}
+                            style={{
+                              data: {
+                                fill: ({
+                                  datum,
+                                }: {
+                                  datum: { x: string };
+                                }) => {
+                                  const base =
+                                    SEVERITY_COLORS[
+                                      datum.x.toLowerCase()
+                                    ] ?? SEVERITY_COLORS.unknown;
+                                  return `${base}80`;
+                                },
+                              },
+                            }}
+                            barWidth={20}
+                            labelComponent={
+                              <ChartTooltip constrainToVisibleArea />
+                            }
+                          />
+                        </ChartStack>
+                      </Chart>
+                    </div>
+                  </StackItem>
+                  <StackItem>
+                    <Flex gap={{ default: "gapMd" }}>
+                      <FlexItem>
+                        <Flex
+                          gap={{ default: "gapXs" }}
+                          alignItems={{ default: "alignItemsCenter" }}
+                        >
+                          <FlexItem>
+                            <span
+                              style={{
+                                display: "inline-block",
+                                width: 12,
+                                height: 12,
+                                backgroundColor: "#8A8D90",
+                                borderRadius: 2,
+                              }}
+                            />
+                          </FlexItem>
+                          <FlexItem>
+                            <Content
+                              component="small"
+                              style={{
+                                color: "var(--pf-v6-global--Color--200)",
+                              }}
+                            >
+                              CVEs
+                            </Content>
+                          </FlexItem>
+                        </Flex>
+                      </FlexItem>
+                      <FlexItem>
+                        <Flex
+                          gap={{ default: "gapXs" }}
+                          alignItems={{ default: "alignItemsCenter" }}
+                        >
+                          <FlexItem>
+                            <span
+                              style={{
+                                display: "inline-block",
+                                width: 12,
+                                height: 12,
+                                backgroundColor: "#8A8D9080",
+                                borderRadius: 2,
+                              }}
+                            />
+                          </FlexItem>
+                          <FlexItem>
+                            <Content
+                              component="small"
+                              style={{
+                                color: "var(--pf-v6-global--Color--200)",
+                              }}
+                            >
+                              Products affected
+                            </Content>
+                          </FlexItem>
+                        </Flex>
+                      </FlexItem>
+                    </Flex>
+                  </StackItem>
+                </Stack>
+              </CardBody>
+            </Card>
+          </GridItem>
+
+          <GridItem md={6}>
+            <Card isFullHeight>
+              <CardBody>
+                <Stack hasGutter>
+                  <StackItem>
+                    <Title headingLevel="h3" size="md">
+                      Remediation status
+                    </Title>
+                    <Content
+                      component="small"
+                      style={{ color: "var(--pf-v6-global--Color--200)" }}
+                    >
+                      Fix availability across affected products
+                    </Content>
+                  </StackItem>
+                  <StackItem>
+                    <div
+                      style={{
+                        height: "230px",
+                        width: "100%",
+                        maxWidth: "350px",
+                        margin: "0 auto",
+                      }}
+                    >
+                      <ChartDonut
+                        constrainToVisibleArea
+                        legendOrientation="vertical"
+                        legendPosition="right"
+                        padding={{
+                          bottom: 20,
+                          left: 20,
+                          right: 140,
+                          top: 20,
                         }}
-                        barWidth={18}
+                        title={`${donutData.total}`}
+                        subTitle="entries"
+                        width={350}
+                        height={230}
+                        legendData={donutData.legendData}
+                        data={donutData.data}
+                        labels={({ datum }) => `${datum.x}: ${datum.y}`}
+                        colorScale={donutData.colorScale}
                       />
-                    </Chart>
-                  </div>
-                )}
-              </CardBody>
-            </Card>
-          </GridItem>
-
-          <GridItem md={4}>
-            <Card isFullHeight>
-              <CardBody>
-                <Title headingLevel="h3" size="md">
-                  Products
-                </Title>
-                <Content
-                  component="p"
-                  style={{ fontSize: "var(--pf-v6-global--FontSize--3xl)" }}
-                >
-                  <strong>{totalProducts}</strong>{" "}
-                  <Content
-                    component="small"
-                    style={{ color: "var(--pf-v6-global--Color--200)" }}
-                  >
-                    total
-                  </Content>
-                </Content>
-                <DescriptionList isCompact>
-                  <DescriptionListGroup>
-                    <DescriptionListTerm>From branches</DescriptionListTerm>
-                    <DescriptionListDescription>
-                      {branchProducts.length}
-                    </DescriptionListDescription>
-                  </DescriptionListGroup>
-                  <DescriptionListGroup>
-                    <DescriptionListTerm>
-                      From relationships
-                    </DescriptionListTerm>
-                    <DescriptionListDescription>
-                      {relationshipProducts.length}
-                    </DescriptionListDescription>
-                  </DescriptionListGroup>
-                </DescriptionList>
-              </CardBody>
-            </Card>
-          </GridItem>
-
-          <GridItem md={4}>
-            <Card isFullHeight>
-              <CardBody>
-                <Title headingLevel="h3" size="md">
-                  Product status
-                </Title>
-                <div style={{ height: "230px", width: "100%", maxWidth: "350px", margin: "0 auto" }}>
-                  <ChartDonut
-                    constrainToVisibleArea
-                    legendOrientation="vertical"
-                    legendPosition="right"
-                    padding={{
-                      bottom: 20,
-                      left: 20,
-                      right: 140,
-                      top: 20,
-                    }}
-                    title={`${donutData.total}`}
-                    subTitle="entries"
-                    width={350}
-                    height={230}
-                    legendData={donutData.legendData}
-                    data={donutData.data}
-                    labels={({ datum }) => `${datum.x}: ${datum.y}`}
-                    colorScale={donutData.colorScale}
-                  />
-                </div>
+                    </div>
+                  </StackItem>
+                </Stack>
               </CardBody>
             </Card>
           </GridItem>
         </Grid>
       </StackItem>
+
+      {/* Document references */}
+      {doc.references && doc.references.length > 0 && (
+        <StackItem>
+          <Card>
+            <CardBody>
+              <Stack hasGutter>
+                <StackItem>
+                  <Title headingLevel="h3" size="md">
+                    Document references
+                  </Title>
+                </StackItem>
+                <StackItem>
+                  <Flex
+                    direction={{ default: "column" }}
+                    gap={{ default: "gapSm" }}
+                  >
+                    {doc.references.map((ref) => (
+                      <FlexItem key={ref.url}>
+                        <a
+                          href={ref.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          {ref.summary}
+                          <ExternalLinkAltIcon
+                            style={{
+                              fontSize: "var(--pf-v6-global--FontSize--xs)",
+                            }}
+                          />
+                        </a>
+                        {ref.category && ref.category !== "self" && (
+                          <Label
+                            variant="outline"
+                            isCompact
+                            style={{ marginLeft: 8 }}
+                          >
+                            {ref.category}
+                          </Label>
+                        )}
+                      </FlexItem>
+                    ))}
+                  </Flex>
+                </StackItem>
+              </Stack>
+            </CardBody>
+          </Card>
+        </StackItem>
+      )}
+
+      {/* Revision history */}
+      {doc.tracking.revision_history &&
+        doc.tracking.revision_history.length > 0 && (
+          <StackItem>
+            <Card>
+              <CardBody>
+                <Stack hasGutter>
+                  <StackItem>
+                    <Title headingLevel="h3" size="md">
+                      Revision history
+                    </Title>
+                  </StackItem>
+                  <StackItem>
+                    <DescriptionList isHorizontal isCompact>
+                      {[...doc.tracking.revision_history]
+                        .sort(
+                          (a, b) =>
+                            new Date(b.date).getTime() -
+                            new Date(a.date).getTime()
+                        )
+                        .map((rev) => (
+                          <DescriptionListGroup key={rev.number}>
+                            <DescriptionListTerm>
+                              <Flex
+                                gap={{ default: "gapSm" }}
+                                alignItems={{
+                                  default: "alignItemsCenter",
+                                }}
+                              >
+                                <FlexItem>
+                                  <Label variant="outline" isCompact>
+                                    v{rev.number}
+                                  </Label>
+                                </FlexItem>
+                                <FlexItem>
+                                  <Content
+                                    component="small"
+                                    style={{
+                                      color:
+                                        "var(--pf-v6-global--Color--200)",
+                                    }}
+                                  >
+                                    {formatDate(rev.date)}
+                                  </Content>
+                                </FlexItem>
+                              </Flex>
+                            </DescriptionListTerm>
+                            <DescriptionListDescription>
+                              {rev.summary}
+                            </DescriptionListDescription>
+                          </DescriptionListGroup>
+                        ))}
+                    </DescriptionList>
+                  </StackItem>
+                </Stack>
+              </CardBody>
+            </Card>
+          </StackItem>
+        )}
     </Stack>
   );
 };
