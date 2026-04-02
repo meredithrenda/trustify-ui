@@ -112,16 +112,6 @@ export const SidebarApp: React.FC = () => {
               Cryptography
             </NavLink>
           </li>
-          <li className={nav.navItem}>
-            <NavLink
-              to={Paths.csafVisualizer}
-              className={({ isActive }) => {
-                return css(LINK_CLASS, isActive ? ACTIVE_LINK_CLASS : "");
-              }}
-            >
-              CSAF VEX Visualizer
-            </NavLink>
-          </li>
         </NavList>
       </Nav>
     );

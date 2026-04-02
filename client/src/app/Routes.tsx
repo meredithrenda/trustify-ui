@@ -40,7 +40,6 @@ const Search = lazy(() => import("./pages/search"));
 const ImporterList = lazy(() => import("./pages/importer-list"));
 const LicenseList = lazy(() => import("./pages/license-list"));
 const CBOMInventory = lazy(() => import("./pages/cbom-inventory"));
-const CsafVisualizer = lazy(() => import("./pages/csaf-visualizer"));
 const NotFound = lazy(() => import("./pages/not-found"));
 
 export enum PathParam {
@@ -67,7 +66,6 @@ export const Paths = {
   importers: "/importers",
   licenses: "/licenses",
   cbomInventory: "/cbom-prototype",
-  csafVisualizer: "/csaf-visualizer",
 } as const;
 
 export const usePathFromParams = (
@@ -260,15 +258,6 @@ export const AppRoutes = createBrowserRouter([
           <LazyRouteElement
             identifier="cbom-inventory"
             component={<CBOMInventory />}
-          />
-        ),
-      },
-      {
-        path: Paths.csafVisualizer,
-        element: (
-          <LazyRouteElement
-            identifier="csaf-visualizer"
-            component={<CsafVisualizer />}
           />
         ),
       },

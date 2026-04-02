@@ -25,6 +25,9 @@ import {
   requestParamsQuery,
 } from "@app/hooks/table-controls";
 import { useUpload } from "@app/hooks/useUpload";
+import { mockAdvisories } from "@app/mocks/advisories";
+
+declare const __MOCK_DATA__: boolean;
 
 export interface IAdvisoriesQueryParams {
   filterText?: string;
@@ -39,6 +42,9 @@ export const useFetchAdvisoryLabels = (filterText: string) => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [AdvisoriesQueryKey, "labels", filterText],
     queryFn: () => {
+      if (__MOCK_DATA__) {
+        return Promise.resolve({ data: [] });
+      }
       return listAdvisoryLabels({
         client,
         query: { limit: 10, filter_text: filterText },
@@ -66,6 +72,11 @@ export const useFetchAdvisories = (
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [AdvisoriesQueryKey, params, labelQuery],
     queryFn: () => {
+      if (__MOCK_DATA__) {
+        return Promise.resolve({
+          data: { items: mockAdvisories, total: mockAdvisories.length },
+        });
+      }
       return listAdvisories({
         client,
         query: {
@@ -90,7 +101,15 @@ export const useFetchAdvisories = (
 
 export const advisoryByIdQueryOptions = (id: string) => ({
   queryKey: [AdvisoriesQueryKey, id],
-  queryFn: () => getAdvisory({ client, path: { key: id } }),
+  queryFn: () => {
+    if (__MOCK_DATA__) {
+      const found = mockAdvisories.find(
+        (a) => a.uuid === id || a.identifier === id,
+      );
+      return Promise.resolve({ data: found ?? mockAdvisories[0] });
+    }
+    return getAdvisory({ client, path: { key: id } });
+  },
 });
 
 export const useFetchAdvisoryById = (id: string) => {

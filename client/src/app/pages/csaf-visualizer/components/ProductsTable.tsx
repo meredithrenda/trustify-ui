@@ -10,6 +10,9 @@ import {
   Card,
   CardBody,
   Content,
+  Flex,
+  FlexItem,
+  Label,
   Stack,
   StackItem,
   Title,
@@ -183,37 +186,33 @@ export const ProductsTable: React.FC<Props> = ({ data }) => {
           </StackItem>
 
           <StackItem>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "var(--pf-v6-global--spacer--sm)",
-                marginBottom: "var(--pf-v6-global--spacer--xs)",
-              }}
+            <Flex
+              gap={{ default: "gapSm" }}
+              flexWrap={{ default: "wrap" }}
             >
               {CATEGORY_LABELS.map((cat) => (
-                <span
-                  key={cat}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    fontSize: "var(--pf-v6-global--FontSize--xs)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "inline-block",
-                      width: 10,
-                      height: 10,
-                      borderRadius: "50%",
-                      backgroundColor: CATEGORY_COLORS[cat] ?? "#8A8D90",
-                      marginRight: 6,
-                    }}
-                  />
-                  {cat.replace(/_/g, " ")}
-                </span>
+                <FlexItem key={cat}>
+                  <Label
+                    variant="outline"
+                    isCompact
+                    icon={
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          backgroundColor:
+                            CATEGORY_COLORS[cat] ?? "#8A8D90",
+                        }}
+                      />
+                    }
+                  >
+                    {cat.replace(/_/g, " ")}
+                  </Label>
+                </FlexItem>
               ))}
-            </div>
+            </Flex>
           </StackItem>
 
           <StackItem>

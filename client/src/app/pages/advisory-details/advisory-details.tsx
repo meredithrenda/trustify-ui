@@ -45,6 +45,7 @@ import {
 
 import { Overview } from "./overview";
 import { VulnerabilitiesByAdvisory } from "./vulnerabilities-by-advisory";
+import { CsafTabContent } from "./csaf-advisory-tabs";
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
 
 export const AdvisoryDetails: React.FC = () => {
@@ -54,7 +55,8 @@ export const AdvisoryDetails: React.FC = () => {
   const advisoryId = useRouteParams(PathParam.ADVISORY_ID);
   const { advisory, isFetching, fetchError } = useFetchAdvisoryById(advisoryId);
 
-  // Actions Dropdown
+  const isCsaf = advisory?.labels.type === "csaf";
+
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] =
     React.useState(false);
 
@@ -62,10 +64,8 @@ export const AdvisoryDetails: React.FC = () => {
     setIsActionsDropdownOpen(!isActionsDropdownOpen);
   };
 
-  // Download action
   const { downloadAdvisory } = useDownload();
 
-  // Delete action
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const onDeleteAdvisorySuccess = (advisory: AdvisorySummary) => {
@@ -87,17 +87,39 @@ export const AdvisoryDetails: React.FC = () => {
   const { mutate: deleteAdvisory, isPending: isDeleting } =
     useDeleteAdvisoryMutation(onDeleteAdvisorySuccess, onDeleteAdvisoryError);
 
-  // Tabs
+  const csafTabKeys = [
+    "csaf-overview",
+    "csaf-vulnerabilities",
+    "csaf-products",
+    "csaf-relationships",
+  ] as const;
+
+  const defaultTabKeys = ["info", "vulnerabilities"] as const;
+
+  const csafTabs = useTabControls({
+    persistenceKeyPrefix: "adc",
+    persistTo: "urlParams",
+    tabKeys: [...csafTabKeys],
+  });
+
+  const defaultTabs = useTabControls({
+    persistenceKeyPrefix: "ad",
+    persistTo: "urlParams",
+    tabKeys: [...defaultTabKeys],
+  });
+
+  const tabControls = isCsaf ? csafTabs : defaultTabs;
+
   const {
     propHelpers: { getTabsProps, getTabProps, getTabContentProps },
-  } = useTabControls({
-    persistenceKeyPrefix: "ad", // ad="advisory details"
-    persistTo: "urlParams",
-    tabKeys: ["info", "vulnerabilities"],
-  });
+  } = tabControls;
 
   const infoTabRef = React.createRef<HTMLElement>();
   const vulnerabilitiesTabRef = React.createRef<HTMLElement>();
+  const csafOverviewRef = React.createRef<HTMLElement>();
+  const csafVulnerabilitiesRef = React.createRef<HTMLElement>();
+  const csafProductsRef = React.createRef<HTMLElement>();
+  const csafRelationshipsRef = React.createRef<HTMLElement>();
 
   return (
     <>
@@ -184,39 +206,101 @@ export const AdvisoryDetails: React.FC = () => {
           aria-label="Tabs that contain the Advisory information"
           role="region"
         >
-          <Tab
-            {...getTabProps("info")}
-            title={<TabTitleText>Info</TabTitleText>}
-            tabContentRef={infoTabRef}
-          />
-          <Tab
-            {...getTabProps("vulnerabilities")}
-            title={<TabTitleText>Vulnerabilities</TabTitleText>}
-            tabContentRef={vulnerabilitiesTabRef}
-          />
+          {isCsaf ? (
+            <>
+              <Tab
+                {...getTabProps("csaf-overview")}
+                title={<TabTitleText>Overview</TabTitleText>}
+                tabContentRef={csafOverviewRef}
+              />
+              <Tab
+                {...getTabProps("csaf-vulnerabilities")}
+                title={<TabTitleText>Vulnerabilities</TabTitleText>}
+                tabContentRef={csafVulnerabilitiesRef}
+              />
+              <Tab
+                {...getTabProps("csaf-products")}
+                title={<TabTitleText>Products</TabTitleText>}
+                tabContentRef={csafProductsRef}
+              />
+              <Tab
+                {...getTabProps("csaf-relationships")}
+                title={<TabTitleText>Relationship Tree</TabTitleText>}
+                tabContentRef={csafRelationshipsRef}
+              />
+            </>
+          ) : (
+            <>
+              <Tab
+                {...getTabProps("info")}
+                title={<TabTitleText>Info</TabTitleText>}
+                tabContentRef={infoTabRef}
+              />
+              <Tab
+                {...getTabProps("vulnerabilities")}
+                title={<TabTitleText>Vulnerabilities</TabTitleText>}
+                tabContentRef={vulnerabilitiesTabRef}
+              />
+            </>
+          )}
         </Tabs>
       </PageSection>
       <PageSection>
-        <TabContent
-          {...getTabContentProps("info")}
-          ref={infoTabRef}
-          aria-label="Information of the Advisory"
-        >
-          <LoadingWrapper isFetching={isFetching} fetchError={fetchError}>
-            {advisory && <Overview advisory={advisory} />}
-          </LoadingWrapper>
-        </TabContent>
-        <TabContent
-          {...getTabContentProps("vulnerabilities")}
-          ref={vulnerabilitiesTabRef}
-          aria-label="Vulnerabilities within the Advisory"
-        >
-          <VulnerabilitiesByAdvisory
-            isFetching={isFetching}
-            fetchError={fetchError}
-            vulnerabilities={advisory?.vulnerabilities || []}
-          />
-        </TabContent>
+        {isCsaf ? (
+          <>
+            <TabContent
+              {...getTabContentProps("csaf-overview")}
+              ref={csafOverviewRef}
+              aria-label="CSAF Overview"
+            >
+              <CsafTabContent activeTab="csaf-overview" />
+            </TabContent>
+            <TabContent
+              {...getTabContentProps("csaf-vulnerabilities")}
+              ref={csafVulnerabilitiesRef}
+              aria-label="CSAF Vulnerabilities"
+            >
+              <CsafTabContent activeTab="csaf-vulnerabilities" />
+            </TabContent>
+            <TabContent
+              {...getTabContentProps("csaf-products")}
+              ref={csafProductsRef}
+              aria-label="CSAF Products"
+            >
+              <CsafTabContent activeTab="csaf-products" />
+            </TabContent>
+            <TabContent
+              {...getTabContentProps("csaf-relationships")}
+              ref={csafRelationshipsRef}
+              aria-label="CSAF Relationship Tree"
+            >
+              <CsafTabContent activeTab="csaf-relationships" />
+            </TabContent>
+          </>
+        ) : (
+          <>
+            <TabContent
+              {...getTabContentProps("info")}
+              ref={infoTabRef}
+              aria-label="Information of the Advisory"
+            >
+              <LoadingWrapper isFetching={isFetching} fetchError={fetchError}>
+                {advisory && <Overview advisory={advisory} />}
+              </LoadingWrapper>
+            </TabContent>
+            <TabContent
+              {...getTabContentProps("vulnerabilities")}
+              ref={vulnerabilitiesTabRef}
+              aria-label="Vulnerabilities within the Advisory"
+            >
+              <VulnerabilitiesByAdvisory
+                isFetching={isFetching}
+                fetchError={fetchError}
+                vulnerabilities={advisory?.vulnerabilities || []}
+              />
+            </TabContent>
+          </>
+        )}
       </PageSection>
 
       <ConfirmDialog

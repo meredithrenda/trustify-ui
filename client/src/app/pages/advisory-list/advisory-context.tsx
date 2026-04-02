@@ -27,7 +27,7 @@ interface IAdvisorySearchContext {
     AdvisorySummary,
     "identifier" | "title" | "type" | "labels" | "modified" | "vulnerabilities",
     "identifier" | "modified",
-    "" | "average_severity" | "modified" | "labels",
+    "" | "average_severity" | "modified" | "labels" | "type",
     string
   >;
 
@@ -91,6 +91,17 @@ export const AdvisorySearchProvider: React.FunctionComponent<
         categoryKey: "modified",
         title: "Revision",
         type: FilterType.dateRange,
+      },
+      {
+        categoryKey: "type",
+        title: "Type",
+        type: FilterType.select,
+        placeholderText: "Filter by type",
+        selectOptions: [
+          { value: "csaf", label: "CSAF" },
+          { value: "osv", label: "OSV" },
+          { value: "cve", label: "CVE" },
+        ],
       },
       {
         categoryKey: "labels",

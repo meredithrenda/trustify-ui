@@ -10,6 +10,9 @@ import {
   Card,
   CardBody,
   Content,
+  Flex,
+  FlexItem,
+  Label,
   Stack,
   StackItem,
   Title,
@@ -293,78 +296,66 @@ export const RelationshipTree: React.FC<Props> = ({ data }) => {
           </StackItem>
 
           <StackItem>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "var(--pf-v6-global--spacer--md)",
-                marginBottom: "var(--pf-v6-global--spacer--xs)",
-              }}
+            <Flex
+              gap={{ default: "gapSm" }}
+              flexWrap={{ default: "wrap" }}
+              alignItems={{ default: "alignItemsCenter" }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "var(--pf-v6-global--spacer--sm)",
-                }}
-              >
-                {NODE_CATEGORY_LABELS.map((cat) => (
-                  <span
-                    key={cat}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      fontSize: "var(--pf-v6-global--FontSize--xs)",
-                    }}
+              {NODE_CATEGORY_LABELS.map((cat) => (
+                <FlexItem key={cat}>
+                  <Label
+                    variant="outline"
+                    isCompact
+                    icon={
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          backgroundColor:
+                            CATEGORY_COLORS[cat] ?? "#8A8D90",
+                        }}
+                      />
+                    }
                   >
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: 10,
-                        height: 10,
-                        borderRadius: "50%",
-                        backgroundColor: CATEGORY_COLORS[cat] ?? "#8A8D90",
-                        marginRight: 6,
-                      }}
-                    />
                     {cat.replace(/_/g, " ")}
-                  </span>
-                ))}
-              </div>
+                  </Label>
+                </FlexItem>
+              ))}
 
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "var(--pf-v6-global--spacer--sm)",
-                  borderLeft:
-                    "1px solid var(--pf-v6-global--BorderColor--100)",
-                  paddingLeft: "var(--pf-v6-global--spacer--md)",
-                }}
-              >
-                {RELATIONSHIP_LABELS.map((rel) => (
-                  <span
-                    key={rel}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      fontSize: "var(--pf-v6-global--FontSize--xs)",
-                    }}
+              <FlexItem>
+                <span
+                  style={{
+                    borderLeft:
+                      "1px solid var(--pf-v6-global--BorderColor--100)",
+                    height: 20,
+                    display: "inline-block",
+                  }}
+                />
+              </FlexItem>
+
+              {RELATIONSHIP_LABELS.map((rel) => (
+                <FlexItem key={rel}>
+                  <Label
+                    variant="outline"
+                    isCompact
+                    icon={
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 16,
+                          height: 0,
+                          borderTop: `2px ${RELATIONSHIP_LINE_STYLES[rel] ?? "solid"} ${RELATIONSHIP_COLORS[rel] ?? "#8A8D90"}`,
+                        }}
+                      />
+                    }
                   >
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: 20,
-                        height: 0,
-                        borderTop: `2px ${RELATIONSHIP_LINE_STYLES[rel] ?? "solid"} ${RELATIONSHIP_COLORS[rel] ?? "#8A8D90"}`,
-                        marginRight: 6,
-                      }}
-                    />
                     {rel.replace(/_/g, " ")}
-                  </span>
-                ))}
-              </div>
-            </div>
+                  </Label>
+                </FlexItem>
+              ))}
+            </Flex>
           </StackItem>
 
           <StackItem>
