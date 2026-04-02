@@ -26,6 +26,7 @@ import {
   TabContent,
   Tabs,
   TabTitleText,
+  Title,
 } from "@patternfly/react-core";
 import HelpIcon from "@patternfly/react-icons/dist/esm/icons/help-icon";
 
@@ -39,15 +40,28 @@ import type { SbomSummary } from "@app/client";
 import { ConfirmDialog } from "@app/components/ConfirmDialog";
 import { LoadingWrapper } from "@app/components/LoadingWrapper";
 import { NotificationsContext } from "@app/components/NotificationsContext";
+import { PageDrawerContent } from "@app/components/PageDrawerContext";
 import { useDownload } from "@app/hooks/domain-controls/useDownload";
 import { useTabControls } from "@app/hooks/tab-controls";
 import { useDeleteSbomMutation, useFetchSBOMById } from "@app/queries/sboms";
+import { mockModels } from "@app/mocks/models";
 
 import { Overview } from "./overview";
 import { PackagesBySbom } from "./packages-by-sbom";
 import { VulnerabilitiesBySbom } from "./vulnerabilities-by-sbom";
-import { Cryptography } from "./cryptography";
+import {
+  Cryptography,
+  CryptoDetailContent,
+  type CryptographicAsset,
+} from "./cryptography";
+import { ModelList } from "@app/pages/models/components/ModelList";
+import { ModelDetailDrawer } from "@app/pages/models/components/ModelDetailDrawer";
+import type { AIModel } from "@app/pages/models/types";
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
+
+type DrawerItem =
+  | { kind: "crypto"; asset: CryptographicAsset }
+  | { kind: "model"; model: AIModel };
 
 export const SbomDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -56,7 +70,6 @@ export const SbomDetails: React.FC = () => {
   const sbomId = useRouteParams(PathParam.SBOM_ID);
   const { sbom, isFetching, fetchError } = useFetchSBOMById(sbomId);
 
-  // Actions Dropdown
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] =
     React.useState(false);
 
@@ -64,10 +77,8 @@ export const SbomDetails: React.FC = () => {
     setIsActionsDropdownOpen(!isActionsDropdownOpen);
   };
 
-  // Download action
   const { downloadSBOM, downloadSBOMLicenses } = useDownload();
 
-  // Delete action
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const onDeleteSbomSuccess = (sbom: SbomSummary) => {
@@ -91,25 +102,82 @@ export const SbomDetails: React.FC = () => {
     onDeleteAdvisoryError,
   );
 
-  // Tabs
+  const isAibom = sbom?.labels.kind === "aibom";
+
+  const aibomTabs = useTabControls({
+    persistenceKeyPrefix: "sda",
+    persistTo: "urlParams",
+    tabKeys: [
+      "info",
+      "packages",
+      "vulnerabilities",
+      "cryptography",
+      "models",
+    ] as const,
+  });
+
+  const defaultTabs = useTabControls({
+    persistenceKeyPrefix: "sd",
+    persistTo: "urlParams",
+    tabKeys: [
+      "info",
+      "packages",
+      "vulnerabilities",
+      "cryptography",
+    ] as const,
+  });
+
   const {
     propHelpers: { getTabsProps, getTabProps, getTabContentProps },
-  } = useTabControls({
-    persistenceKeyPrefix: "sd", // sb="sbom details"
-    persistTo: "urlParams",
-    tabKeys: ["info", "packages", "vulnerabilities", "cryptography"],
-  });
+  } = isAibom ? aibomTabs : defaultTabs;
 
   const infoTabRef = React.createRef<HTMLElement>();
   const packagesTabRef = React.createRef<HTMLElement>();
   const vulnerabilitiesTabRef = React.createRef<HTMLElement>();
   const cryptographyTabRef = React.createRef<HTMLElement>();
+  const modelsTabRef = React.createRef<HTMLElement>();
 
-  // Tabs popover refs
   const vulnerabilitiesTabPopoverRef = React.createRef<HTMLElement>();
+
+  const sbomModels = React.useMemo(
+    () => (sbom ? mockModels.filter((m) => m.sbomId === sbom.id) : []),
+    [sbom],
+  );
+
+  const [drawerItem, setDrawerItem] = React.useState<DrawerItem | null>(null);
+
+  const drawerHeader = React.useMemo(() => {
+    if (!drawerItem) return undefined;
+    const label =
+      drawerItem.kind === "crypto"
+        ? drawerItem.asset.algorithm
+        : drawerItem.model.name;
+    return (
+      <Title headingLevel="h2" size="lg">
+        {label}
+      </Title>
+    );
+  }, [drawerItem]);
+
+  const drawerBody = React.useMemo(() => {
+    if (!drawerItem) return <></>;
+    if (drawerItem.kind === "crypto") {
+      return <CryptoDetailContent asset={drawerItem.asset} />;
+    }
+    return <ModelDetailDrawer model={drawerItem.model} />;
+  }, [drawerItem]);
 
   return (
     <>
+      <PageDrawerContent
+        isExpanded={!!drawerItem}
+        onCloseClick={() => setDrawerItem(null)}
+        pageKey="sbom-details"
+        header={drawerHeader}
+      >
+        {drawerBody}
+      </PageDrawerContent>
+
       <DocumentMetadata title={sbom?.name} />
       <PageSection type="breadcrumb">
         <Breadcrumb>
@@ -193,10 +261,10 @@ export const SbomDetails: React.FC = () => {
       </PageSection>
       <PageSection>
         <Tabs
-          mountOnEnter
           {...getTabsProps()}
           aria-label="Tabs that contain the SBOM information"
           role="region"
+          onSelect={() => setDrawerItem(null)}
         >
           <Tab
             {...getTabProps("info")}
@@ -234,6 +302,13 @@ export const SbomDetails: React.FC = () => {
             title={<TabTitleText>Cryptography</TabTitleText>}
             tabContentRef={cryptographyTabRef}
           />
+          {isAibom && (
+            <Tab
+              {...getTabProps("models")}
+              title={<TabTitleText>Models</TabTitleText>}
+              tabContentRef={modelsTabRef}
+            />
+          )}
         </Tabs>
       </PageSection>
       <PageSection>
@@ -265,8 +340,26 @@ export const SbomDetails: React.FC = () => {
           ref={cryptographyTabRef}
           aria-label="Cryptographic libraries in the SBOM"
         >
-          <Cryptography />
+          <Cryptography
+            onSelectAsset={(asset) =>
+              setDrawerItem(asset ? { kind: "crypto", asset } : null)
+            }
+          />
         </TabContent>
+        {isAibom && (
+          <TabContent
+            {...getTabContentProps("models")}
+            ref={modelsTabRef}
+            aria-label="AI models in the SBOM"
+          >
+            <ModelList
+              models={sbomModels}
+              onSelectModel={(model) =>
+                setDrawerItem(model ? { kind: "model", model } : null)
+              }
+            />
+          </TabContent>
+        )}
       </PageSection>
 
       <ConfirmDialog

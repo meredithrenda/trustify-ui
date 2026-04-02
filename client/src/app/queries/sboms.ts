@@ -105,9 +105,12 @@ export const useFetchSBOMs = (
 export const sbomByIdQueryOptions = (id: string | undefined) => ({
   queryKey: [SBOMsQueryKey, id] as const,
   queryFn: () => {
-    return id === undefined
-      ? Promise.resolve(undefined)
-      : getSbom({ client, path: { id: id } });
+    if (id === undefined) return Promise.resolve(undefined);
+    if (__MOCK_DATA__) {
+      const found = mockSboms.find((s) => s.id === id);
+      return Promise.resolve({ data: found ?? mockSboms[0] });
+    }
+    return getSbom({ client, path: { id: id } });
   },
 });
 

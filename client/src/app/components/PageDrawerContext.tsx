@@ -178,13 +178,15 @@ export const PageDrawerContent: React.FC<IPageDrawerContentProps> = ({
           </span>
           <DrawerActions>
             <DrawerCloseButton
-              // We call onCloseClick here instead of setIsDrawerExpanded
-              // because we want the isExpanded prop of PageDrawerContent to be the source of truth.
               onClick={onCloseClick}
             />
           </DrawerActions>
         </DrawerHead>
-        <DrawerPanelBody>{drawerPanelBody}</DrawerPanelBody>
+        <DrawerPanelBody
+          style={{ overflowY: "auto", maxHeight: "calc(100vh - 130px)" }}
+        >
+          {drawerPanelBody}
+        </DrawerPanelBody>
       </>,
     );
   }, [

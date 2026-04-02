@@ -74,6 +74,26 @@ export const SidebarApp: React.FC = () => {
           </li>
           <li className={nav.navItem}>
             <NavLink
+              to={Paths.models}
+              className={({ isActive }) => {
+                return css(LINK_CLASS, isActive ? ACTIVE_LINK_CLASS : "");
+              }}
+            >
+              Models
+            </NavLink>
+          </li>
+          <li className={nav.navItem}>
+            <NavLink
+              to={Paths.cbomInventory}
+              className={({ isActive }) => {
+                return css(LINK_CLASS, isActive ? ACTIVE_LINK_CLASS : "");
+              }}
+            >
+              Cryptography
+            </NavLink>
+          </li>
+          <li className={nav.navItem}>
+            <NavLink
               to={Paths.licenses}
               className={({ isActive }) => {
                 return css(LINK_CLASS, isActive ? ACTIVE_LINK_CLASS : "");
@@ -100,16 +120,6 @@ export const SidebarApp: React.FC = () => {
               }}
             >
               Importers
-            </NavLink>
-          </li>
-          <li className={nav.navItem}>
-            <NavLink
-              to={Paths.cbomInventory}
-              className={({ isActive }) => {
-                return css(LINK_CLASS, isActive ? ACTIVE_LINK_CLASS : "");
-              }}
-            >
-              Cryptography
             </NavLink>
           </li>
         </NavList>

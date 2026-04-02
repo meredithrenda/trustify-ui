@@ -10,6 +10,14 @@ interface LabelsAsListProps {
   onClick?: (label: { key: string; value: string }) => void;
 }
 
+const getLabelColor = (
+  key: string,
+  value: string,
+): "blue" | "purple" | "green" | "teal" | "orange" | "red" | "grey" => {
+  if (key === "kind" && value === "aibom") return "purple";
+  return "blue";
+};
+
 export const LabelsAsList: React.FC<LabelsAsListProps> = ({
   value,
   defaultIsOpen,
@@ -22,7 +30,7 @@ export const LabelsAsList: React.FC<LabelsAsListProps> = ({
         .map(([k, v]) => (
           <Label
             key={k}
-            color="blue"
+            color={getLabelColor(k, v)}
             onClick={onClick ? () => onClick({ key: k, value: v }) : undefined}
           >
             <Truncate content={joinKeyValueAsString({ key: k, value: v })} />

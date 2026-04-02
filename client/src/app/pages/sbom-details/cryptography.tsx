@@ -3,19 +3,12 @@ import React from "react";
 import {
   Card,
   CardBody,
+  CardTitle,
   Content,
   DescriptionList,
   DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  Drawer,
-  DrawerActions,
-  DrawerCloseButton,
-  DrawerContent,
-  DrawerContentBody,
-  DrawerHead,
-  DrawerPanelBody,
-  DrawerPanelContent,
   Label,
   Stack,
   StackItem,
@@ -30,7 +23,7 @@ import {
   Tr,
 } from "@patternfly/react-table";
 
-interface CryptographicAsset {
+export interface CryptographicAsset {
   id: string;
   algorithm: string;
   keyStrength?: number;
@@ -49,8 +42,7 @@ interface CryptographicAsset {
   }>;
 }
 
-// Mock data - in a real implementation, this would come from the SBOM CBOM data
-const mockCryptographicAssets: CryptographicAsset[] = [
+export const mockCryptographicAssets: CryptographicAsset[] = [
   {
     id: "1",
     algorithm: "SHA-1",
@@ -107,7 +99,8 @@ const mockCryptographicAssets: CryptographicAsset[] = [
       {
         location: "pkg/asset/agent/gencrypto/authconfig.go",
         line: 123,
-        context: "priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)",
+        context:
+          "priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)",
       },
     ],
   },
@@ -126,280 +119,294 @@ const mockCryptographicAssets: CryptographicAsset[] = [
   },
 ];
 
+export const getRiskColor = (
+  risk: CryptographicAsset["risk"],
+): "red" | "orange" | "gold" | "green" | "grey" => {
+  switch (risk) {
+    case "Critical":
+      return "red";
+    case "High":
+      return "orange";
+    case "Medium":
+      return "gold";
+    case "Low":
+      return "green";
+    default:
+      return "grey";
+  }
+};
+
+const getTypeColor = (
+  type: CryptographicAsset["type"],
+): "red" | "blue" | "grey" => {
+  switch (type) {
+    case "Hard-coded Insecure Crypto":
+      return "red";
+    case "Library Capability":
+      return "blue";
+    default:
+      return "grey";
+  }
+};
+
+export const CryptoDetailContent: React.FC<{ asset: CryptographicAsset }> = ({
+  asset,
+}) => (
+  <Stack hasGutter>
+    <StackItem>
+      <Card>
+        <CardTitle>Algorithm Details</CardTitle>
+        <CardBody>
+          <DescriptionList
+            isHorizontal
+            isCompact
+            horizontalTermWidthModifier={{ default: "14ch" }}
+          >
+            <DescriptionListGroup>
+              <DescriptionListTerm>Algorithm</DescriptionListTerm>
+              <DescriptionListDescription>
+                {asset.algorithm}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            {asset.keyStrength && (
+              <DescriptionListGroup>
+                <DescriptionListTerm>Key Strength</DescriptionListTerm>
+                <DescriptionListDescription>
+                  {asset.keyStrength} bits
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+            )}
+            {asset.primitive && (
+              <DescriptionListGroup>
+                <DescriptionListTerm>Primitive</DescriptionListTerm>
+                <DescriptionListDescription>
+                  {asset.primitive}
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+            )}
+            {asset.cryptoFunctions && asset.cryptoFunctions.length > 0 && (
+              <DescriptionListGroup>
+                <DescriptionListTerm>Functions</DescriptionListTerm>
+                <DescriptionListDescription>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "4px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {asset.cryptoFunctions.map((func) => (
+                      <Label key={func} color="blue" isCompact>
+                        {func}
+                      </Label>
+                    ))}
+                  </div>
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+            )}
+          </DescriptionList>
+        </CardBody>
+      </Card>
+    </StackItem>
+
+    <StackItem>
+      <Card>
+        <CardTitle>Source & Compliance</CardTitle>
+        <CardBody>
+          <DescriptionList
+            isHorizontal
+            isCompact
+            horizontalTermWidthModifier={{ default: "14ch" }}
+          >
+            <DescriptionListGroup>
+              <DescriptionListTerm>Library</DescriptionListTerm>
+              <DescriptionListDescription>
+                {asset.libraryName} v{asset.libraryVersion}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+              <DescriptionListTerm>Source</DescriptionListTerm>
+              <DescriptionListDescription>
+                {asset.discoverySource}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+              <DescriptionListTerm>Type</DescriptionListTerm>
+              <DescriptionListDescription>
+                <Label color={getTypeColor(asset.type)} isCompact>
+                  {asset.type}
+                </Label>
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+              <DescriptionListTerm>Risk</DescriptionListTerm>
+              <DescriptionListDescription>
+                <Label color={getRiskColor(asset.risk)} isCompact>
+                  {asset.risk}
+                </Label>
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+            <DescriptionListGroup>
+              <DescriptionListTerm>FIPS 140-3</DescriptionListTerm>
+              <DescriptionListDescription>
+                <Label
+                  color={asset.fips140_3Compliant ? "green" : "red"}
+                  isCompact
+                >
+                  {asset.fips140_3Compliant ? "Compliant" : "Not Compliant"}
+                </Label>
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+          </DescriptionList>
+        </CardBody>
+      </Card>
+    </StackItem>
+
+    {asset.occurrences && asset.occurrences.length > 0 && (
+      <StackItem>
+        <Card>
+          <CardTitle>Code Occurrences</CardTitle>
+          <CardBody>
+            <Content
+              component="small"
+              style={{
+                color: "var(--pf-v6-global--Color--200)",
+                marginTop: "var(--pf-v6-global--spacer--xs)",
+                marginBottom: "var(--pf-v6-global--spacer--md)",
+              }}
+            >
+              Found {asset.occurrences.length} occurrence
+              {asset.occurrences.length !== 1 ? "s" : ""} in source code
+            </Content>
+            {asset.occurrences.map((occurrence, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: "var(--pf-v6-global--spacer--sm)",
+                  marginBottom: "var(--pf-v6-global--spacer--xs)",
+                  backgroundColor:
+                    "var(--pf-v6-global--BackgroundColor--200)",
+                  borderLeft:
+                    "3px solid var(--pf-v6-global--primary-color--100)",
+                  borderRadius: "4px",
+                }}
+              >
+                <Content component="p">
+                  <strong>{occurrence.location}</strong>
+                  <span
+                    style={{
+                      marginLeft: "var(--pf-v6-global--spacer--sm)",
+                      color: "var(--pf-v6-global--Color--200)",
+                    }}
+                  >
+                    (line {occurrence.line})
+                  </span>
+                </Content>
+                {occurrence.context && (
+                  <Content
+                    component="p"
+                    style={{
+                      marginTop: "var(--pf-v6-global--spacer--xs)",
+                      fontFamily: "monospace",
+                      fontSize: "var(--pf-v6-global--FontSize--sm)",
+                    }}
+                  >
+                    {occurrence.context}
+                  </Content>
+                )}
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+      </StackItem>
+    )}
+  </Stack>
+);
+
 interface CryptographyProps {
-  sbomId: string;
+  onSelectAsset: (asset: CryptographicAsset | null) => void;
 }
 
-export const Cryptography: React.FC<CryptographyProps> = () => {
-  const [selectedAsset, setSelectedAsset] =
-    React.useState<CryptographicAsset | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-
-  const handleRowClick = (asset: CryptographicAsset) => {
-    setSelectedAsset(asset);
-    setIsDrawerOpen(true);
-  };
-
-  const onDrawerClose = () => {
-    setIsDrawerOpen(false);
-    setSelectedAsset(null);
-  };
-
-  const getRiskColor = (risk: CryptographicAsset["risk"]) => {
-    switch (risk) {
-      case "Critical":
-        return "red";
-      case "High":
-        return "orange";
-      case "Medium":
-        return "yellow";
-      case "Low":
-        return "green";
-      default:
-        return "grey";
-    }
-  };
-
-  const getTypeColor = (type: CryptographicAsset["type"]) => {
-    switch (type) {
-      case "Hard-coded Insecure Crypto":
-        return "red";
-      case "Library Capability":
-        return "blue";
-      default:
-        return "grey";
-    }
-  };
-
-  const columns = ["Algorithm", "Library", "Type", "Risk"];
-
+export const Cryptography: React.FC<CryptographyProps> = ({
+  onSelectAsset,
+}) => {
   return (
-    <Drawer isExpanded={isDrawerOpen} isInline>
-      <DrawerContent
-        panelContent={
-          <DrawerPanelContent>
-            <DrawerHead>
-              <Title headingLevel="h2" size="xl">
-                {selectedAsset?.algorithm || "Select an asset"}
-              </Title>
-              <DrawerActions>
-                <DrawerCloseButton onClose={onDrawerClose} />
-              </DrawerActions>
-            </DrawerHead>
-            <DrawerPanelBody>
-              {selectedAsset ? (
-                <Stack hasGutter>
-                  <StackItem>
-                    <Card>
-                      <CardBody>
-                        <DescriptionList>
-                          <DescriptionListGroup>
-                            <DescriptionListTerm>Algorithm</DescriptionListTerm>
-                            <DescriptionListDescription>
-                              {selectedAsset.algorithm}
-                            </DescriptionListDescription>
-                          </DescriptionListGroup>
-                          {selectedAsset.keyStrength && (
-                            <DescriptionListGroup>
-                              <DescriptionListTerm>Key Strength</DescriptionListTerm>
-                              <DescriptionListDescription>
-                                {selectedAsset.keyStrength} bits
-                              </DescriptionListDescription>
-                            </DescriptionListGroup>
-                          )}
-                          <DescriptionListGroup>
-                            <DescriptionListTerm>Library</DescriptionListTerm>
-                            <DescriptionListDescription>
-                              {selectedAsset.libraryName} v{selectedAsset.libraryVersion}
-                            </DescriptionListDescription>
-                          </DescriptionListGroup>
-                          <DescriptionListGroup>
-                            <DescriptionListTerm>Discovery Source</DescriptionListTerm>
-                            <DescriptionListDescription>
-                              {selectedAsset.discoverySource}
-                            </DescriptionListDescription>
-                          </DescriptionListGroup>
-                          <DescriptionListGroup>
-                            <DescriptionListTerm>Type</DescriptionListTerm>
-                            <DescriptionListDescription>
-                              <Label color={getTypeColor(selectedAsset.type)}>
-                                {selectedAsset.type}
-                              </Label>
-                            </DescriptionListDescription>
-                          </DescriptionListGroup>
-                          <DescriptionListGroup>
-                            <DescriptionListTerm>Risk</DescriptionListTerm>
-                            <DescriptionListDescription>
-                              <Label color={getRiskColor(selectedAsset.risk)}>
-                                {selectedAsset.risk}
-                              </Label>
-                            </DescriptionListDescription>
-                          </DescriptionListGroup>
-                          <DescriptionListGroup>
-                            <DescriptionListTerm>FIPS 140-3 Status</DescriptionListTerm>
-                            <DescriptionListDescription>
-                              <Label
-                                color={selectedAsset.fips140_3Compliant ? "green" : "red"}
-                              >
-                                {selectedAsset.fips140_3Compliant ? "Compliant" : "Not Compliant"}
-                              </Label>
-                            </DescriptionListDescription>
-                          </DescriptionListGroup>
-                          {selectedAsset.primitive && (
-                            <DescriptionListGroup>
-                              <DescriptionListTerm>Primitive Type</DescriptionListTerm>
-                              <DescriptionListDescription>
-                                {selectedAsset.primitive}
-                              </DescriptionListDescription>
-                            </DescriptionListGroup>
-                          )}
-                          {selectedAsset.cryptoFunctions && selectedAsset.cryptoFunctions.length > 0 && (
-                            <DescriptionListGroup>
-                              <DescriptionListTerm>Crypto Functions</DescriptionListTerm>
-                              <DescriptionListDescription>
-                                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                                  {selectedAsset.cryptoFunctions.map((func, index) => (
-                                    <Label key={index} color="blue">
-                                      {func}
-                                    </Label>
-                                  ))}
-                                </div>
-                              </DescriptionListDescription>
-                            </DescriptionListGroup>
-                          )}
-                        </DescriptionList>
-                      </CardBody>
-                    </Card>
-                  </StackItem>
-                  {selectedAsset.occurrences && selectedAsset.occurrences.length > 0 && (
+    <Stack hasGutter>
+      <StackItem>
+        <Title headingLevel="h3" size="lg">
+          Cryptographic Assets
+        </Title>
+        <Content component="p">
+          Cryptographic assets detected in this SBOM. Click an asset to view
+          detailed information.
+        </Content>
+      </StackItem>
+      <StackItem>
+        <Table aria-label="Cryptographic assets table" variant="compact">
+          <Thead>
+            <Tr>
+              <Th>Algorithm</Th>
+              <Th>Library</Th>
+              <Th>Type</Th>
+              <Th>Risk</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {mockCryptographicAssets.map((asset) => (
+              <Tr key={asset.id}>
+                <Td dataLabel="Algorithm">
+                  <Stack>
                     <StackItem>
-                      <Card>
-                        <CardBody>
-                          <Title headingLevel="h3" size="lg">
-                            Code Occurrences
-                          </Title>
-                          <Content style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-                            Found {selectedAsset.occurrences.length} occurrence
-                            {selectedAsset.occurrences.length !== 1 ? "s" : ""} in source code:
-                          </Content>
-                          <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-                            {selectedAsset.occurrences.map((occurrence, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  padding: "var(--pf-v6-global--spacer--sm)",
-                                  marginBottom: "var(--pf-v6-global--spacer--xs)",
-                                  backgroundColor: "var(--pf-v6-global--BackgroundColor--100)",
-                                  borderLeft: "3px solid var(--pf-v6-global--primary-color--100)",
-                                  borderRadius: "4px",
-                                }}
-                              >
-                                <Content>
-                                  <strong>{occurrence.location}</strong>
-                                  {occurrence.line && (
-                                    <span style={{ marginLeft: "0.5rem", color: "var(--pf-v6-global--Color--200)" }}>
-                                      (line {occurrence.line})
-                                    </span>
-                                  )}
-                                </Content>
-                                {occurrence.context && (
-                                  <Content style={{ marginTop: "0.25rem", fontFamily: "monospace", fontSize: "0.875rem" }}>
-                                    {occurrence.context}
-                                  </Content>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </CardBody>
-                      </Card>
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onSelectAsset(asset);
+                        }}
+                      >
+                        {asset.algorithm}
+                      </a>
                     </StackItem>
-                  )}
-                </Stack>
-              ) : (
-                <Content>Select an asset from the table to view details.</Content>
-              )}
-            </DrawerPanelBody>
-          </DrawerPanelContent>
-        }
-      >
-        <DrawerContentBody>
-          <Stack hasGutter>
-            <StackItem>
-              <Title headingLevel="h3" size="lg">
-                Cryptographic Assets
-              </Title>
-              <Content>
-                Cryptographic assets detected in this SBOM. Click an asset to view
-                detailed information including key strength, discovery source, and code
-                occurrences.
-              </Content>
-            </StackItem>
-            <StackItem>
-              <Table aria-label="Cryptographic assets table" variant="compact">
-                <Thead>
-                  <Tr>
-                    {columns.map((column) => (
-                      <Th key={column}>{column}</Th>
-                    ))}
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {mockCryptographicAssets.map((asset) => (
-                    <Tr
-                      key={asset.id}
-                      onClick={() => handleRowClick(asset)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <Td dataLabel={columns[0]}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                          <Content>
-                            <span
-                              style={{
-                                color: "#0066cc",
-                                cursor: "pointer",
-                                textDecoration: "underline",
-                              }}
-                            >
-                              {asset.algorithm}
-                            </span>
-                          </Content>
-                          {asset.keyStrength && (
-                            <Content>
-                              <small>{asset.keyStrength} bits</small>
-                            </Content>
-                          )}
-                        </div>
-                      </Td>
-                      <Td dataLabel={columns[1]}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                          <Content>
-                            {asset.libraryName}
-                          </Content>
-                          {asset.libraryVersion && (
-                            <Content>
-                              <small>v{asset.libraryVersion}</small>
-                            </Content>
-                          )}
-                        </div>
-                      </Td>
-                      <Td dataLabel={columns[2]}>
-                        <Label color={getTypeColor(asset.type)}>
-                          {asset.type}
-                        </Label>
-                      </Td>
-                      <Td dataLabel={columns[3]}>
-                        <Label color={getRiskColor(asset.risk)}>
-                          {asset.risk}
-                        </Label>
-                      </Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </StackItem>
-          </Stack>
-        </DrawerContentBody>
-      </DrawerContent>
-    </Drawer>
+                    {asset.keyStrength && (
+                      <StackItem>
+                        <Content
+                          component="small"
+                          style={{
+                            color: "var(--pf-v6-global--Color--200)",
+                          }}
+                        >
+                          {asset.keyStrength} bits
+                        </Content>
+                      </StackItem>
+                    )}
+                  </Stack>
+                </Td>
+                <Td dataLabel="Library">
+                  <Stack>
+                    <StackItem>{asset.libraryName}</StackItem>
+                    <StackItem>
+                      <Content
+                        component="small"
+                        style={{
+                          color: "var(--pf-v6-global--Color--200)",
+                        }}
+                      >
+                        v{asset.libraryVersion}
+                      </Content>
+                    </StackItem>
+                  </Stack>
+                </Td>
+                <Td dataLabel="Type">
+                  <Label color={getTypeColor(asset.type)}>{asset.type}</Label>
+                </Td>
+                <Td dataLabel="Risk">
+                  <Label color={getRiskColor(asset.risk)}>{asset.risk}</Label>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </StackItem>
+    </Stack>
   );
 };
