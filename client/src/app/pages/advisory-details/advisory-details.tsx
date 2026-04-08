@@ -7,6 +7,8 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   ButtonVariant,
+  CodeBlock,
+  CodeBlockCode,
   Content,
   Divider,
   Dropdown,
@@ -15,16 +17,20 @@ import {
   Flex,
   FlexItem,
   Label,
+  LabelGroup,
   MenuToggle,
   type MenuToggleElement,
   PageSection,
   Split,
   SplitItem,
+  Stack,
+  StackItem,
   Tab,
   TabContent,
   Tabs,
   TabTitleText,
 } from "@patternfly/react-core";
+import ExternalLinkAltIcon from "@patternfly/react-icons/dist/esm/icons/external-link-alt-icon";
 
 import {
   advisoryDeletedErrorMessage,
@@ -42,6 +48,7 @@ import {
   useDeleteAdvisoryMutation,
   useFetchAdvisoryById,
 } from "@app/queries/advisories";
+import { mockCsafDocument } from "@app/mocks/csaf-document";
 
 import { Overview } from "./overview";
 import { VulnerabilitiesByAdvisory } from "./vulnerabilities-by-advisory";
@@ -87,11 +94,29 @@ export const AdvisoryDetails: React.FC = () => {
   const { mutate: deleteAdvisory, isPending: isDeleting } =
     useDeleteAdvisoryMutation(onDeleteAdvisorySuccess, onDeleteAdvisoryError);
 
+  const csafData = React.useMemo(() => {
+    if (!isCsaf || !advisory) return null;
+    const advisoryCveIds = new Set(
+      advisory.vulnerabilities.map((v) => v.identifier),
+    );
+    return {
+      ...mockCsafDocument,
+      vulnerabilities: mockCsafDocument.vulnerabilities.filter((v) =>
+        advisoryCveIds.has(v.cve),
+      ),
+    };
+  }, [isCsaf, advisory]);
+
+  const selfReference = csafData?.document.references?.find(
+    (ref) => ref.category === "self",
+  );
+
   const csafTabKeys = [
     "csaf-overview",
     "csaf-vulnerabilities",
     "csaf-products",
     "csaf-relationships",
+    "csaf-source",
   ] as const;
 
   const defaultTabKeys = ["info", "vulnerabilities"] as const;
@@ -120,6 +145,7 @@ export const AdvisoryDetails: React.FC = () => {
   const csafVulnerabilitiesRef = React.createRef<HTMLElement>();
   const csafProductsRef = React.createRef<HTMLElement>();
   const csafRelationshipsRef = React.createRef<HTMLElement>();
+  const csafSourceRef = React.createRef<HTMLElement>();
 
   return (
     <>
@@ -135,19 +161,30 @@ export const AdvisoryDetails: React.FC = () => {
       <PageSection>
         <Split>
           <SplitItem isFilled>
-            <Flex>
-              <FlexItem spacer={{ default: "spacerSm" }}>
-                <Content>
-                  <Content component="h1">
-                    {advisory?.document_id ?? advisoryId ?? ""}
-                  </Content>
-                  <Content component="p">Advisory detail information</Content>
-                </Content>
-              </FlexItem>
+            <Flex direction={{ default: "column" }} gap={{ default: "gapSm" }}>
               <FlexItem>
-                {advisory?.labels.type && (
-                  <Label color="blue">{advisory?.labels.type}</Label>
-                )}
+                <Flex alignItems={{ default: "alignItemsCenter" }} gap={{ default: "gapMd" }}>
+                  <FlexItem>
+                    <Content>
+                      <Content component="h1">
+                        {advisory?.document_id ?? advisoryId ?? ""}
+                      </Content>
+                    </Content>
+                  </FlexItem>
+                  <FlexItem>
+                    <LabelGroup>
+                      {advisory?.labels &&
+                        Object.entries(advisory.labels).map(([key, value]) => (
+                          <Label
+                            key={key}
+                            color={key === "severity" ? "orange" : "blue"}
+                          >
+                            {key}={value}
+                          </Label>
+                        ))}
+                    </LabelGroup>
+                  </FlexItem>
+                </Flex>
               </FlexItem>
             </Flex>
           </SplitItem>
@@ -228,6 +265,11 @@ export const AdvisoryDetails: React.FC = () => {
                 title={<TabTitleText>Relationship Tree</TabTitleText>}
                 tabContentRef={csafRelationshipsRef}
               />
+              <Tab
+                {...getTabProps("csaf-source")}
+                title={<TabTitleText>Source</TabTitleText>}
+                tabContentRef={csafSourceRef}
+              />
             </>
           ) : (
             <>
@@ -253,28 +295,58 @@ export const AdvisoryDetails: React.FC = () => {
               ref={csafOverviewRef}
               aria-label="CSAF Overview"
             >
-              <CsafTabContent activeTab="csaf-overview" />
+              <CsafTabContent activeTab="csaf-overview" csafData={csafData!} />
             </TabContent>
             <TabContent
               {...getTabContentProps("csaf-vulnerabilities")}
               ref={csafVulnerabilitiesRef}
               aria-label="CSAF Vulnerabilities"
             >
-              <CsafTabContent activeTab="csaf-vulnerabilities" />
+              <CsafTabContent activeTab="csaf-vulnerabilities" csafData={csafData!} />
             </TabContent>
             <TabContent
               {...getTabContentProps("csaf-products")}
               ref={csafProductsRef}
               aria-label="CSAF Products"
             >
-              <CsafTabContent activeTab="csaf-products" />
+              <CsafTabContent activeTab="csaf-products" csafData={csafData!} />
             </TabContent>
             <TabContent
               {...getTabContentProps("csaf-relationships")}
               ref={csafRelationshipsRef}
               aria-label="CSAF Relationship Tree"
             >
-              <CsafTabContent activeTab="csaf-relationships" />
+              <CsafTabContent activeTab="csaf-relationships" csafData={csafData!} />
+            </TabContent>
+            <TabContent
+              {...getTabContentProps("csaf-source")}
+              ref={csafSourceRef}
+              aria-label="CSAF Source JSON"
+            >
+              <Stack hasGutter>
+                {selfReference && (
+                  <StackItem>
+                    <Content>
+                      <a
+                        href={selfReference.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                      >
+                        View original advisory{" "}
+                        <ExternalLinkAltIcon style={{ fontSize: "var(--pf-v6-global--FontSize--xs)" }} />
+                      </a>
+                    </Content>
+                  </StackItem>
+                )}
+                <StackItem>
+                  <CodeBlock>
+                    <CodeBlockCode>
+                      {JSON.stringify(csafData, null, 2)}
+                    </CodeBlockCode>
+                  </CodeBlock>
+                </StackItem>
+              </Stack>
             </TabContent>
           </>
         ) : (

@@ -581,6 +581,29 @@ export const mockCsafDocument: CsafDocument = {
       release_date: "2023-10-12T00:00:00+00:00",
       remediations: [
         {
+          category: "vendor_fix",
+          details:
+            "Before applying this update, make sure all previously released errata relevant to your system have been applied. For details, see https://access.redhat.com/errata/RHSA-2024:2076",
+          product_ids: [
+            "red_hat_enterprise_linux_9:sqlite",
+            "red_hat_enterprise_linux_9:sqlite-devel",
+            "red_hat_enterprise_linux_9:sqlite-libs",
+            "red_hat_enterprise_linux_9:sqlite.src",
+          ],
+          url: "https://access.redhat.com/errata/RHSA-2024:2076",
+        },
+        {
+          category: "workaround",
+          details:
+            "Do not allow untrusted inputs to be used in SQLite database queries. Validate and sanitize all user-supplied data before processing.",
+          product_ids: [
+            "red_hat_enterprise_linux_8:sqlite",
+            "red_hat_enterprise_linux_8:sqlite-devel",
+            "red_hat_enterprise_linux_8:sqlite-libs",
+            "red_hat_enterprise_linux_8:sqlite.src",
+          ],
+        },
+        {
           category: "no_fix_planned",
           details: "Out of support scope",
           product_ids: [
@@ -608,15 +631,6 @@ export const mockCsafDocument: CsafDocument = {
             "red_hat_enterprise_linux_8:mingw32-sqlite-static",
             "red_hat_enterprise_linux_8:mingw64-sqlite",
             "red_hat_enterprise_linux_8:mingw64-sqlite-static",
-            "red_hat_enterprise_linux_8:sqlite",
-            "red_hat_enterprise_linux_8:sqlite-devel",
-            "red_hat_enterprise_linux_8:sqlite-doc",
-            "red_hat_enterprise_linux_8:sqlite-libs",
-            "red_hat_enterprise_linux_8:sqlite.src",
-            "red_hat_enterprise_linux_9:sqlite",
-            "red_hat_enterprise_linux_9:sqlite-devel",
-            "red_hat_enterprise_linux_9:sqlite-libs",
-            "red_hat_enterprise_linux_9:sqlite.src",
           ],
         },
       ],
@@ -703,6 +717,216 @@ export const mockCsafDocument: CsafDocument = {
         },
       ],
       title: "sqlite: use-after-free bug in jsonParseAddNodeArray",
+    },
+    {
+      cve: "CVE-2024-0641",
+      cwe: { id: "CWE-787", name: "Out-of-bounds Write" },
+      discovery_date: "2024-01-17T00:00:00+00:00",
+      notes: [
+        {
+          category: "description",
+          text: "A denial of service vulnerability was found in SQLite's FTS5 (Full-Text Search) extension. A specially crafted query can trigger an out-of-bounds write, causing the application to crash.",
+          title: "Vulnerability description",
+        },
+        {
+          category: "summary",
+          text: "sqlite: out-of-bounds write in fts5 extension",
+          title: "Vulnerability summary",
+        },
+      ],
+      references: [
+        {
+          category: "self",
+          summary: "Canonical URL",
+          url: "https://access.redhat.com/security/cve/CVE-2024-0641",
+        },
+        {
+          category: "external",
+          summary: "https://nvd.nist.gov/vuln/detail/CVE-2024-0641",
+          url: "https://nvd.nist.gov/vuln/detail/CVE-2024-0641",
+        },
+      ],
+      release_date: "2024-01-17T00:00:00+00:00",
+      remediations: [
+        {
+          category: "vendor_fix",
+          details:
+            "Update to sqlite 3.45.1 or later. For details, see https://access.redhat.com/errata/RHSA-2024:3121",
+          product_ids: [
+            "red_hat_enterprise_linux_9:sqlite",
+            "red_hat_enterprise_linux_9:sqlite-devel",
+            "red_hat_enterprise_linux_9:sqlite-libs",
+            "red_hat_enterprise_linux_9:sqlite.src",
+            "red_hat_enterprise_linux_8:sqlite",
+            "red_hat_enterprise_linux_8:sqlite-devel",
+            "red_hat_enterprise_linux_8:sqlite-libs",
+            "red_hat_enterprise_linux_8:sqlite.src",
+          ],
+          url: "https://access.redhat.com/errata/RHSA-2024:3121",
+        },
+        {
+          category: "no_fix_planned",
+          details: "Out of support scope",
+          product_ids: [
+            "red_hat_enterprise_linux_6:sqlite",
+            "red_hat_enterprise_linux_6:sqlite.src",
+            "red_hat_enterprise_linux_7:sqlite",
+            "red_hat_enterprise_linux_7:sqlite.src",
+          ],
+        },
+      ],
+      scores: [
+        {
+          cvss_v3: {
+            attackComplexity: "LOW",
+            attackVector: "NETWORK",
+            availabilityImpact: "HIGH",
+            baseScore: 7.5,
+            baseSeverity: "HIGH",
+            confidentialityImpact: "NONE",
+            integrityImpact: "NONE",
+            privilegesRequired: "NONE",
+            scope: "UNCHANGED",
+            userInteraction: "NONE",
+            vectorString: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            version: "3.1",
+          },
+          products: [
+            "red_hat_enterprise_linux_8:sqlite",
+            "red_hat_enterprise_linux_8:sqlite-devel",
+            "red_hat_enterprise_linux_8:sqlite-libs",
+            "red_hat_enterprise_linux_8:sqlite.src",
+            "red_hat_enterprise_linux_9:sqlite",
+            "red_hat_enterprise_linux_9:sqlite-devel",
+            "red_hat_enterprise_linux_9:sqlite-libs",
+            "red_hat_enterprise_linux_9:sqlite.src",
+          ],
+        },
+      ],
+      threats: [
+        {
+          category: "impact",
+          details: "Important",
+          product_ids: [
+            "red_hat_enterprise_linux_8:sqlite",
+            "red_hat_enterprise_linux_8:sqlite.src",
+            "red_hat_enterprise_linux_9:sqlite",
+            "red_hat_enterprise_linux_9:sqlite.src",
+          ],
+        },
+      ],
+      title: "sqlite: out-of-bounds write in fts5 extension",
+    },
+    {
+      cve: "CVE-2024-1085",
+      cwe: { id: "CWE-120", name: "Buffer Copy without Checking Size of Input" },
+      discovery_date: "2024-02-01T00:00:00+00:00",
+      notes: [
+        {
+          category: "description",
+          text: "A buffer overflow vulnerability was found in SQLite's JSON parsing routines. When processing deeply nested JSON structures, the parser can overflow an internal buffer, potentially allowing an attacker to execute arbitrary code.",
+          title: "Vulnerability description",
+        },
+        {
+          category: "summary",
+          text: "sqlite: buffer overflow in JSON parser",
+          title: "Vulnerability summary",
+        },
+        {
+          category: "other",
+          text: "This flaw is rated Critical because it can be exploited remotely without authentication if the application processes untrusted JSON input via SQLite's JSON1 extension.",
+          title: "Statement",
+        },
+      ],
+      references: [
+        {
+          category: "self",
+          summary: "Canonical URL",
+          url: "https://access.redhat.com/security/cve/CVE-2024-1085",
+        },
+        {
+          category: "external",
+          summary: "https://nvd.nist.gov/vuln/detail/CVE-2024-1085",
+          url: "https://nvd.nist.gov/vuln/detail/CVE-2024-1085",
+        },
+      ],
+      release_date: "2024-02-01T00:00:00+00:00",
+      remediations: [
+        {
+          category: "vendor_fix",
+          details:
+            "Upgrade to sqlite 3.45.2 or later which includes the fix. For details, see https://access.redhat.com/errata/RHSA-2024:4215",
+          product_ids: [
+            "red_hat_enterprise_linux_9:sqlite",
+            "red_hat_enterprise_linux_9:sqlite-devel",
+            "red_hat_enterprise_linux_9:sqlite-libs",
+            "red_hat_enterprise_linux_9:sqlite.src",
+          ],
+          url: "https://access.redhat.com/errata/RHSA-2024:4215",
+        },
+        {
+          category: "workaround",
+          details:
+            "Disable the JSON1 extension if not required, or ensure no untrusted input is passed to JSON functions in SQLite queries.",
+          product_ids: [
+            "red_hat_enterprise_linux_8:sqlite",
+            "red_hat_enterprise_linux_8:sqlite-devel",
+            "red_hat_enterprise_linux_8:sqlite-libs",
+            "red_hat_enterprise_linux_8:sqlite.src",
+          ],
+        },
+        {
+          category: "none_available",
+          details: "Awaiting upstream patch",
+          product_ids: [
+            "red_hat_enterprise_linux_8:mingw32-sqlite",
+            "red_hat_enterprise_linux_8:mingw64-sqlite",
+          ],
+        },
+      ],
+      scores: [
+        {
+          cvss_v3: {
+            attackComplexity: "LOW",
+            attackVector: "NETWORK",
+            availabilityImpact: "HIGH",
+            baseScore: 9.8,
+            baseSeverity: "CRITICAL",
+            confidentialityImpact: "HIGH",
+            integrityImpact: "HIGH",
+            privilegesRequired: "NONE",
+            scope: "UNCHANGED",
+            userInteraction: "NONE",
+            vectorString: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            version: "3.1",
+          },
+          products: [
+            "red_hat_enterprise_linux_8:sqlite",
+            "red_hat_enterprise_linux_8:sqlite-devel",
+            "red_hat_enterprise_linux_8:sqlite-libs",
+            "red_hat_enterprise_linux_8:sqlite.src",
+            "red_hat_enterprise_linux_8:mingw32-sqlite",
+            "red_hat_enterprise_linux_8:mingw64-sqlite",
+            "red_hat_enterprise_linux_9:sqlite",
+            "red_hat_enterprise_linux_9:sqlite-devel",
+            "red_hat_enterprise_linux_9:sqlite-libs",
+            "red_hat_enterprise_linux_9:sqlite.src",
+          ],
+        },
+      ],
+      threats: [
+        {
+          category: "impact",
+          details: "Critical",
+          product_ids: [
+            "red_hat_enterprise_linux_8:sqlite",
+            "red_hat_enterprise_linux_8:sqlite.src",
+            "red_hat_enterprise_linux_9:sqlite",
+            "red_hat_enterprise_linux_9:sqlite.src",
+          ],
+        },
+      ],
+      title: "sqlite: buffer overflow in JSON parser",
     },
   ],
 };

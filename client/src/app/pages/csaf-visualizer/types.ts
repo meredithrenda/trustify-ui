@@ -83,6 +83,7 @@ export interface Remediation {
   category: string;
   details: string;
   product_ids: string[];
+  url?: string;
 }
 
 export interface Score {

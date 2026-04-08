@@ -10,6 +10,9 @@ import {
   listVulnerabilities,
 } from "@app/client";
 import { requestParamsQuery } from "@app/hooks/table-controls";
+import { mockVulnerabilities } from "@app/mocks/vulnerabilities";
+
+declare const __MOCK_DATA__: boolean;
 
 export const VulnerabilitiesQueryKey = "vulnerabilities";
 
@@ -20,6 +23,14 @@ export const useFetchVulnerabilities = (
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [VulnerabilitiesQueryKey, params],
     queryFn: () => {
+      if (__MOCK_DATA__) {
+        return Promise.resolve({
+          data: {
+            items: mockVulnerabilities,
+            total: mockVulnerabilities.length,
+          },
+        });
+      }
       return listVulnerabilities({
         client,
         query: { ...requestParamsQuery(params) },
@@ -90,7 +101,13 @@ export const useFetchVulnerabilitiesByPackageIds = (ids: string[]) => {
 
 export const vulnerabilityByIdQueryOptions = (id: string) => ({
   queryKey: [VulnerabilitiesQueryKey, id],
-  queryFn: () => getVulnerability({ client, path: { id } }),
+  queryFn: () => {
+    if (__MOCK_DATA__) {
+      const found = mockVulnerabilities.find((v) => v.identifier === id);
+      return Promise.resolve({ data: found ?? mockVulnerabilities[0] });
+    }
+    return getVulnerability({ client, path: { id } });
+  },
 });
 
 export const useFetchVulnerabilityById = (id: string) => {

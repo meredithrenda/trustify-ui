@@ -5,6 +5,7 @@ import type { HubRequestParams } from "@app/api/models";
 import { client } from "@app/axios-config/apiInit";
 import { listLicenses } from "@app/client";
 import { requestParamsQuery } from "@app/hooks/table-controls";
+import { mockLicenses } from "@app/mocks/licenses";
 
 declare const __MOCK_DATA__: boolean;
 
@@ -18,7 +19,9 @@ export const useFetchLicenses = (
     queryKey: [LicensesQueryKey, params],
     queryFn: () => {
       if (__MOCK_DATA__) {
-        return Promise.resolve({ data: { items: [], total: 0 } });
+        return Promise.resolve({
+          data: { items: mockLicenses, total: mockLicenses.length },
+        });
       }
       return listLicenses({
         client,

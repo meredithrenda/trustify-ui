@@ -1,10 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 import dayjs from "dayjs";
 
 import {
   Card,
   CardBody,
+  CardTitle,
   Content,
   DescriptionList,
   DescriptionListDescription,
@@ -28,6 +30,8 @@ import {
   ChartStack,
   ChartTooltip,
 } from "@patternfly/react-charts/victory";
+
+import { Paths } from "@app/Routes";
 
 import type { CsafDocument } from "../types";
 import { collectProducts, collectRelationshipProducts } from "../types";
@@ -218,7 +222,18 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>Tracking ID</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <Label color="blue">{doc.tracking.id}</Label>
+                      {doc.tracking.id.startsWith("CVE-") ? (
+                        <Link
+                          to={Paths.vulnerabilityDetails.replace(
+                            ":vulnerabilityId",
+                            doc.tracking.id,
+                          )}
+                        >
+                          {doc.tracking.id}
+                        </Link>
+                      ) : (
+                        doc.tracking.id
+                      )}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
@@ -283,12 +298,10 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
         <Grid hasGutter>
           <GridItem md={6}>
             <Card isFullHeight>
+              <CardTitle>Impact summary</CardTitle>
               <CardBody>
                 <Stack hasGutter>
                   <StackItem>
-                    <Title headingLevel="h3" size="md">
-                      Impact summary
-                    </Title>
                     <Content
                       component="small"
                       style={{ color: "var(--pf-v6-global--Color--200)" }}
@@ -461,12 +474,10 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
 
           <GridItem md={6}>
             <Card isFullHeight>
+              <CardTitle>Remediation status</CardTitle>
               <CardBody>
                 <Stack hasGutter>
                   <StackItem>
-                    <Title headingLevel="h3" size="md">
-                      Remediation status
-                    </Title>
                     <Content
                       component="small"
                       style={{ color: "var(--pf-v6-global--Color--200)" }}
@@ -515,13 +526,9 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
       {doc.references && doc.references.length > 0 && (
         <StackItem>
           <Card>
+            <CardTitle>Document references</CardTitle>
             <CardBody>
               <Stack hasGutter>
-                <StackItem>
-                  <Title headingLevel="h3" size="md">
-                    Document references
-                  </Title>
-                </StackItem>
                 <StackItem>
                   <Flex
                     direction={{ default: "column" }}
@@ -570,13 +577,9 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
         doc.tracking.revision_history.length > 0 && (
           <StackItem>
             <Card>
+              <CardTitle>Revision history</CardTitle>
               <CardBody>
                 <Stack hasGutter>
-                  <StackItem>
-                    <Title headingLevel="h3" size="md">
-                      Revision history
-                    </Title>
-                  </StackItem>
                   <StackItem>
                     <DescriptionList isHorizontal isCompact>
                       {[...doc.tracking.revision_history]

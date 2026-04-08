@@ -249,6 +249,10 @@ export const RelationshipTree: React.FC<Props> = ({ data }) => {
               align: "left" as const,
             },
           },
+          emphasis: {
+            focus: "descendant" as const,
+            lineStyle: { width: 3 },
+          },
           expandAndCollapse: true,
           initialTreeDepth: 2,
           animationDuration: 550,

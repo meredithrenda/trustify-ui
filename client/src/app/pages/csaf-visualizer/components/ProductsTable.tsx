@@ -154,6 +154,10 @@ export const ProductsTable: React.FC<Props> = ({ data }) => {
               align: "left" as const,
             },
           },
+          emphasis: {
+            focus: "descendant" as const,
+            lineStyle: { width: 3 },
+          },
           expandAndCollapse: true,
           initialTreeDepth: 3,
           animationDuration: 550,

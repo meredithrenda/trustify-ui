@@ -1,0 +1,88 @@
+import type { LicenseSummary } from "@app/client";
+
+export const mockLicenses: LicenseSummary[] = [
+  {
+    id: "lic-001",
+    license: "Apache-2.0",
+    purls: 142,
+    spdx_licenses: ["Apache-2.0"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-002",
+    license: "MIT",
+    purls: 238,
+    spdx_licenses: ["MIT"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-003",
+    license: "GPL-2.0-only",
+    purls: 87,
+    spdx_licenses: ["GPL-2.0-only"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-004",
+    license: "GPL-3.0-or-later",
+    purls: 45,
+    spdx_licenses: ["GPL-3.0-or-later"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-005",
+    license: "BSD-3-Clause",
+    purls: 76,
+    spdx_licenses: ["BSD-3-Clause"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-006",
+    license: "ISC",
+    purls: 112,
+    spdx_licenses: ["ISC"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-007",
+    license: "LGPL-2.1-or-later",
+    purls: 34,
+    spdx_licenses: ["LGPL-2.1-or-later"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-008",
+    license: "MPL-2.0",
+    purls: 28,
+    spdx_licenses: ["MPL-2.0"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-009",
+    license: "EPL-2.0",
+    purls: 19,
+    spdx_licenses: ["EPL-2.0"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-010",
+    license: "BSD-2-Clause",
+    purls: 53,
+    spdx_licenses: ["BSD-2-Clause"],
+    spdx_license_exceptions: [],
+  },
+  {
+    id: "lic-011",
+    license: "GPL-2.0-or-later WITH Classpath-exception-2.0",
+    purls: 15,
+    spdx_licenses: ["GPL-2.0-or-later"],
+    spdx_license_exceptions: ["Classpath-exception-2.0"],
+  },
+  {
+    id: "lic-012",
+    license: "Unlicense",
+    purls: 8,
+    spdx_licenses: ["Unlicense"],
+    spdx_license_exceptions: [],
+  },
+];

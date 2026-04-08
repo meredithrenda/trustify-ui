@@ -3,31 +3,27 @@ import React from "react";
 import {
   Card,
   CardBody,
+  CardTitle,
   Content,
   Stack,
   StackItem,
 } from "@patternfly/react-core";
 
 import type { CsafDocument } from "@app/pages/csaf-visualizer/types";
-import { mockCsafDocument } from "@app/mocks/csaf-document";
 import { DocumentOverview } from "@app/pages/csaf-visualizer/components/DocumentOverview";
 import { VulnerabilitySection } from "@app/pages/csaf-visualizer/components/VulnerabilitySection";
 import { ProductsTable } from "@app/pages/csaf-visualizer/components/ProductsTable";
 import { RelationshipTree } from "@app/pages/csaf-visualizer/components/RelationshipTree";
 
-function getCsafData(): CsafDocument {
-  return mockCsafDocument;
-}
-
 interface CsafTabContentProps {
   activeTab: string;
+  csafData: CsafDocument;
 }
 
 export const CsafTabContent: React.FC<CsafTabContentProps> = ({
   activeTab,
+  csafData,
 }) => {
-  const csafData = getCsafData();
-
   return (
     <Stack hasGutter>
       {activeTab === "csaf-overview" && (
@@ -38,8 +34,8 @@ export const CsafTabContent: React.FC<CsafTabContentProps> = ({
           {csafData.document.notes && csafData.document.notes.length > 0 && (
             <StackItem>
               <Card>
+                <CardTitle>Notes</CardTitle>
                 <CardBody>
-                  <Content component="h3">Notes</Content>
                   {csafData.document.notes.map((note) => (
                     <div
                       key={note.title}

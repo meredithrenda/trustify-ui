@@ -6,6 +6,9 @@ import type { HubRequestParams } from "@app/api/models";
 import { client } from "../axios-config/apiInit";
 import { getPurl, listPackages, listPurl } from "../client";
 import { requestParamsQuery } from "../hooks/table-controls";
+import { mockPackages } from "@app/mocks/packages";
+
+declare const __MOCK_DATA__: boolean;
 
 export const PackagesQueryKey = "packages";
 
@@ -15,11 +18,17 @@ export const useFetchPackages = (
 ) => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [PackagesQueryKey, params],
-    queryFn: () =>
-      listPurl({
+    queryFn: () => {
+      if (__MOCK_DATA__) {
+        return Promise.resolve({
+          data: { items: mockPackages, total: mockPackages.length },
+        });
+      }
+      return listPurl({
         client: client,
         query: { ...requestParamsQuery(params) },
-      }),
+      });
+    },
     enabled: !disableQuery,
   });
 
@@ -37,7 +46,13 @@ export const useFetchPackages = (
 
 export const packageByIdQueryOptions = (id: string) => ({
   queryKey: [PackagesQueryKey, id],
-  queryFn: () => getPurl({ client, path: { key: id } }),
+  queryFn: () => {
+    if (__MOCK_DATA__) {
+      const found = mockPackages.find((p) => p.uuid === id);
+      return Promise.resolve({ data: found ?? mockPackages[0] });
+    }
+    return getPurl({ client, path: { key: id } });
+  },
 });
 
 export const useFetchPackageById = (id: string) => {
