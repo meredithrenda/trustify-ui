@@ -97,7 +97,7 @@ const severityProps: Record<
 };
 
 const vexStatusColor = (
-  status: VexStatus
+  status: VexStatus,
 ): "red" | "green" | "blue" | "orange" | "gold" => {
   switch (status) {
     case "Affected":
@@ -150,7 +150,7 @@ export const AnalysisBriefsSection: React.FC = () => {
                             <Link
                               to={Paths.vulnerabilityDetails.replace(
                                 ":vulnerabilityId",
-                                brief.cve
+                                brief.cve,
                               )}
                             >
                               {brief.cve}

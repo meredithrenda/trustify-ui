@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 import {
   Card,
@@ -14,14 +14,7 @@ import {
   StackItem,
   Title,
 } from "@patternfly/react-core";
-import {
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-} from "@patternfly/react-table";
+import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 
 export interface CryptographicAsset {
   id: string;
@@ -99,8 +92,7 @@ export const mockCryptographicAssets: CryptographicAsset[] = [
       {
         location: "pkg/asset/agent/gencrypto/authconfig.go",
         line: 123,
-        context:
-          "priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)",
+        context: "priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)",
       },
     ],
   },
@@ -119,16 +111,35 @@ export const mockCryptographicAssets: CryptographicAsset[] = [
   },
 ];
 
+/** SBOMs that use mock cryptographic inventory for the Cryptography tab (until API-driven CBOM exists). */
+export const SBOM_IDS_WITH_MOCK_CRYPTO = new Set<string>([
+  "a1b2c3d4-0001-4000-8000-000000000001",
+  "a1b2c3d4-0002-4000-8000-000000000002",
+]);
+
+export function shouldShowCryptographyTab(sbomId: string | undefined): boolean {
+  if (!sbomId) {
+    return false;
+  }
+  return SBOM_IDS_WITH_MOCK_CRYPTO.has(sbomId);
+}
+
+export function getCryptographicAssetsForSbom(
+  sbomId: string,
+): CryptographicAsset[] {
+  return shouldShowCryptographyTab(sbomId) ? mockCryptographicAssets : [];
+}
+
 export const getRiskColor = (
   risk: CryptographicAsset["risk"],
-): "red" | "orange" | "gold" | "green" | "grey" => {
+): "red" | "orange" | "yellow" | "green" | "grey" => {
   switch (risk) {
     case "Critical":
       return "red";
     case "High":
       return "orange";
     case "Medium":
-      return "gold";
+      return "yellow";
     case "Low":
       return "green";
     default:
@@ -284,8 +295,7 @@ export const CryptoDetailContent: React.FC<{ asset: CryptographicAsset }> = ({
                 style={{
                   padding: "var(--pf-v6-global--spacer--sm)",
                   marginBottom: "var(--pf-v6-global--spacer--xs)",
-                  backgroundColor:
-                    "var(--pf-v6-global--BackgroundColor--200)",
+                  backgroundColor: "var(--pf-v6-global--BackgroundColor--200)",
                   borderLeft:
                     "3px solid var(--pf-v6-global--primary-color--100)",
                   borderRadius: "4px",
@@ -324,12 +334,16 @@ export const CryptoDetailContent: React.FC<{ asset: CryptographicAsset }> = ({
 );
 
 interface CryptographyProps {
+  sbomId: string;
   onSelectAsset: (asset: CryptographicAsset | null) => void;
 }
 
 export const Cryptography: React.FC<CryptographyProps> = ({
+  sbomId,
   onSelectAsset,
 }) => {
+  const assets = getCryptographicAssetsForSbom(sbomId);
+
   return (
     <Stack hasGutter>
       <StackItem>
@@ -352,7 +366,7 @@ export const Cryptography: React.FC<CryptographyProps> = ({
             </Tr>
           </Thead>
           <Tbody>
-            {mockCryptographicAssets.map((asset) => (
+            {assets.map((asset) => (
               <Tr key={asset.id}>
                 <Td dataLabel="Algorithm">
                   <Stack>

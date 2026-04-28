@@ -44,12 +44,16 @@ export const useTabState = <
           serialize: (activeTab: Partial<IActiveTab<TTabKey> | null>) => ({
             activeTab: activeTab?.tabKey || null,
           }),
-          deserialize: (urlParams) =>
-            urlParams.activeTab
-              ? {
-                  tabKey: urlParams.activeTab as TTabKey,
-                }
-              : null,
+          deserialize: (urlParams) => {
+            const raw = urlParams.activeTab;
+            if (!raw) {
+              return null;
+            }
+            if (!(args.tabKeys as readonly string[]).includes(raw)) {
+              return defaultActiveTab;
+            }
+            return { tabKey: raw as TTabKey };
+          },
         }
       : persistTo === "localStorage" || persistTo === "sessionStorage"
         ? {

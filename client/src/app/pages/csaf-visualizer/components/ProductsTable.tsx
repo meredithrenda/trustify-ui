@@ -166,7 +166,7 @@ export const ProductsTable: React.FC<Props> = ({ data }) => {
         },
       ],
     }),
-    [treeData]
+    [treeData],
   );
 
   return (
@@ -184,16 +184,12 @@ export const ProductsTable: React.FC<Props> = ({ data }) => {
                 marginTop: "var(--pf-v6-global--spacer--xs)",
               }}
             >
-              Click a node to expand or collapse. Scroll to zoom, drag to
-              pan.
+              Click a node to expand or collapse. Scroll to zoom, drag to pan.
             </Content>
           </StackItem>
 
           <StackItem>
-            <Flex
-              gap={{ default: "gapSm" }}
-              flexWrap={{ default: "wrap" }}
-            >
+            <Flex gap={{ default: "gapSm" }} flexWrap={{ default: "wrap" }}>
               {CATEGORY_LABELS.map((cat) => (
                 <FlexItem key={cat}>
                   <Label
@@ -206,8 +202,7 @@ export const ProductsTable: React.FC<Props> = ({ data }) => {
                           width: 8,
                           height: 8,
                           borderRadius: "50%",
-                          backgroundColor:
-                            CATEGORY_COLORS[cat] ?? "#8A8D90",
+                          backgroundColor: CATEGORY_COLORS[cat] ?? "#8A8D90",
                         }}
                       />
                     }

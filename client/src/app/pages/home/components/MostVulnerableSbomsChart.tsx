@@ -9,7 +9,11 @@ import {
   ChartThemeColor,
   ChartTooltip,
 } from "@patternfly/react-charts/victory";
-import { EmptyState, EmptyStateBody, EmptyStateVariant } from "@patternfly/react-core";
+import {
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateVariant,
+} from "@patternfly/react-core";
 
 import type { SbomHead } from "@app/client";
 import { Paths } from "@app/Routes";
@@ -25,16 +29,13 @@ export const MostVulnerableSbomsChart: React.FC<
   const topSboms = sboms.slice(0, 5);
   const sbomIds = topSboms.map((sbom) => sbom.id);
 
-  const {
-    data: vulnerabilitiesData = [],
-    isFetching,
-  } = useVulnerabilitiesOfSboms(sbomIds.length > 0 ? sbomIds : []);
+  const { data: vulnerabilitiesData = [], isFetching } =
+    useVulnerabilitiesOfSboms(sbomIds.length > 0 ? sbomIds : []);
 
   // Count vulnerabilities per SBOM
   const sbomVulnCounts = topSboms.map((sbom, index) => {
     const vulnData = vulnerabilitiesData[index];
-    const count =
-      vulnData?.summary.vulnerabilityStatus.affected.total || 0;
+    const count = vulnData?.summary.vulnerabilityStatus.affected.total || 0;
     return {
       sbom,
       count,

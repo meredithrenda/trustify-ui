@@ -14,14 +14,7 @@ import {
   Button,
 } from "@patternfly/react-core";
 import SearchIcon from "@patternfly/react-icons/dist/esm/icons/search-icon";
-import {
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-} from "@patternfly/react-table";
+import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 
 import { PageDrawerContent } from "@app/components/PageDrawerContext";
 import { mockModels } from "@app/mocks/models";
@@ -60,11 +53,7 @@ export const Models: React.FC = () => {
           ) : undefined
         }
       >
-        {selectedModel ? (
-          <ModelDetailDrawer model={selectedModel} />
-        ) : (
-          <></>
-        )}
+        {selectedModel ? <ModelDetailDrawer model={selectedModel} /> : <></>}
       </PageDrawerContent>
 
       <PageSection>

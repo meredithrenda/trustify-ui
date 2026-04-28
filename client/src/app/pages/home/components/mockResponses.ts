@@ -57,11 +57,7 @@ const RESPONSE_RULES: ResponseRule[] = [
         "You have 10 SBOMs ingested, covering 6 products and 12,483 total packages.",
       detail:
         "The most recent upload was Red Hat Enterprise Linux 9.4 (ingested Nov 16, 2025). 8 SBOMs are in CycloneDX format and 2 are SPDX. The largest SBOM (RHEL 9.4) contains 1,842 packages.",
-      sources: [
-        "SBOM: RHEL 9.4",
-        "SBOM: UBI 9-minimal",
-        "SBOM: Fedora 39",
-      ],
+      sources: ["SBOM: RHEL 9.4", "SBOM: UBI 9-minimal", "SBOM: Fedora 39"],
       items: [
         "RHEL 9.4 — 1,842 packages",
         "UBI 9-minimal — 287 packages",
@@ -72,8 +68,7 @@ const RESPONSE_RULES: ResponseRule[] = [
   {
     keywords: ["unpatched", "critical", "patch"],
     response: {
-      answer:
-        "There are 2 unpatched critical CVEs across your ingested SBOMs.",
+      answer: "There are 2 unpatched critical CVEs across your ingested SBOMs.",
       detail:
         "CVE-2026-4432 affects libxml2 in RHEL 9.4 and UBI 9-minimal with no fix applied yet. CVE-2026-3891 affects OpenSSL 3.1.4 in Project-Phoenix — a patch (3.1.5) is available but not yet applied.",
       sources: ["CVE-2026-4432", "CVE-2026-3891", "SBOM: Project-Phoenix"],

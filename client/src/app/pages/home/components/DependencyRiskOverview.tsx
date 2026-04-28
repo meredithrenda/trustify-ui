@@ -31,9 +31,9 @@ export const DependencyRiskOverview: React.FC<DependencyRiskOverviewProps> = ({
   const recentSboms = sboms.slice(0, 10);
   const sbomIds = recentSboms.map((sbom) => sbom.id);
 
-  const {
-    data: vulnerabilitiesData = [],
-  } = useVulnerabilitiesOfSboms(sbomIds.length > 0 ? sbomIds : []);
+  const { data: vulnerabilitiesData = [] } = useVulnerabilitiesOfSboms(
+    sbomIds.length > 0 ? sbomIds : [],
+  );
 
   // Calculate metrics
   const totalAffected = vulnerabilitiesData.reduce(
@@ -52,11 +52,7 @@ export const DependencyRiskOverview: React.FC<DependencyRiskOverviewProps> = ({
       : "0.0";
 
   const riskLevel =
-    totalAffected === 0
-      ? "low"
-      : totalAffected < 10
-        ? "medium"
-        : "high";
+    totalAffected === 0 ? "low" : totalAffected < 10 ? "medium" : "high";
 
   return (
     <Grid hasGutter>
@@ -76,7 +72,9 @@ export const DependencyRiskOverview: React.FC<DependencyRiskOverviewProps> = ({
               />
               Total SBOMs
             </DescriptionListTerm>
-            <DescriptionListDescription>{totalSboms}</DescriptionListDescription>
+            <DescriptionListDescription>
+              {totalSboms}
+            </DescriptionListDescription>
           </DescriptionListGroup>
 
           <DescriptionListGroup>
@@ -104,7 +102,9 @@ export const DependencyRiskOverview: React.FC<DependencyRiskOverviewProps> = ({
               />
               Fixed vulnerabilities
             </DescriptionListTerm>
-            <DescriptionListDescription>{totalFixed}</DescriptionListDescription>
+            <DescriptionListDescription>
+              {totalFixed}
+            </DescriptionListDescription>
           </DescriptionListGroup>
 
           <DescriptionListGroup>

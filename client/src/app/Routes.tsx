@@ -85,204 +85,204 @@ export const usePathFromParams = (
 
 declare const __BASENAME__: string;
 
-export const AppRoutes = createBrowserRouter([
+export const AppRoutes = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <App />,
+      children: [
+        {
+          path: "/",
+          element: <LazyRouteElement identifier="home" component={<Home />} />,
+        },
+        {
+          path: Paths.advisories,
+          element: (
+            <LazyRouteElement
+              identifier="advisory-list"
+              component={<AdvisoryList />}
+            />
+          ),
+        },
+        {
+          path: Paths.advisoryDetails,
+          element: (
+            <LazyRouteElement
+              identifier="advisory-details"
+              component={<AdvisoryDetails />}
+            />
+          ),
+          errorElement: <RouteErrorBoundary />,
+          loader: async ({ params }) => {
+            const advisoryId = usePathFromParams(params, PathParam.ADVISORY_ID);
+            const response = await queryClient.ensureQueryData(
+              advisoryByIdQueryOptions(advisoryId),
+            );
+            return {
+              advisory: response.data,
+            };
+          },
+        },
+        {
+          path: Paths.advisoryUpload,
+          element: (
+            <LazyRouteElement
+              identifier="advisory-upload"
+              component={<AdvisoryUpload />}
+            />
+          ),
+        },
+        {
+          path: Paths.importers,
+          element: (
+            <LazyRouteElement
+              identifier="importer-list"
+              component={<ImporterList />}
+            />
+          ),
+        },
+        {
+          path: Paths.licenses,
+          element: (
+            <LazyRouteElement
+              identifier="license-list"
+              component={<LicenseList />}
+            />
+          ),
+        },
+        {
+          path: Paths.packages,
+          element: (
+            <LazyRouteElement
+              identifier="package-list"
+              component={<PackageList />}
+            />
+          ),
+        },
+        {
+          path: Paths.packageDetails,
+          element: (
+            <LazyRouteElement
+              identifier="package-details"
+              component={<PackageDetails />}
+            />
+          ),
+          errorElement: <RouteErrorBoundary />,
+          loader: async ({ params }) => {
+            const packageId = usePathFromParams(params, PathParam.PACKAGE_ID);
+            const response = await queryClient.ensureQueryData(
+              packageByIdQueryOptions(packageId),
+            );
+            return {
+              package: response.data,
+            };
+          },
+        },
+        {
+          path: Paths.sboms,
+          element: (
+            <LazyRouteElement identifier="sbom-list" component={<SBOMList />} />
+          ),
+        },
+        {
+          path: Paths.sbomDetails,
+          element: (
+            <LazyRouteElement
+              identifier="sbom-details"
+              component={<SBOMDetails />}
+            />
+          ),
+          errorElement: <RouteErrorBoundary />,
+          loader: async ({ params }) => {
+            const sbomId = usePathFromParams(params, PathParam.SBOM_ID);
+            const response = await queryClient.ensureQueryData(
+              sbomByIdQueryOptions(sbomId),
+            );
+            return {
+              sbom: response?.data,
+            };
+          },
+        },
+        {
+          path: Paths.sbomScan,
+          element: (
+            <LazyRouteElement identifier="sbom-scan" component={<SBOMScan />} />
+          ),
+        },
+        {
+          path: Paths.sbomUpload,
+          element: (
+            <LazyRouteElement
+              identifier="sbom-upload"
+              component={<SBOMUpload />}
+            />
+          ),
+        },
+        {
+          path: Paths.search,
+          element: (
+            <LazyRouteElement identifier="search" component={<Search />} />
+          ),
+        },
+        {
+          path: Paths.vulnerabilities,
+          element: (
+            <LazyRouteElement
+              identifier="vulnerability-list"
+              component={<VulnerabilityList />}
+            />
+          ),
+        },
+        {
+          path: Paths.vulnerabilityDetails,
+          element: (
+            <LazyRouteElement
+              identifier="vulnerability-details"
+              component={<VulnerabilityDetails />}
+            />
+          ),
+          errorElement: <RouteErrorBoundary />,
+          loader: async ({ params }) => {
+            const vulnerabilityId = usePathFromParams(
+              params,
+              PathParam.VULNERABILITY_ID,
+            );
+            const response = await queryClient.ensureQueryData(
+              vulnerabilityByIdQueryOptions(vulnerabilityId),
+            );
+            return {
+              vulnerability: response.data,
+            };
+          },
+        },
+        {
+          path: Paths.cbomInventory,
+          element: (
+            <LazyRouteElement
+              identifier="cbom-inventory"
+              component={<CBOMInventory />}
+            />
+          ),
+        },
+        {
+          path: Paths.models,
+          element: (
+            <LazyRouteElement identifier="models" component={<Models />} />
+          ),
+        },
+        {
+          path: "*",
+          element: (
+            <LazyRouteElement identifier="not-found" component={<NotFound />} />
+          ),
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    element: <App />,
-    children: [
-      {
-        path: "/",
-        element: <LazyRouteElement identifier="home" component={<Home />} />,
-      },
-      {
-        path: Paths.advisories,
-        element: (
-          <LazyRouteElement
-            identifier="advisory-list"
-            component={<AdvisoryList />}
-          />
-        ),
-      },
-      {
-        path: Paths.advisoryDetails,
-        element: (
-          <LazyRouteElement
-            identifier="advisory-details"
-            component={<AdvisoryDetails />}
-          />
-        ),
-        errorElement: <RouteErrorBoundary />,
-        loader: async ({ params }) => {
-          const advisoryId = usePathFromParams(params, PathParam.ADVISORY_ID);
-          const response = await queryClient.ensureQueryData(
-            advisoryByIdQueryOptions(advisoryId),
-          );
-          return {
-            advisory: response.data,
-          };
-        },
-      },
-      {
-        path: Paths.advisoryUpload,
-        element: (
-          <LazyRouteElement
-            identifier="advisory-upload"
-            component={<AdvisoryUpload />}
-          />
-        ),
-      },
-      {
-        path: Paths.importers,
-        element: (
-          <LazyRouteElement
-            identifier="importer-list"
-            component={<ImporterList />}
-          />
-        ),
-      },
-      {
-        path: Paths.licenses,
-        element: (
-          <LazyRouteElement
-            identifier="license-list"
-            component={<LicenseList />}
-          />
-        ),
-      },
-      {
-        path: Paths.packages,
-        element: (
-          <LazyRouteElement
-            identifier="package-list"
-            component={<PackageList />}
-          />
-        ),
-      },
-      {
-        path: Paths.packageDetails,
-        element: (
-          <LazyRouteElement
-            identifier="package-details"
-            component={<PackageDetails />}
-          />
-        ),
-        errorElement: <RouteErrorBoundary />,
-        loader: async ({ params }) => {
-          const packageId = usePathFromParams(params, PathParam.PACKAGE_ID);
-          const response = await queryClient.ensureQueryData(
-            packageByIdQueryOptions(packageId),
-          );
-          return {
-            package: response.data,
-          };
-        },
-      },
-      {
-        path: Paths.sboms,
-        element: (
-          <LazyRouteElement identifier="sbom-list" component={<SBOMList />} />
-        ),
-      },
-      {
-        path: Paths.sbomDetails,
-        element: (
-          <LazyRouteElement
-            identifier="sbom-details"
-            component={<SBOMDetails />}
-          />
-        ),
-        errorElement: <RouteErrorBoundary />,
-        loader: async ({ params }) => {
-          const sbomId = usePathFromParams(params, PathParam.SBOM_ID);
-          const response = await queryClient.ensureQueryData(
-            sbomByIdQueryOptions(sbomId),
-          );
-          return {
-            sbom: response?.data,
-          };
-        },
-      },
-      {
-        path: Paths.sbomScan,
-        element: (
-          <LazyRouteElement identifier="sbom-scan" component={<SBOMScan />} />
-        ),
-      },
-      {
-        path: Paths.sbomUpload,
-        element: (
-          <LazyRouteElement
-            identifier="sbom-upload"
-            component={<SBOMUpload />}
-          />
-        ),
-      },
-      {
-        path: Paths.search,
-        element: (
-          <LazyRouteElement identifier="search" component={<Search />} />
-        ),
-      },
-      {
-        path: Paths.vulnerabilities,
-        element: (
-          <LazyRouteElement
-            identifier="vulnerability-list"
-            component={<VulnerabilityList />}
-          />
-        ),
-      },
-      {
-        path: Paths.vulnerabilityDetails,
-        element: (
-          <LazyRouteElement
-            identifier="vulnerability-details"
-            component={<VulnerabilityDetails />}
-          />
-        ),
-        errorElement: <RouteErrorBoundary />,
-        loader: async ({ params }) => {
-          const vulnerabilityId = usePathFromParams(
-            params,
-            PathParam.VULNERABILITY_ID,
-          );
-          const response = await queryClient.ensureQueryData(
-            vulnerabilityByIdQueryOptions(vulnerabilityId),
-          );
-          return {
-            vulnerability: response.data,
-          };
-        },
-      },
-      {
-        path: Paths.cbomInventory,
-        element: (
-          <LazyRouteElement
-            identifier="cbom-inventory"
-            component={<CBOMInventory />}
-          />
-        ),
-      },
-      {
-        path: Paths.models,
-        element: (
-          <LazyRouteElement
-            identifier="models"
-            component={<Models />}
-          />
-        ),
-      },
-      {
-        path: "*",
-        element: (
-          <LazyRouteElement identifier="not-found" component={<NotFound />} />
-        ),
-      },
-    ],
+    basename: __BASENAME__,
   },
-], {
-  basename: __BASENAME__,
-});
+);
 
 export const useRouteParams = (pathParam: PathParam) => {
   const params = useParams();

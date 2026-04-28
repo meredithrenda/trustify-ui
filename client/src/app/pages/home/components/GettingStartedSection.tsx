@@ -55,9 +55,9 @@ export const GettingStartedSection: React.FC = () => {
                   </StackItem>
                   <StackItem>
                     <Content>
-                      Upload a Software Bill of Materials (SBOM) to analyze
-                      your software components and identify potential
-                      vulnerabilities in your supply chain.
+                      Upload a Software Bill of Materials (SBOM) to analyze your
+                      software components and identify potential vulnerabilities
+                      in your supply chain.
                     </Content>
                   </StackItem>
                   <StackItem>
@@ -187,9 +187,9 @@ export const GettingStartedSection: React.FC = () => {
                   </StackItem>
                   <StackItem>
                     <Content>
-                      Learn how to use Red Hat Trusted Product Advisor to
-                      manage supply chain security, understand SBOM analysis,
-                      and interpret vulnerability reports.
+                      Learn how to use Red Hat Trusted Product Advisor to manage
+                      supply chain security, understand SBOM analysis, and
+                      interpret vulnerability reports.
                     </Content>
                   </StackItem>
                   <StackItem>

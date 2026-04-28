@@ -819,7 +819,10 @@ export const mockCsafDocument: CsafDocument = {
     },
     {
       cve: "CVE-2024-1085",
-      cwe: { id: "CWE-120", name: "Buffer Copy without Checking Size of Input" },
+      cwe: {
+        id: "CWE-120",
+        name: "Buffer Copy without Checking Size of Input",
+      },
       discovery_date: "2024-02-01T00:00:00+00:00",
       notes: [
         {

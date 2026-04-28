@@ -25,14 +25,7 @@ import {
   FilterType,
   type IFilterValues,
 } from "@app/components/FilterToolbar";
-import {
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-} from "@patternfly/react-table";
+import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
 import { PageDrawerContent } from "@app/components/PageDrawerContext";
@@ -122,9 +115,7 @@ const mockCryptographicAssets: CryptographicAsset[] = [
         context: "rsaKey, err := rsa.GenerateKey(rand.Reader, keySize)",
       },
     ],
-    sboms: [
-      { id: "sbom-1", name: "openshift-installer-v4.15.0" },
-    ],
+    sboms: [{ id: "sbom-1", name: "openshift-installer-v4.15.0" }],
   },
   {
     id: "3",
@@ -176,9 +167,7 @@ const mockCryptographicAssets: CryptographicAsset[] = [
         context: "hash := md5.Sum([]byte(infraID))",
       },
     ],
-    sboms: [
-      { id: "sbom-1", name: "openshift-installer-v4.15.0" },
-    ],
+    sboms: [{ id: "sbom-1", name: "openshift-installer-v4.15.0" }],
   },
   {
     id: "6",
@@ -223,13 +212,10 @@ const mockCryptographicAssets: CryptographicAsset[] = [
       {
         location: "pkg/asset/agent/gencrypto/authconfig.go",
         line: 123,
-        context:
-          "priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)",
+        context: "priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)",
       },
     ],
-    sboms: [
-      { id: "sbom-2", name: "openshift-installer-agent-v4.15.0" },
-    ],
+    sboms: [{ id: "sbom-2", name: "openshift-installer-agent-v4.15.0" }],
   },
 ];
 
@@ -445,8 +431,7 @@ const DrawerDetailContent: React.FC<{ asset: CryptographicAsset }> = ({
                 style={{
                   padding: "var(--pf-v6-global--spacer--sm)",
                   marginBottom: "var(--pf-v6-global--spacer--xs)",
-                  backgroundColor:
-                    "var(--pf-v6-global--BackgroundColor--200)",
+                  backgroundColor: "var(--pf-v6-global--BackgroundColor--200)",
                   borderLeft:
                     "3px solid var(--pf-v6-global--primary-color--100)",
                   borderRadius: "4px",
@@ -545,9 +530,7 @@ const DrawerDetailContent: React.FC<{ asset: CryptographicAsset }> = ({
                     }}
                   >
                     {asset.libraryCapabilities
-                      .filter(
-                        (cap) => !asset.detectedUsage?.includes(cap),
-                      )
+                      .filter((cap) => !asset.detectedUsage?.includes(cap))
                       .map((capability) => (
                         <Label key={capability} color="orange" isCompact>
                           {capability}
@@ -641,11 +624,7 @@ export const CBOMInventory: React.FC = () => {
           ) : undefined
         }
       >
-        {selectedAsset ? (
-          <DrawerDetailContent asset={selectedAsset} />
-        ) : (
-          <></>
-        )}
+        {selectedAsset ? <DrawerDetailContent asset={selectedAsset} /> : <></>}
       </PageDrawerContent>
 
       <DocumentMetadata title="Cryptography" />
@@ -732,20 +711,14 @@ export const CBOMInventory: React.FC = () => {
                   </Stack>
                 </Td>
                 <Td dataLabel="Type">
-                  <Label color={getTypeColor(asset.type)}>
-                    {asset.type}
-                  </Label>
+                  <Label color={getTypeColor(asset.type)}>{asset.type}</Label>
                 </Td>
                 <Td dataLabel="Risk">
-                  <Label color={getRiskColor(asset.risk)}>
-                    {asset.risk}
-                  </Label>
+                  <Label color={getRiskColor(asset.risk)}>{asset.risk}</Label>
                 </Td>
                 <Td dataLabel="SBOMs">
                   {asset.sboms && asset.sboms.length > 0 ? (
-                    <Link
-                      to={getSbomFilteredByAlgorithmUrl([asset.algorithm])}
-                    >
+                    <Link to={getSbomFilteredByAlgorithmUrl([asset.algorithm])}>
                       {asset.sboms.length} SBOM
                       {asset.sboms.length !== 1 ? "s" : ""}
                     </Link>

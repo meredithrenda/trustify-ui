@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 import {
   Content,
@@ -12,9 +12,7 @@ import {
 
 import type { AIModel } from "../types";
 
-const riskColor = (
-  risk: string
-): "red" | "orange" | "green" | "grey" => {
+const riskColor = (risk: string): "red" | "orange" | "green" | "grey" => {
   switch (risk) {
     case "High risk":
       return "red";
@@ -48,8 +46,7 @@ export const ModelList: React.FC<Props> = ({ models, onSelectModel }) => {
             }}
             alignItems={{ default: "alignItemsFlexStart" }}
             style={{
-              borderBottom:
-                "1px solid var(--pf-v6-global--BorderColor--100)",
+              borderBottom: "1px solid var(--pf-v6-global--BorderColor--100)",
               paddingBottom: "var(--pf-v6-global--spacer--md)",
             }}
           >
@@ -93,18 +90,14 @@ export const ModelList: React.FC<Props> = ({ models, onSelectModel }) => {
               </Stack>
             </FlexItem>
             <FlexItem>
-              <Label color={riskColor(model.risk)}>
-                {model.risk}
-              </Label>
+              <Label color={riskColor(model.risk)}>{model.risk}</Label>
             </FlexItem>
           </Flex>
         </StackItem>
       ))}
       {models.length === 0 && (
         <StackItem>
-          <Content component="p">
-            No AI models found in this SBOM.
-          </Content>
+          <Content component="p">No AI models found in this SBOM.</Content>
         </StackItem>
       )}
     </Stack>

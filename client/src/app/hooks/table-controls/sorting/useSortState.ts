@@ -78,6 +78,8 @@ export const useSortState = <
     sortableColumns[0]
       ? { columnKey: sortableColumns[0], direction: "asc" }
       : null;
+  const fallbackSort: IActiveSort<TSortableColumnKey> | null =
+    initialSort ?? defaultInitialSort;
 
   // We won't need to pass the latter two type params here if TS adds support for partial inference.
   // See https://github.com/konveyor/tackle2-ui/issues/1456
@@ -87,7 +89,7 @@ export const useSortState = <
     "sortColumn" | "sortDirection"
   >({
     isEnabled: !!isSortEnabled,
-    defaultValue: initialSort ?? defaultInitialSort,
+    defaultValue: fallbackSort,
     persistenceKeyPrefix,
     // Note: For the discriminated union here to work without TypeScript getting confused
     //       (e.g. require the urlParams-specific options when persistTo === "urlParams"),
@@ -102,13 +104,21 @@ export const useSortState = <
             sortColumn: activeSort?.columnKey || null,
             sortDirection: activeSort?.direction || null,
           }),
-          deserialize: (urlParams) =>
-            urlParams.sortColumn && urlParams.sortDirection
-              ? {
-                  columnKey: urlParams.sortColumn as TSortableColumnKey,
-                  direction: urlParams.sortDirection as "asc" | "desc",
-                }
-              : null,
+          deserialize: (urlParams) => {
+            const col = urlParams.sortColumn;
+            const dir = urlParams.sortDirection;
+            if (
+              col &&
+              dir &&
+              (args.sortableColumns as readonly string[]).includes(col)
+            ) {
+              return {
+                columnKey: col as TSortableColumnKey,
+                direction: dir as "asc" | "desc",
+              };
+            }
+            return fallbackSort;
+          },
         }
       : persistTo === "localStorage" || persistTo === "sessionStorage"
         ? {

@@ -16,6 +16,9 @@ declare const __MOCK_DATA__: boolean;
 
 export const VulnerabilitiesQueryKey = "vulnerabilities";
 
+/** Default list order for mock vulnerability data (matches CVSS desc UX when API sort is absent). */
+const DEFAULT_MOCK_VULNERABILITY_SORT = "base_score:desc";
+
 export type UseFetchVulnerabilitiesOptions = {
   /** When set, skip running the query (e.g. until search is ready). */
   disableQuery?: boolean;
@@ -37,6 +40,49 @@ const normalizeVulnerabilitiesOptions = (
   }
   return opts;
 };
+
+/** Applies `sort` query (same shape as `listVulnerabilities`) for mock data; the real API sorts server-side. */
+function applyMockVulnerabilitySort<
+  T extends {
+    identifier: string;
+    published?: string | null;
+    average_score?: number | null;
+  },
+>(items: T[], sortString: string | undefined): T[] {
+  if (!sortString?.trim()) {
+    return items;
+  }
+  const firstSegment = sortString.split(",")[0]?.trim() ?? "";
+  const colonIdx = firstSegment.indexOf(":");
+  const field =
+    colonIdx === -1 ? firstSegment : firstSegment.slice(0, colonIdx);
+  const rawDir =
+    colonIdx === -1 ? "asc" : firstSegment.slice(colonIdx + 1).trim();
+  const direction = rawDir === "desc" ? "desc" : "asc";
+  const dir = direction === "desc" ? -1 : 1;
+  const copy = [...items];
+  copy.sort((a, b) => {
+    let cmp = 0;
+    switch (field) {
+      case "base_score":
+        cmp = (a.average_score ?? 0) - (b.average_score ?? 0);
+        break;
+      case "published": {
+        const ta = a.published ? new Date(a.published).getTime() : 0;
+        const tb = b.published ? new Date(b.published).getTime() : 0;
+        cmp = ta - tb;
+        break;
+      }
+      case "id":
+        cmp = a.identifier.localeCompare(b.identifier);
+        break;
+      default:
+        return 0;
+    }
+    return cmp * dir;
+  });
+  return copy;
+}
 
 export const useFetchVulnerabilities = (
   params: HubRequestParams = {},
@@ -61,10 +107,21 @@ export const useFetchVulnerabilities = (
             v.advisories.some((a) => (a.sboms?.length ?? 0) > 0),
           );
         }
+        const sortString =
+          baseQuery.sort?.trim() || DEFAULT_MOCK_VULNERABILITY_SORT;
+        items = applyMockVulnerabilitySort(items, sortString);
+        const total = items.length;
+        const limit = baseQuery.limit ?? 0;
+        const offset = baseQuery.offset ?? 0;
+        if (limit > 0) {
+          items = items.slice(offset, offset + limit);
+        } else if (offset > 0) {
+          items = items.slice(offset);
+        }
         return Promise.resolve({
           data: {
             items,
-            total: items.length,
+            total,
           },
         });
       }

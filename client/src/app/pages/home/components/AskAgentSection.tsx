@@ -32,7 +32,7 @@ const SUGGESTED_PROMPTS = [
 ];
 
 const severityColor = (
-  severity?: string
+  severity?: string,
 ): "red" | "orange" | "gold" | "blue" => {
   switch (severity) {
     case "critical":
@@ -230,7 +230,8 @@ export const AskAgentSection: React.FC = () => {
                         </Content>
                         <ul
                           style={{
-                            margin: "var(--pf-v6-global--spacer--xs) 0 0 var(--pf-v6-global--spacer--md)",
+                            margin:
+                              "var(--pf-v6-global--spacer--xs) 0 0 var(--pf-v6-global--spacer--md)",
                             padding: 0,
                             fontSize: "var(--pf-v6-global--FontSize--sm)",
                           }}

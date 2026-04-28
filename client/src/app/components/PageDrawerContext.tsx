@@ -177,9 +177,7 @@ export const PageDrawerContent: React.FC<IPageDrawerContentProps> = ({
             {drawerHead}
           </span>
           <DrawerActions>
-            <DrawerCloseButton
-              onClick={onCloseClick}
-            />
+            <DrawerCloseButton onClick={onCloseClick} />
           </DrawerActions>
         </DrawerHead>
         <DrawerPanelBody

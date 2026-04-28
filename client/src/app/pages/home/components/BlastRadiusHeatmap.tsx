@@ -44,7 +44,7 @@ const countAffectedSboms = (
   }>,
 ): { count: number; sboms: Array<{ id: string; name: string }> } => {
   if (!advisories) return { count: 0, sboms: [] };
-  
+
   const affectedSboms = new Map<string, string>();
   advisories.forEach((advisory) => {
     advisory.sboms?.forEach((sbomStatus) => {
@@ -52,15 +52,14 @@ const countAffectedSboms = (
         sbomStatus.purl_statuses?.affected &&
         Object.keys(sbomStatus.purl_statuses.affected).length > 0
       ) {
-        const sbomId =
-          sbomStatus.document_id || sbomStatus.sbom_id || "";
+        const sbomId = sbomStatus.document_id || sbomStatus.sbom_id || "";
         if (sbomId && !affectedSboms.has(sbomId)) {
           affectedSboms.set(sbomId, sbomStatus.name || sbomId);
         }
       }
     });
   });
-  
+
   return {
     count: affectedSboms.size,
     sboms: Array.from(affectedSboms.entries()).map(([id, name]) => ({
@@ -123,7 +122,10 @@ const CustomTopologyVisualization: React.FC<CustomTopologyProps> = ({
 
       return {
         id: `sbom-${sbom.id}`,
-        label: sbom.name.length > 15 ? `${sbom.name.substring(0, 15)}...` : sbom.name,
+        label:
+          sbom.name.length > 15
+            ? `${sbom.name.substring(0, 15)}...`
+            : sbom.name,
         x,
         y,
         type: "sbom",
@@ -150,7 +152,10 @@ const CustomTopologyVisualization: React.FC<CustomTopologyProps> = ({
     <svg
       width={width}
       height={height}
-      style={{ border: "1px solid var(--pf-v6-global--BorderColor--100)", borderRadius: "4px" }}
+      style={{
+        border: "1px solid var(--pf-v6-global--BorderColor--100)",
+        borderRadius: "4px",
+      }}
     >
       <defs>
         <marker
@@ -288,10 +293,8 @@ export const BlastRadiusHeatmap: React.FC = () => {
       .map((vuln, index) => {
         const detailsQuery = vulnerabilityDetailsQueries[index];
         const vulnerabilityDetails = detailsQuery?.data?.data;
-        
-        const { count } = countAffectedSboms(
-          vulnerabilityDetails?.advisories,
-        );
+
+        const { count } = countAffectedSboms(vulnerabilityDetails?.advisories);
 
         return {
           id: vuln.identifier,
@@ -385,10 +388,13 @@ export const BlastRadiusHeatmap: React.FC = () => {
   // Create mock SBOMs for demonstration if no real data
   const mockSboms = useMemo(() => {
     if (selectedVulnerability) {
-      return Array.from({ length: selectedVulnerability.impactCount }, (_, i) => ({
-        id: `sbom-${i + 1}`,
-        name: `SBOM ${i + 1}`,
-      }));
+      return Array.from(
+        { length: selectedVulnerability.impactCount },
+        (_, i) => ({
+          id: `sbom-${i + 1}`,
+          name: `SBOM ${i + 1}`,
+        }),
+      );
     }
     return [];
   }, [selectedVulnerability]);
@@ -404,7 +410,6 @@ export const BlastRadiusHeatmap: React.FC = () => {
       severityList[selectedVulnerability.severity as keyof typeof severityList];
     return severityInfo?.color.var || "#8a8d90";
   }, [selectedVulnerability]);
-
 
   if (displayData.length === 0) {
     return (
@@ -481,8 +486,7 @@ export const BlastRadiusHeatmap: React.FC = () => {
                       {vuln.baseScore && (
                         <>
                           {" • "}
-                          <strong>CVSS:</strong>{" "}
-                          {vuln.baseScore.toFixed(1)}
+                          <strong>CVSS:</strong> {vuln.baseScore.toFixed(1)}
                         </>
                       )}
                     </div>
@@ -500,7 +504,14 @@ export const BlastRadiusHeatmap: React.FC = () => {
                 <strong>{selectedVulnerability.identifier}</strong> affects{" "}
                 <strong>{selectedVulnerability.impactCount}</strong> SBOMs.
               </Content>
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "500px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  minHeight: "500px",
+                }}
+              >
                 {selectedVulnerability && affectedSboms.length > 0 ? (
                   <CustomTopologyVisualization
                     vulnerability={selectedVulnerability}

@@ -41,7 +41,7 @@ interface Props {
 }
 
 const severityLabelColor = (
-  severity?: string
+  severity?: string,
 ): "red" | "orange" | "gold" | "blue" | "grey" => {
   switch (severity?.toLowerCase()) {
     case "critical":
@@ -131,8 +131,7 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
 
     return rows.sort(
       (a, b) =>
-        (SEVERITY_ORDER[a.severity] ?? 99) -
-        (SEVERITY_ORDER[b.severity] ?? 99)
+        (SEVERITY_ORDER[a.severity] ?? 99) - (SEVERITY_ORDER[b.severity] ?? 99),
     );
   }, [vulnerabilities]);
 
@@ -197,19 +196,16 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                         <FlexItem>
                           <Label
                             color={severityLabelColor(
-                              doc.aggregate_severity.text
+                              doc.aggregate_severity.text,
                             )}
                           >
-                            Severity:{" "}
-                            {doc.aggregate_severity.text}
+                            Severity: {doc.aggregate_severity.text}
                           </Label>
                         </FlexItem>
                       )}
                       {doc.distribution?.tlp && (
                         <FlexItem>
-                          <Label>
-                            TLP: {doc.distribution.tlp.label}
-                          </Label>
+                          <Label>TLP: {doc.distribution.tlp.label}</Label>
                         </FlexItem>
                       )}
                     </Flex>
@@ -320,10 +316,7 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                       }}
                     >
                       <Chart
-                        height={Math.max(
-                          120,
-                          impactData.length * 50 + 40
-                        )}
+                        height={Math.max(120, impactData.length * 50 + 40)}
                         padding={{
                           top: 10,
                           bottom: 35,
@@ -360,14 +353,9 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                             }))}
                             style={{
                               data: {
-                                fill: ({
-                                  datum,
-                                }: {
-                                  datum: { x: string };
-                                }) =>
-                                  SEVERITY_COLORS[
-                                    datum.x.toLowerCase()
-                                  ] ?? SEVERITY_COLORS.unknown,
+                                fill: ({ datum }: { datum: { x: string } }) =>
+                                  SEVERITY_COLORS[datum.x.toLowerCase()] ??
+                                  SEVERITY_COLORS.unknown,
                               },
                             }}
                             barWidth={20}
@@ -385,15 +373,10 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                             }))}
                             style={{
                               data: {
-                                fill: ({
-                                  datum,
-                                }: {
-                                  datum: { x: string };
-                                }) => {
+                                fill: ({ datum }: { datum: { x: string } }) => {
                                   const base =
-                                    SEVERITY_COLORS[
-                                      datum.x.toLowerCase()
-                                    ] ?? SEVERITY_COLORS.unknown;
+                                    SEVERITY_COLORS[datum.x.toLowerCase()] ??
+                                    SEVERITY_COLORS.unknown;
                                   return `${base}80`;
                                 },
                               },
@@ -586,7 +569,7 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                         .sort(
                           (a, b) =>
                             new Date(b.date).getTime() -
-                            new Date(a.date).getTime()
+                            new Date(a.date).getTime(),
                         )
                         .map((rev) => (
                           <DescriptionListGroup key={rev.number}>
@@ -606,8 +589,7 @@ export const DocumentOverview: React.FC<Props> = ({ data }) => {
                                   <Content
                                     component="small"
                                     style={{
-                                      color:
-                                        "var(--pf-v6-global--Color--200)",
+                                      color: "var(--pf-v6-global--Color--200)",
                                     }}
                                   >
                                     {formatDate(rev.date)}

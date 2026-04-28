@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 import {
   Button,
@@ -29,10 +29,7 @@ export const ModelDetailDrawer: React.FC<Props> = ({ model }) => {
         <Card>
           <CardTitle>Identity & Purpose</CardTitle>
           <CardBody>
-            <DescriptionList
-              isHorizontal
-              isCompact
-            >
+            <DescriptionList isHorizontal isCompact>
               <DescriptionListGroup>
                 <DescriptionListTerm>Model type</DescriptionListTerm>
                 <DescriptionListDescription>
@@ -68,10 +65,7 @@ export const ModelDetailDrawer: React.FC<Props> = ({ model }) => {
         <Card>
           <CardTitle>SBOM Metadata</CardTitle>
           <CardBody>
-            <DescriptionList
-              isHorizontal
-              isCompact
-            >
+            <DescriptionList isHorizontal isCompact>
               <DescriptionListGroup>
                 <DescriptionListTerm>Format</DescriptionListTerm>
                 <DescriptionListDescription>
@@ -87,10 +81,7 @@ export const ModelDetailDrawer: React.FC<Props> = ({ model }) => {
               <DescriptionListGroup>
                 <DescriptionListTerm>Serial number</DescriptionListTerm>
                 <DescriptionListDescription>
-                  <Content
-                    component="small"
-                    style={{ wordBreak: "break-all" }}
-                  >
+                  <Content component="small" style={{ wordBreak: "break-all" }}>
                     {model.serialNumber}
                   </Content>
                 </DescriptionListDescription>
@@ -110,10 +101,7 @@ export const ModelDetailDrawer: React.FC<Props> = ({ model }) => {
         <Card>
           <CardTitle>External References</CardTitle>
           <CardBody>
-            <DescriptionList
-              isHorizontal
-              isCompact
-            >
+            <DescriptionList isHorizontal isCompact>
               {model.externalReferences.website && (
                 <DescriptionListGroup>
                   <DescriptionListTerm>Website</DescriptionListTerm>
@@ -154,9 +142,7 @@ export const ModelDetailDrawer: React.FC<Props> = ({ model }) => {
               )}
               {model.externalReferences.llmAnalysisReport && (
                 <DescriptionListGroup>
-                  <DescriptionListTerm>
-                    LLM Analysis Report
-                  </DescriptionListTerm>
+                  <DescriptionListTerm>LLM Analysis Report</DescriptionListTerm>
                   <DescriptionListDescription>
                     <a
                       href={model.externalReferences.llmAnalysisReport.url}
@@ -179,9 +165,7 @@ export const ModelDetailDrawer: React.FC<Props> = ({ model }) => {
       </StackItem>
 
       <StackItem>
-        <Button variant="primary">
-          Download
-        </Button>
+        <Button variant="primary">Download</Button>
       </StackItem>
     </Stack>
   );

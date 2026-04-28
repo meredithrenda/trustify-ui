@@ -163,7 +163,10 @@ export const AdvisoryDetails: React.FC = () => {
           <SplitItem isFilled>
             <Flex direction={{ default: "column" }} gap={{ default: "gapSm" }}>
               <FlexItem>
-                <Flex alignItems={{ default: "alignItemsCenter" }} gap={{ default: "gapMd" }}>
+                <Flex
+                  alignItems={{ default: "alignItemsCenter" }}
+                  gap={{ default: "gapMd" }}
+                >
                   <FlexItem>
                     <Content>
                       <Content component="h1">
@@ -302,7 +305,10 @@ export const AdvisoryDetails: React.FC = () => {
               ref={csafVulnerabilitiesRef}
               aria-label="CSAF Vulnerabilities"
             >
-              <CsafTabContent activeTab="csaf-vulnerabilities" csafData={csafData!} />
+              <CsafTabContent
+                activeTab="csaf-vulnerabilities"
+                csafData={csafData!}
+              />
             </TabContent>
             <TabContent
               {...getTabContentProps("csaf-products")}
@@ -316,7 +322,10 @@ export const AdvisoryDetails: React.FC = () => {
               ref={csafRelationshipsRef}
               aria-label="CSAF Relationship Tree"
             >
-              <CsafTabContent activeTab="csaf-relationships" csafData={csafData!} />
+              <CsafTabContent
+                activeTab="csaf-relationships"
+                csafData={csafData!}
+              />
             </TabContent>
             <TabContent
               {...getTabContentProps("csaf-source")}
@@ -331,10 +340,18 @@ export const AdvisoryDetails: React.FC = () => {
                         href={selfReference.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
                       >
                         View original advisory{" "}
-                        <ExternalLinkAltIcon style={{ fontSize: "var(--pf-v6-global--FontSize--xs)" }} />
+                        <ExternalLinkAltIcon
+                          style={{
+                            fontSize: "var(--pf-v6-global--FontSize--xs)",
+                          }}
+                        />
                       </a>
                     </Content>
                   </StackItem>

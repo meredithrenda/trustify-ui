@@ -8,7 +8,11 @@ import {
   ChartThemeColor,
   ChartTooltip,
 } from "@patternfly/react-charts/victory";
-import { EmptyState, EmptyStateBody, EmptyStateVariant } from "@patternfly/react-core";
+import {
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateVariant,
+} from "@patternfly/react-core";
 
 import type { SbomHead } from "@app/client";
 import { useVulnerabilitiesOfSboms } from "@app/hooks/domain-controls/useVulnerabilitiesOfSbom";
@@ -22,9 +26,9 @@ export const TopVulnerablePackagesChart: React.FC<
   TopVulnerablePackagesChartProps
 > = ({ sboms }) => {
   const sbomIds = sboms.slice(0, 10).map((sbom) => sbom.id);
-  const {
-    data: vulnerabilitiesData = [],
-  } = useVulnerabilitiesOfSboms(sbomIds.length > 0 ? sbomIds : []);
+  const { data: vulnerabilitiesData = [] } = useVulnerabilitiesOfSboms(
+    sbomIds.length > 0 ? sbomIds : [],
+  );
 
   // Extract package names from vulnerabilities and count occurrences
   const packageVulnCount: Record<string, number> = {};
@@ -50,8 +54,7 @@ export const TopVulnerablePackagesChart: React.FC<
     return (
       <EmptyState variant={EmptyStateVariant.xs}>
         <EmptyStateBody>
-          No package vulnerability data available. Upload SBOMs to see
-          analysis.
+          No package vulnerability data available. Upload SBOMs to see analysis.
         </EmptyStateBody>
       </EmptyState>
     );

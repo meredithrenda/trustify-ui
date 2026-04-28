@@ -213,7 +213,8 @@ export const mockAdvisories: AdvisorySummary[] = [
       },
       {
         identifier: "CVE-2024-47076",
-        description: "CUPS: cfGetPrinterAttributes5 does not validate IPP attributes",
+        description:
+          "CUPS: cfGetPrinterAttributes5 does not validate IPP attributes",
         cwes: ["CWE-20"],
         discovered: "2024-09-26T00:00:00Z",
         modified: "2024-10-01T00:00:00Z",
@@ -224,7 +225,8 @@ export const mockAdvisories: AdvisorySummary[] = [
       },
       {
         identifier: "CVE-2024-47175",
-        description: "CUPS: ppdCreatePPDFromIPP2 does not sanitize IPP attributes",
+        description:
+          "CUPS: ppdCreatePPDFromIPP2 does not sanitize IPP attributes",
         cwes: ["CWE-20"],
         discovered: "2024-09-26T00:00:00Z",
         modified: "2024-10-01T00:00:00Z",
@@ -259,7 +261,8 @@ export const mockAdvisories: AdvisorySummary[] = [
     vulnerabilities: [
       {
         identifier: "CVE-2024-38476",
-        description: "httpd: Security issues via backend applications in Apache HTTP Server",
+        description:
+          "httpd: Security issues via backend applications in Apache HTTP Server",
         cwes: ["CWE-829"],
         discovered: "2024-07-01T00:00:00Z",
         modified: "2024-09-27T00:00:00Z",
@@ -421,7 +424,8 @@ export const mockAdvisories: AdvisorySummary[] = [
     vulnerabilities: [
       {
         identifier: "CVE-2024-6923",
-        description: "Python: email module doesn't properly quote newlines in headers",
+        description:
+          "Python: email module doesn't properly quote newlines in headers",
         cwes: ["CWE-93"],
         discovered: "2024-08-01T00:00:00Z",
         modified: "2024-09-17T00:00:00Z",

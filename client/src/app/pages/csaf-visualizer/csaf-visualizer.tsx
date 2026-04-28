@@ -48,13 +48,11 @@ async function fetchWithCorsRetry(targetUrl: string): Promise<unknown> {
     try {
       const resp = await fetch(makeProxy(targetUrl));
       if (resp.ok) return resp.json();
-    } catch {
-      continue;
-    }
+    } catch {}
   }
 
   throw new Error(
-    "Could not load the document. The server may block cross-origin requests."
+    "Could not load the document. The server may block cross-origin requests.",
   );
 }
 
@@ -78,7 +76,7 @@ export const CsafVisualizer: React.FC = () => {
       setData(json as CsafDocument);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to load CSAF document"
+        err instanceof Error ? err.message : "Failed to load CSAF document",
       );
     } finally {
       setIsLoading(false);
@@ -243,7 +241,10 @@ export const CsafVisualizer: React.FC = () => {
                 Notes
               </Title>
               {data.document.notes.map((note) => (
-                <div key={note.title} style={{ marginTop: "var(--pf-v6-global--spacer--sm)" }}>
+                <div
+                  key={note.title}
+                  style={{ marginTop: "var(--pf-v6-global--spacer--sm)" }}
+                >
                   <Content component="p">
                     <strong>{note.title}</strong>
                   </Content>

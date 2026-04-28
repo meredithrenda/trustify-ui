@@ -83,7 +83,9 @@ const RELATIONSHIP_LABELS = [
   "optional_component_of",
 ];
 
-function buildProductIdMap(branches: Branch[]): Map<string, { name: string; category: string }> {
+function buildProductIdMap(
+  branches: Branch[],
+): Map<string, { name: string; category: string }> {
   const map = new Map<string, { name: string; category: string }>();
 
   function walk(b: Branch) {
@@ -144,10 +146,8 @@ function buildRelationshipTree(data: CsafDocument): EChartsTreeNode {
       const componentName = componentInfo?.name ?? componentId;
 
       for (const rel of compRels) {
-        const relColor =
-          RELATIONSHIP_COLORS[rel.category] ?? "#8A8D90";
-        const relLineType =
-          RELATIONSHIP_LINE_STYLES[rel.category] ?? "solid";
+        const relColor = RELATIONSHIP_COLORS[rel.category] ?? "#8A8D90";
+        const relLineType = RELATIONSHIP_LINE_STYLES[rel.category] ?? "solid";
 
         const componentColor =
           CATEGORY_COLORS[componentInfo?.category ?? ""] ?? "#5752D1";
@@ -261,11 +261,10 @@ export const RelationshipTree: React.FC<Props> = ({ data }) => {
         },
       ],
     }),
-    [treeData]
+    [treeData],
   );
 
-  const hasRelationships =
-    (data.product_tree.relationships ?? []).length > 0;
+  const hasRelationships = (data.product_tree.relationships ?? []).length > 0;
 
   if (!hasRelationships) {
     return (
@@ -317,8 +316,7 @@ export const RelationshipTree: React.FC<Props> = ({ data }) => {
                           width: 8,
                           height: 8,
                           borderRadius: "50%",
-                          backgroundColor:
-                            CATEGORY_COLORS[cat] ?? "#8A8D90",
+                          backgroundColor: CATEGORY_COLORS[cat] ?? "#8A8D90",
                         }}
                       />
                     }

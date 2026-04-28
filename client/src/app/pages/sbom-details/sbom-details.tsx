@@ -53,6 +53,7 @@ import {
   Cryptography,
   CryptoDetailContent,
   type CryptographicAsset,
+  shouldShowCryptographyTab,
 } from "./cryptography";
 import { ModelList } from "@app/pages/models/components/ModelList";
 import { ModelDetailDrawer } from "@app/pages/models/components/ModelDetailDrawer";
@@ -62,6 +63,13 @@ import { DocumentMetadata } from "@app/components/DocumentMetadata";
 type DrawerItem =
   | { kind: "crypto"; asset: CryptographicAsset }
   | { kind: "model"; model: AIModel };
+
+type SbomDetailsTabKey =
+  | "vulnerabilities"
+  | "packages"
+  | "info"
+  | "cryptography"
+  | "models";
 
 export const SbomDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -104,32 +112,41 @@ export const SbomDetails: React.FC = () => {
 
   const isAibom = sbom?.labels.kind === "aibom";
 
-  const aibomTabs = useTabControls({
-    persistenceKeyPrefix: "sda",
-    persistTo: "urlParams",
-    tabKeys: [
-      "info",
-      "packages",
-      "vulnerabilities",
-      "cryptography",
-      "models",
-    ] as const,
-  });
+  const sbomModels = React.useMemo(
+    () => (sbom ? mockModels.filter((m) => m.sbomId === sbom.id) : []),
+    [sbom],
+  );
 
-  const defaultTabs = useTabControls({
-    persistenceKeyPrefix: "sd",
+  const validTabKeys = React.useMemo((): SbomDetailsTabKey[] => {
+    const keys: SbomDetailsTabKey[] = ["vulnerabilities", "packages", "info"];
+    if (shouldShowCryptographyTab(sbom?.id)) {
+      keys.push("cryptography");
+    }
+    if (isAibom && sbomModels.length > 0) {
+      keys.push("models");
+    }
+    return keys;
+  }, [sbom?.id, isAibom, sbomModels.length]);
+
+  const tabControls = useTabControls<SbomDetailsTabKey>({
+    persistenceKeyPrefix: isAibom ? "sda" : "sd",
     persistTo: "urlParams",
-    tabKeys: [
-      "info",
-      "packages",
-      "vulnerabilities",
-      "cryptography",
-    ] as const,
+    tabKeys: validTabKeys,
+    defaultActiveTab: { tabKey: "vulnerabilities" },
   });
 
   const {
+    state: tabState,
+    derivedState: tabDerivedState,
     propHelpers: { getTabsProps, getTabProps, getTabContentProps },
-  } = isAibom ? aibomTabs : defaultTabs;
+  } = tabControls;
+
+  React.useEffect(() => {
+    const active = tabState.activeTab?.tabKey;
+    if (active && !validTabKeys.includes(active)) {
+      tabDerivedState.setActiveTab("vulnerabilities");
+    }
+  }, [validTabKeys, tabState.activeTab?.tabKey, tabDerivedState]);
 
   const infoTabRef = React.createRef<HTMLElement>();
   const packagesTabRef = React.createRef<HTMLElement>();
@@ -138,11 +155,6 @@ export const SbomDetails: React.FC = () => {
   const modelsTabRef = React.createRef<HTMLElement>();
 
   const vulnerabilitiesTabPopoverRef = React.createRef<HTMLElement>();
-
-  const sbomModels = React.useMemo(
-    () => (sbom ? mockModels.filter((m) => m.sbomId === sbom.id) : []),
-    [sbom],
-  );
 
   const [drawerItem, setDrawerItem] = React.useState<DrawerItem | null>(null);
 
@@ -166,6 +178,18 @@ export const SbomDetails: React.FC = () => {
     }
     return <ModelDetailDrawer model={drawerItem.model} />;
   }, [drawerItem]);
+
+  const tabsProps = getTabsProps();
+  const active = tabState.activeTab?.tabKey;
+  const tabsActiveKey: SbomDetailsTabKey =
+    active && validTabKeys.includes(active) ? active : "vulnerabilities";
+  const onTabsSelect: React.ComponentProps<typeof Tabs>["onSelect"] = (
+    event,
+    tabKey,
+  ) => {
+    tabsProps.onSelect(event, tabKey);
+    setDrawerItem(null);
+  };
 
   return (
     <>
@@ -261,21 +285,12 @@ export const SbomDetails: React.FC = () => {
       </PageSection>
       <PageSection>
         <Tabs
-          {...getTabsProps()}
+          {...tabsProps}
+          activeKey={tabsActiveKey}
+          onSelect={onTabsSelect}
           aria-label="Tabs that contain the SBOM information"
           role="region"
-          onSelect={() => setDrawerItem(null)}
         >
-          <Tab
-            {...getTabProps("info")}
-            title={<TabTitleText>Info</TabTitleText>}
-            tabContentRef={infoTabRef}
-          />
-          <Tab
-            {...getTabProps("packages")}
-            title={<TabTitleText>Packages</TabTitleText>}
-            tabContentRef={packagesTabRef}
-          />
           <Tab
             {...getTabProps("vulnerabilities")}
             title={<TabTitleText>Vulnerabilities</TabTitleText>}
@@ -298,11 +313,23 @@ export const SbomDetails: React.FC = () => {
             }
           />
           <Tab
-            {...getTabProps("cryptography")}
-            title={<TabTitleText>Cryptography</TabTitleText>}
-            tabContentRef={cryptographyTabRef}
+            {...getTabProps("packages")}
+            title={<TabTitleText>Packages</TabTitleText>}
+            tabContentRef={packagesTabRef}
           />
-          {isAibom && (
+          <Tab
+            {...getTabProps("info")}
+            title={<TabTitleText>Info</TabTitleText>}
+            tabContentRef={infoTabRef}
+          />
+          {validTabKeys.includes("cryptography") && (
+            <Tab
+              {...getTabProps("cryptography")}
+              title={<TabTitleText>Cryptography</TabTitleText>}
+              tabContentRef={cryptographyTabRef}
+            />
+          )}
+          {validTabKeys.includes("models") && (
             <Tab
               {...getTabProps("models")}
               title={<TabTitleText>Models</TabTitleText>}
@@ -313,13 +340,11 @@ export const SbomDetails: React.FC = () => {
       </PageSection>
       <PageSection>
         <TabContent
-          {...getTabContentProps("info")}
-          ref={infoTabRef}
-          aria-label="Information of the SBOM"
+          {...getTabContentProps("vulnerabilities")}
+          ref={vulnerabilitiesTabRef}
+          aria-label="Vulnerabilities within the SBOM"
         >
-          <LoadingWrapper isFetching={isFetching} fetchError={fetchError}>
-            {sbom && <Overview sbom={sbom} />}
-          </LoadingWrapper>
+          {sbomId && <VulnerabilitiesBySbom sbomId={sbomId} />}
         </TabContent>
         <TabContent
           {...getTabContentProps("packages")}
@@ -329,24 +354,31 @@ export const SbomDetails: React.FC = () => {
           {sbomId && <PackagesBySbom sbomId={sbomId} />}
         </TabContent>
         <TabContent
-          {...getTabContentProps("vulnerabilities")}
-          ref={vulnerabilitiesTabRef}
-          aria-label="Vulnerabilities within the SBOM"
+          {...getTabContentProps("info")}
+          ref={infoTabRef}
+          aria-label="Information of the SBOM"
         >
-          {sbomId && <VulnerabilitiesBySbom sbomId={sbomId} />}
+          <LoadingWrapper isFetching={isFetching} fetchError={fetchError}>
+            {sbom && <Overview sbom={sbom} />}
+          </LoadingWrapper>
         </TabContent>
-        <TabContent
-          {...getTabContentProps("cryptography")}
-          ref={cryptographyTabRef}
-          aria-label="Cryptographic libraries in the SBOM"
-        >
-          <Cryptography
-            onSelectAsset={(asset) =>
-              setDrawerItem(asset ? { kind: "crypto", asset } : null)
-            }
-          />
-        </TabContent>
-        {isAibom && (
+        {validTabKeys.includes("cryptography") && (
+          <TabContent
+            {...getTabContentProps("cryptography")}
+            ref={cryptographyTabRef}
+            aria-label="Cryptographic libraries in the SBOM"
+          >
+            {sbomId && (
+              <Cryptography
+                sbomId={sbomId}
+                onSelectAsset={(asset) =>
+                  setDrawerItem(asset ? { kind: "crypto", asset } : null)
+                }
+              />
+            )}
+          </TabContent>
+        )}
+        {validTabKeys.includes("models") && (
           <TabContent
             {...getTabContentProps("models")}
             ref={modelsTabRef}

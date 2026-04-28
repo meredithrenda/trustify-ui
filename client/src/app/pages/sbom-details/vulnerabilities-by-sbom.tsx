@@ -39,7 +39,12 @@ import type {
   SbomPackage,
   SbomStatus,
 } from "@app/client";
+import {
+  type ExploitIntelligenceCellState,
+  ExploitIntelligenceAnalysisCell,
+} from "@app/components/exploit-intelligence";
 import { LoadingWrapper } from "@app/components/LoadingWrapper";
+import { NotificationsContext } from "@app/components/NotificationsContext";
 import { PackageQualifiers } from "@app/components/PackageQualifiers";
 import { SbomVulnerabilitiesDonutChart } from "@app/components/SbomVulnerabilitiesDonutChart";
 import { SeverityShieldAndText } from "@app/components/SeverityShieldAndText";
@@ -69,6 +74,8 @@ interface TableData {
     totalPackages: number;
     allPackages: SbomPackage[];
   };
+  /** When the API returns exploit-intelligence state for this row, it is passed through here */
+  exploitIntelligence?: ExploitIntelligenceCellState;
 }
 
 interface VulnerabilitiesBySbomProps {
@@ -78,6 +85,26 @@ interface VulnerabilitiesBySbomProps {
 export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
   sbomId,
 }) => {
+  const { pushNotification } = React.useContext(NotificationsContext);
+
+  const [exploitIntelByVulnId, setExploitIntelByVulnId] = React.useState<
+    Record<string, ExploitIntelligenceCellState>
+  >({});
+
+  const handleRequestExploitAnalysis = (vulnerabilityIdentifier: string) => {
+    pushNotification({
+      title: "Exploit intelligence analysis requested",
+      variant: "info",
+    });
+    setExploitIntelByVulnId((prev) => ({
+      ...prev,
+      [vulnerabilityIdentifier]: {
+        kind: "finding",
+        finding: { variant: "in_progress" },
+      },
+    }));
+  };
+
   const {
     sbom,
     isFetching: isFetchingSbom,
@@ -96,7 +123,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
   }, [vulnerabilities]);
 
   const tableData = React.useMemo(() => {
-    return affectedVulnerabilities.map((item) => {
+    return affectedVulnerabilities.map((item, rowIndex) => {
       const allPackages = item.relatedPackages
         .flatMap((i) => i.packages)
         .reduce((prev, current) => {
@@ -106,12 +133,21 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
           }
           return prev;
         }, [] as SbomPackage[]);
+
+      const exploitIntelligence: ExploitIntelligenceCellState | undefined =
+        rowIndex === 0
+          ? { kind: "finding", finding: { variant: "vulnerable" } }
+          : rowIndex === 1
+            ? { kind: "finding", finding: { variant: "uncertain" } }
+            : undefined;
+
       const result: TableData = {
         ...item,
         summary: {
           totalPackages: allPackages.length,
           allPackages,
         },
+        exploitIntelligence,
       };
 
       return result;
@@ -132,6 +168,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
       id: "Id",
       description: "Description",
       cvss: "CVSS",
+      exploitIntelligence: "Exploit Intelligence Analysis",
       affectedDependencies: "Affected dependencies",
       published: "Published",
       updated: "Updated",
@@ -145,6 +182,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
       "published",
       "updated",
     ],
+    initialSort: { columnKey: "cvss", direction: "desc" },
     getSortValues: (item) => ({
       id: item.vulnerability.identifier,
       cvss: item.vulnerability.average_score,
@@ -206,8 +244,8 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                     <DescriptionListGroup>
                       <DescriptionListTerm>Version</DescriptionListTerm>
                       <DescriptionListDescription>
-                        {sbom?.described_by
-                          .map((item) => item.version)
+                        {(sbom?.described_by ?? [])
+                          .map((item: { version: string }) => item.version)
                           .join(", ")}
                       </DescriptionListDescription>
                     </DescriptionListGroup>
@@ -244,6 +282,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                 <Th {...getThProps({ columnKey: "id" })} />
                 <Th {...getThProps({ columnKey: "description" })} />
                 <Th {...getThProps({ columnKey: "cvss" })} />
+                <Th {...getThProps({ columnKey: "exploitIntelligence" })} />
                 <Th {...getThProps({ columnKey: "affectedDependencies" })} />
                 <Th {...getThProps({ columnKey: "published" })} />
                 <Th {...getThProps({ columnKey: "updated" })} />
@@ -257,6 +296,11 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
             numRenderedColumns={numRenderedColumns}
           >
             {currentPageItems?.map((item, rowIndex) => {
+              const exploitIntelligenceState = exploitIntelByVulnId[
+                item.vulnerability.identifier
+              ] ??
+                item.exploitIntelligence ?? { kind: "not_run" as const };
+
               return (
                 <Tbody
                   key={item._ui_unique_id}
@@ -312,6 +356,19 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                           score={item.vulnerability.average_score}
                           showLabel
                           showScore
+                        />
+                      </Td>
+                      <Td
+                        width={15}
+                        modifier="nowrap"
+                        {...getTdProps({ columnKey: "exploitIntelligence" })}
+                      >
+                        <ExploitIntelligenceAnalysisCell
+                          vulnerabilityIdentifier={
+                            item.vulnerability.identifier
+                          }
+                          state={exploitIntelligenceState}
+                          onRequestAnalysis={handleRequestExploitAnalysis}
                         />
                       </Td>
                       <Td

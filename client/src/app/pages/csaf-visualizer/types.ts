@@ -123,7 +123,7 @@ export function collectProducts(tree: ProductTree): Product[] {
 }
 
 export function collectRelationshipProducts(
-  tree: ProductTree
+  tree: ProductTree,
 ): { name: string; product_id: string }[] {
   if (!tree.relationships) return [];
   return tree.relationships.map((r) => r.full_product_name);
