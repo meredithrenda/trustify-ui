@@ -20,6 +20,12 @@ const useMockData = isGitHubPages || !!process.env.MOCK_DATA;
 const basePath = process.env.BASE_PATH || "/";
 const routerBasename = basePath.replace(/\/$/, "") || "/";
 
+/** Workspace root of `@trustify-ui/common` (explicit resolve for Rsbuild from `client/`). */
+const commonPackageRoot = path.resolve(__dirname, "../common");
+
+/** App source root — `@app/*` path alias (tsconfig paths are not applied by Rspack unless listed here). */
+const appSourceRoot = path.resolve(__dirname, "src/app");
+
 /**
  * Return the `node_modules/` resolved path for the branding assets.
  */
@@ -160,6 +166,12 @@ export default defineConfig({
               : [],
         },
       },
+    },
+  },
+  resolve: {
+    alias: {
+      "@app": appSourceRoot,
+      "@trustify-ui/common": commonPackageRoot,
     },
   },
   source: {

@@ -103,6 +103,9 @@ export const getFilterHubRequestParams = <
       );
       const filterValue = filterValues[categoryKey];
       if (!filterCategory || !filterValue) break;
+      if (filterCategory.excludeFromHubRequest) {
+        continue;
+      }
       const serverFilterField = filterCategory.serverFilterField || categoryKey;
       const serverFilterValue =
         filterCategory.getServerFilterValue?.(filterValue) || filterValue;

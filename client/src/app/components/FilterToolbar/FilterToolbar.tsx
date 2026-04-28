@@ -74,6 +74,10 @@ export interface IBasicFilterCategory<
    * Whether or not it will always be
    */
   showOutsideDropdown?: boolean;
+  /**
+   * When true, this filter is not converted into hub `q` / filter params (e.g. handled separately as its own API query flag).
+   */
+  excludeFromHubRequest?: boolean;
 }
 
 export interface IMultiselectFilterCategory<
@@ -109,6 +113,10 @@ export interface ISearchFilterCategory<TItem, TFilterCategoryKey extends string>
 export interface IToggleFilterCategory<TItem, TFilterCategoryKey extends string>
   extends IBasicFilterCategory<TItem, TFilterCategoryKey> {
   label: string;
+  /** Optional helper text below the toggle (PatternFly `Checkbox` description). */
+  description?: string;
+  /** When true, render a `Switch` instead of a `Checkbox` (mutually exclusive styling). */
+  useSwitch?: boolean;
 }
 
 export type FilterCategory<TItem, TFilterCategoryKey extends string> =

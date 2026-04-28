@@ -16,24 +16,61 @@ declare const __MOCK_DATA__: boolean;
 
 export const VulnerabilitiesQueryKey = "vulnerabilities";
 
+export type UseFetchVulnerabilitiesOptions = {
+  /** When set, skip running the query (e.g. until search is ready). */
+  disableQuery?: boolean;
+  /**
+   * When true, request only vulnerabilities linked to at least one ingested SBOM
+   * (`affects_sboms` query param). Mock data filters the same way for UX development.
+   */
+  affectsSboms?: boolean;
+};
+
+const normalizeVulnerabilitiesOptions = (
+  opts?: boolean | UseFetchVulnerabilitiesOptions,
+): UseFetchVulnerabilitiesOptions => {
+  if (opts === undefined) {
+    return {};
+  }
+  if (typeof opts === "boolean") {
+    return { disableQuery: opts };
+  }
+  return opts;
+};
+
 export const useFetchVulnerabilities = (
   params: HubRequestParams = {},
-  disableQuery = false,
+  opts?: boolean | UseFetchVulnerabilitiesOptions,
 ) => {
+  const { disableQuery = false, affectsSboms = false } =
+    normalizeVulnerabilitiesOptions(opts);
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [VulnerabilitiesQueryKey, params],
+    queryKey: [VulnerabilitiesQueryKey, params, affectsSboms],
     queryFn: () => {
+      const baseQuery = requestParamsQuery(params);
+      const query = {
+        ...baseQuery,
+        ...(affectsSboms ? { affects_sboms: true as const } : {}),
+      };
+
       if (__MOCK_DATA__) {
+        let items = [...mockVulnerabilities];
+        if (affectsSboms) {
+          items = items.filter((v) =>
+            v.advisories.some((a) => (a.sboms?.length ?? 0) > 0),
+          );
+        }
         return Promise.resolve({
           data: {
-            items: mockVulnerabilities,
-            total: mockVulnerabilities.length,
+            items,
+            total: items.length,
           },
         });
       }
       return listVulnerabilities({
         client,
-        query: { ...requestParamsQuery(params) },
+        query,
       });
     },
     enabled: !disableQuery,

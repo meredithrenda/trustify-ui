@@ -6,27 +6,66 @@ import type { HubRequestParams } from "@app/api/models";
 import { client } from "../axios-config/apiInit";
 import { getPurl, listPackages, listPurl } from "../client";
 import { requestParamsQuery } from "../hooks/table-controls";
-import { mockPackages } from "@app/mocks/packages";
+import {
+  mockPackageUuidsWithVulnerabilities,
+  mockPackages,
+} from "@app/mocks/packages";
 
 declare const __MOCK_DATA__: boolean;
 
 export const PackagesQueryKey = "packages";
 
+export type UseFetchPackagesOptions = {
+  disableQuery?: boolean;
+  /**
+   * When true, request only packages with at least one vulnerability (`has_vulnerabilities`
+   * query param). Mock data filters the same way for UX development.
+   */
+  hasVulnerabilities?: boolean;
+};
+
+const normalizeFetchPackagesOptions = (
+  opts?: boolean | UseFetchPackagesOptions,
+): UseFetchPackagesOptions => {
+  if (opts === undefined) {
+    return {};
+  }
+  if (typeof opts === "boolean") {
+    return { disableQuery: opts };
+  }
+  return opts;
+};
+
 export const useFetchPackages = (
   params: HubRequestParams = {},
-  disableQuery = false,
+  opts?: boolean | UseFetchPackagesOptions,
 ) => {
+  const { disableQuery = false, hasVulnerabilities = false } =
+    normalizeFetchPackagesOptions(opts);
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [PackagesQueryKey, params],
+    queryKey: [PackagesQueryKey, params, hasVulnerabilities],
     queryFn: () => {
+      const baseQuery = requestParamsQuery(params);
+      const query = {
+        ...baseQuery,
+        ...(hasVulnerabilities ? { has_vulnerabilities: true as const } : {}),
+      };
+
       if (__MOCK_DATA__) {
+        let items = [...mockPackages];
+        if (hasVulnerabilities) {
+          items = items.filter((p) =>
+            mockPackageUuidsWithVulnerabilities.has(p.uuid),
+          );
+        }
         return Promise.resolve({
-          data: { items: mockPackages, total: mockPackages.length },
+          data: { items, total: items.length },
         });
       }
       return listPurl({
         client: client,
-        query: { ...requestParamsQuery(params) },
+        query,
       });
     },
     enabled: !disableQuery,

@@ -44,7 +44,7 @@ export interface SearchTabsProps {
     >;
     packageFilterPanelProps: IFilterPanelProps<
       PackageTableData,
-      "" | "type" | "arch" | "license"
+      "" | "type" | "arch" | "license" | "has_vulnerabilities"
     >;
     sbomFilterPanelProps: IFilterPanelProps<
       SbomSummary,
@@ -52,7 +52,7 @@ export interface SearchTabsProps {
     >;
     vulnerabilityFilterPanelProps: IFilterPanelProps<
       VulnerabilitySummary,
-      "" | "base_severity" | "published" | "publishedOnly"
+      "" | "base_severity" | "published" | "in_my_sboms"
     >;
   };
 

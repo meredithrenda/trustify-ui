@@ -18,7 +18,7 @@ import {
 } from "@app/hooks/table-controls";
 import { useFetchLicenses } from "@app/queries/licenses";
 import { useFetchPackages } from "@app/queries/packages";
-import { decomposePurl } from "@app/utils/utils";
+import { decomposePurl, parseBooleanIfPossible } from "@app/utils/utils";
 
 export interface PackageTableData extends PurlSummary {
   decomposedPurl?: DecomposedPurl;
@@ -36,7 +36,7 @@ interface IPackageSearchContext {
     | "qualifiers"
     | "vulnerabilities",
     "name" | "namespace" | "version",
-    "" | "type" | "arch" | "license",
+    "" | "type" | "arch" | "license" | "has_vulnerabilities",
     string
   >;
 
@@ -136,10 +136,23 @@ export const PackageSearchProvider: React.FunctionComponent<
         }),
         onInputValueChange: setInputValueLicense,
       },
+      {
+        categoryKey: "has_vulnerabilities",
+        title: "Vulnerabilities",
+        type: FilterType.toggle,
+        label: "Show only packages with vulnerabilities",
+        useSwitch: true,
+        showOutsideDropdown: true,
+        excludeFromHubRequest: true,
+      },
     ],
     isExpansionEnabled: true,
     expandableVariant: "compound",
   });
+
+  const hasVulnerabilities = parseBooleanIfPossible(
+    tableControlState.filterState.filterValues.has_vulnerabilities?.[0],
+  );
 
   const {
     result: { data: packages, total: totalItemCount },
@@ -154,6 +167,7 @@ export const PackageSearchProvider: React.FunctionComponent<
         version: "version",
       },
     }),
+    { hasVulnerabilities },
   );
 
   const enrichedPackages = React.useMemo(() => {

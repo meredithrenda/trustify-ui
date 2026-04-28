@@ -1,5 +1,13 @@
 import type { PurlSummary } from "@app/client";
 
+/** Package UUIDs that mock mode treats as having ≥1 vulnerability (for `has_vulnerabilities` UX). */
+export const mockPackageUuidsWithVulnerabilities = new Set<string>([
+  "pkg-001",
+  "pkg-003",
+  "pkg-004",
+  "pkg-007",
+]);
+
 export const mockPackages: PurlSummary[] = [
   {
     uuid: "pkg-001",

@@ -26,6 +26,7 @@ import {
 } from "@app/client";
 import { FILTER_NULL_VALUE } from "@app/Constants";
 import { useUpload } from "@app/hooks/useUpload";
+import { getMockSbomAdvisories } from "@app/mocks/sbom-advisories";
 import { mockSboms } from "@app/mocks/sboms";
 
 import {
@@ -236,7 +237,9 @@ export const useFetchSbomsAdvisory = (sbomId: string) => {
     queryKey: [SBOMsQueryKey, sbomId, "advisory"],
     queryFn: () => {
       if (__MOCK_DATA__) {
-        return Promise.resolve({ data: [] });
+        return Promise.resolve({
+          data: getMockSbomAdvisories(sbomId),
+        });
       }
       return getSbomAdvisories({
         client,
@@ -258,6 +261,11 @@ export const useFetchSbomsAdvisoryBatch = (sbomIds: string[]) => {
       return {
         queryKey: [SBOMsQueryKey, sbomId, "advisory"],
         queryFn: () => {
+          if (__MOCK_DATA__) {
+            return Promise.resolve({
+              data: getMockSbomAdvisories(sbomId),
+            });
+          }
           return getSbomAdvisories({
             client,
             path: { id: sbomId },

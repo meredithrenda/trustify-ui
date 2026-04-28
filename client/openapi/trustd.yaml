@@ -2130,6 +2130,13 @@ paths:
           type: integer
           format: int64
           minimum: 0
+      - name: has_vulnerabilities
+        in: query
+        description: >-
+          When true, return only packages that have at least one associated vulnerability.
+        required: false
+        schema:
+          type: boolean
       responses:
         '200':
           description: All relevant matching qualified PURLs
@@ -3345,6 +3352,15 @@ paths:
           type: integer
           format: int64
           minimum: 0
+      - name: affects_sboms
+        in: query
+        description: |-
+          When true, return only vulnerabilities that are associated with at least one SBOM
+          ingested in this Trustify instance (workspace scope). Omit or false to include all
+          vulnerabilities matching the query.
+        required: false
+        schema:
+          type: boolean
       responses:
         '200':
           description: Matching vulnerabilities

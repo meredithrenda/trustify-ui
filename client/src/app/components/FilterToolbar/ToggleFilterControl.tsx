@@ -1,11 +1,10 @@
 import type React from "react";
 
-import { Checkbox, ToolbarFilter } from "@patternfly/react-core";
-
-import { parseBooleanIfPossible } from "@app/utils/utils";
+import { ToolbarFilter } from "@patternfly/react-core";
 
 import type { IFilterControlProps } from "./FilterControl";
 import type { IToggleFilterCategory } from "./FilterToolbar";
+import { ToggleFilterBody } from "./ToggleFilterBody";
 
 export interface IToggleFilterControlProps<
   TItem,
@@ -30,17 +29,10 @@ export const ToggleFilterControl = <TItem, TFilterCategoryKey extends string>({
       categoryName={category.title}
       showToolbarItem={showToolbarItem}
     >
-      <Checkbox
-        id={`filter-control-${category.categoryKey}`}
-        label={category.label}
-        isChecked={parseBooleanIfPossible(filterValue?.[0])}
-        onChange={(_e, value) => {
-          if (value) {
-            setFilterValue([String(true)]);
-          } else {
-            setFilterValue(null);
-          }
-        }}
+      <ToggleFilterBody
+        category={category}
+        filterValue={filterValue}
+        setFilterValue={setFilterValue}
         isDisabled={isDisabled}
       />
     </ToolbarFilter>
