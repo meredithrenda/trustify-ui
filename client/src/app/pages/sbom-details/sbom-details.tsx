@@ -174,7 +174,9 @@ export const SbomDetails: React.FC = () => {
   const drawerBody = React.useMemo(() => {
     if (!drawerItem) return <></>;
     if (drawerItem.kind === "crypto") {
-      return <CryptoDetailContent asset={drawerItem.asset} />;
+      return (
+        <CryptoDetailContent asset={drawerItem.asset} viewContext="sbom" />
+      );
     }
     return <ModelDetailDrawer model={drawerItem.model} />;
   }, [drawerItem]);
