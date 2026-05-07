@@ -188,6 +188,9 @@ const SBOM_INDICES_CRITICAL_MEDIUM_LOW = new Set([1, 7]);
  */
 const SBOM_INDICES_HIGH_MEDIUM_LOW = new Set([4]);
 
+/** Primary demo SBOM (RHEL): enough affected CVE rows to show every Exploit Intelligence cell state together. */
+const SBOM_INDEX_EXPLOIT_INTEL_PROTOTYPE = 0;
+
 const mkScore = (value: number, severity: Severity): Score => ({
   type: "3.1",
   value,
@@ -269,11 +272,52 @@ export const getMockSbomAdvisories = (sbomId: string): SbomAdvisory[] => {
     ...pkg,
     purl: [pickPkg(3)],
   };
+  const pkg4 = {
+    ...pkg,
+    purl: [pickPkg(4)],
+  };
+  const pkg5 = {
+    ...pkg,
+    purl: [pickPkg(5)],
+  };
+  const pkg6 = {
+    ...pkg,
+    purl: [pickPkg(6)],
+  };
 
   const crit = fixtureBySeverity("critical");
   const med = fixtureBySeverity("medium");
   const lowFirst = lowSeverityFixtures()[0];
   const high = primaryHighFixture();
+
+  if (idx === SBOM_INDEX_EXPLOIT_INTEL_PROTOTYPE) {
+    const exploitPrototypeCveIdentifiers = [
+      "CVE-2024-9680",
+      "CVE-2024-12747",
+      "CVE-2024-6119",
+      "CVE-2024-47176",
+      "CVE-2024-21626",
+      "CVE-2023-44487",
+      "CVE-2024-0232",
+    ];
+    const exploitPrototypePkgs = [pkg0, pkg1, pkg2, pkg3, pkg4, pkg5, pkg6];
+    if (
+      exploitPrototypeCveIdentifiers.every((id) =>
+        mockCveFixtures.some((f) => f.identifier === id),
+      )
+    ) {
+      return exploitPrototypeCveIdentifiers.map((id, row) => {
+        const cve = mockCveFixtures.find((f) => f.identifier === id);
+        const p = exploitPrototypePkgs[row];
+        if (!cve || !p) {
+          throw new Error(
+            `[mock sbom advisory] Missing CVE or package for exploit intelligence prototype (${id}).`,
+          );
+        }
+        return mkSbomAdvisory(cve, p, [mkSbomStatus(cve, p, "affected")]);
+      });
+    }
+  }
 
   if (
     SBOM_INDICES_FOUR_SEVERITY_TIERS.has(idx) &&

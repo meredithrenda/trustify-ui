@@ -63,6 +63,36 @@ import { Paths } from "@app/Routes";
 import { useWithUiId } from "@app/utils/query-utils";
 import { decomposePurl, formatDate } from "@app/utils/utils";
 
+declare const __MOCK_DATA__: boolean;
+
+/** Mock SBOM at index 0 (`getMockSbomAdvisories`) — CVE set aligned with exploit-intelligence column prototype. */
+const MOCK_PROTOTYPE_EXPLOIT_INTEL_SBOM_ID =
+  "a1b2c3d4-0001-4000-8000-000000000001";
+
+const MOCK_PROTOTYPE_EXPLOIT_REPORT_URL =
+  "https://example.com/exploit-intelligence-report";
+
+const MOCK_PROTOTYPE_EXPLOIT_INTEL_BY_CVE: Record<
+  string,
+  ExploitIntelligenceCellState
+> = {
+  "CVE-2024-9680": {
+    kind: "finding",
+    finding: { variant: "vulnerable" },
+    reportUrl: MOCK_PROTOTYPE_EXPLOIT_REPORT_URL,
+  },
+  "CVE-2024-12747": {
+    kind: "finding",
+    finding: { variant: "not_vulnerable" },
+    reportUrl: MOCK_PROTOTYPE_EXPLOIT_REPORT_URL,
+  },
+  "CVE-2024-6119": { kind: "finding", finding: { variant: "in_progress" } },
+  "CVE-2024-47176": { kind: "finding", finding: { variant: "in_progress" } },
+  "CVE-2024-21626": { kind: "not_run" },
+  "CVE-2023-44487": { kind: "not_run" },
+  "CVE-2024-0232": { kind: "not_run" },
+};
+
 interface TableData {
   vulnerability: SbomStatus;
   vulnerabilityStatus: VulnerabilityStatus;
@@ -123,7 +153,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
   }, [vulnerabilities]);
 
   const tableData = React.useMemo(() => {
-    return affectedVulnerabilities.map((item, rowIndex) => {
+    return affectedVulnerabilities.map((item) => {
       const allPackages = item.relatedPackages
         .flatMap((i) => i.packages)
         .reduce((prev, current) => {
@@ -134,12 +164,12 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
           return prev;
         }, [] as SbomPackage[]);
 
-      const exploitIntelligence: ExploitIntelligenceCellState | undefined =
-        rowIndex === 0
-          ? { kind: "finding", finding: { variant: "vulnerable" } }
-          : rowIndex === 1
-            ? { kind: "finding", finding: { variant: "uncertain" } }
-            : undefined;
+      const exploitIntelligence =
+        __MOCK_DATA__ &&
+        sbomId === MOCK_PROTOTYPE_EXPLOIT_INTEL_SBOM_ID &&
+        item.vulnerability.identifier in MOCK_PROTOTYPE_EXPLOIT_INTEL_BY_CVE
+          ? MOCK_PROTOTYPE_EXPLOIT_INTEL_BY_CVE[item.vulnerability.identifier]
+          : undefined;
 
       const result: TableData = {
         ...item,
@@ -152,7 +182,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 
       return result;
     });
-  }, [affectedVulnerabilities]);
+  }, [affectedVulnerabilities, sbomId]);
 
   const tableDataWithUiId = useWithUiId(
     tableData,
@@ -282,7 +312,13 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                 <Th {...getThProps({ columnKey: "id" })} />
                 <Th {...getThProps({ columnKey: "description" })} />
                 <Th {...getThProps({ columnKey: "cvss" })} />
-                <Th {...getThProps({ columnKey: "exploitIntelligence" })} />
+                <Th
+                  {...getThProps({ columnKey: "exploitIntelligence" })}
+                  info={{
+                    tooltip:
+                      "Request analysis is available only for Critical and High severity vulnerabilities.",
+                  }}
+                />
                 <Th {...getThProps({ columnKey: "affectedDependencies" })} />
                 <Th {...getThProps({ columnKey: "published" })} />
                 <Th {...getThProps({ columnKey: "updated" })} />
@@ -300,6 +336,12 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                 item.vulnerability.identifier
               ] ??
                 item.exploitIntelligence ?? { kind: "not_run" as const };
+
+              const severity = extendedSeverityFromSeverity(
+                item.vulnerability.average_severity,
+              );
+              const requestAnalysisEligible =
+                severity === "critical" || severity === "high";
 
               return (
                 <Tbody
@@ -369,6 +411,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                           }
                           state={exploitIntelligenceState}
                           onRequestAnalysis={handleRequestExploitAnalysis}
+                          requestAnalysisEligible={requestAnalysisEligible}
                         />
                       </Td>
                       <Td
