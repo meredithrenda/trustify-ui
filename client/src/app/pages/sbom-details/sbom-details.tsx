@@ -48,6 +48,7 @@ import { mockModels } from "@app/mocks/models";
 
 import { Overview } from "./overview";
 import { PackagesBySbom } from "./packages-by-sbom";
+import { PolicyBySbom } from "./policy-by-sbom";
 import { VulnerabilitiesBySbom } from "./vulnerabilities-by-sbom";
 import {
   Cryptography,
@@ -68,6 +69,7 @@ type SbomDetailsTabKey =
   | "vulnerabilities"
   | "packages"
   | "info"
+  | "policy"
   | "cryptography"
   | "models";
 
@@ -118,7 +120,12 @@ export const SbomDetails: React.FC = () => {
   );
 
   const validTabKeys = React.useMemo((): SbomDetailsTabKey[] => {
-    const keys: SbomDetailsTabKey[] = ["vulnerabilities", "packages", "info"];
+    const keys: SbomDetailsTabKey[] = [
+      "vulnerabilities",
+      "packages",
+      "info",
+      "policy",
+    ];
     if (shouldShowCryptographyTab(sbom?.id)) {
       keys.push("cryptography");
     }
@@ -151,6 +158,7 @@ export const SbomDetails: React.FC = () => {
   const infoTabRef = React.createRef<HTMLElement>();
   const packagesTabRef = React.createRef<HTMLElement>();
   const vulnerabilitiesTabRef = React.createRef<HTMLElement>();
+  const policyTabRef = React.createRef<HTMLElement>();
   const cryptographyTabRef = React.createRef<HTMLElement>();
   const modelsTabRef = React.createRef<HTMLElement>();
 
@@ -324,6 +332,11 @@ export const SbomDetails: React.FC = () => {
             title={<TabTitleText>Info</TabTitleText>}
             tabContentRef={infoTabRef}
           />
+          <Tab
+            {...getTabProps("policy")}
+            title={<TabTitleText>Policy</TabTitleText>}
+            tabContentRef={policyTabRef}
+          />
           {validTabKeys.includes("cryptography") && (
             <Tab
               {...getTabProps("cryptography")}
@@ -363,6 +376,13 @@ export const SbomDetails: React.FC = () => {
           <LoadingWrapper isFetching={isFetching} fetchError={fetchError}>
             {sbom && <Overview sbom={sbom} />}
           </LoadingWrapper>
+        </TabContent>
+        <TabContent
+          {...getTabContentProps("policy")}
+          ref={policyTabRef}
+          aria-label="Policy compliance for the SBOM"
+        >
+          {sbomId && <PolicyBySbom sbomId={sbomId} />}
         </TabContent>
         {validTabKeys.includes("cryptography") && (
           <TabContent

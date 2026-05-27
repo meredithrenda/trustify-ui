@@ -16,9 +16,29 @@ import {
 } from "@trustify-ui/common";
 
 const isGitHubPages = !!process.env.GITHUB_PAGES;
-const useMockData = isGitHubPages || !!process.env.MOCK_DATA;
+
+/**
+ * Local UI without Keycloak: default ON for `npm run start:dev` / `start:dev:mock` in this workspace.
+ * Opt out with `MOCK_DATA=false` or `TRUSTIFY_DEV_USE_OIDC=true` (then configure OIDC as usual).
+ */
+const mockExplicitOff =
+  process.env.MOCK_DATA === "false" ||
+  process.env.TRUSTIFY_DEV_USE_OIDC === "true";
+const npmScriptImpliesClientDev =
+  process.env.npm_lifecycle_event === "start:dev" ||
+  process.env.npm_lifecycle_event === "start:dev:mock";
+const useMockData =
+  isGitHubPages ||
+  (mockExplicitOff
+    ? false
+    : !!process.env.MOCK_DATA || npmScriptImpliesClientDev);
+
 const basePath = process.env.BASE_PATH || "/";
 const routerBasename = basePath.replace(/\/$/, "") || "/";
+
+/** Inject `window._env` in dev HTML whenever we are not doing a production build, or mock/GitHub Pages needs it. */
+const injectHtmlRuntimeEnv =
+  isGitHubPages || useMockData || process.env.NODE_ENV !== "production";
 
 /** Workspace root of `@trustify-ui/common` (explicit resolve for Rsbuild from `client/`). */
 const commonPackageRoot = path.resolve(__dirname, "../common");
@@ -133,15 +153,17 @@ export default defineConfig({
   html: {
     template: path.join(__dirname, "index.html"),
     templateParameters: {
-      ...((process.env.NODE_ENV === "development" || isGitHubPages) && {
-        _env: encodeEnv(
-          useMockData
-            ? buildTrustificationEnv({ AUTH_REQUIRED: "false" })
-            : TRUSTIFICATION_ENV,
-          SERVER_ENV_KEYS,
-        ),
-        branding: brandingStrings,
-      }),
+      branding: brandingStrings,
+      /** Read synchronously in `index.html` before the bundle loads (Chrome-safe vs `define` alone). */
+      trustifyUiMockData: useMockData,
+      _env: injectHtmlRuntimeEnv
+        ? encodeEnv(
+            useMockData
+              ? buildTrustificationEnv({ AUTH_REQUIRED: "false" })
+              : TRUSTIFICATION_ENV,
+            SERVER_ENV_KEYS,
+          )
+        : "",
     },
   },
   tools: {

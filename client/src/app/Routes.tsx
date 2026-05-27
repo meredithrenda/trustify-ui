@@ -41,6 +41,17 @@ const ImporterList = lazy(() => import("./pages/importer-list"));
 const LicenseList = lazy(() => import("./pages/license-list"));
 const CBOMInventory = lazy(() => import("./pages/cbom-inventory"));
 const Models = lazy(() => import("./pages/models"));
+const Policy = lazy(() => import("./pages/policy"));
+const PromptManager = lazy(() =>
+  import("./pages/tpa-agent-settings").then((m) => ({
+    default: m.PromptManager,
+  })),
+);
+const McpSettings = lazy(() =>
+  import("./pages/tpa-agent-settings").then((m) => ({
+    default: m.McpSettings,
+  })),
+);
 const NotFound = lazy(() => import("./pages/not-found"));
 
 export enum PathParam {
@@ -66,8 +77,11 @@ export const Paths = {
   search: "/search",
   importers: "/importers",
   licenses: "/licenses",
+  policy: "/policy",
   cbomInventory: "/cbom-prototype",
   models: "/models",
+  tpaAgentPrompts: "/tpa-agent/prompts",
+  tpaAgentMcp: "/tpa-agent/mcp",
 } as const;
 
 export const usePathFromParams = (
@@ -148,6 +162,12 @@ export const AppRoutes = createBrowserRouter(
               identifier="license-list"
               component={<LicenseList />}
             />
+          ),
+        },
+        {
+          path: Paths.policy,
+          element: (
+            <LazyRouteElement identifier="policy" component={<Policy />} />
           ),
         },
         {
@@ -268,6 +288,24 @@ export const AppRoutes = createBrowserRouter(
           path: Paths.models,
           element: (
             <LazyRouteElement identifier="models" component={<Models />} />
+          ),
+        },
+        {
+          path: Paths.tpaAgentPrompts,
+          element: (
+            <LazyRouteElement
+              identifier="tpa-agent-prompts"
+              component={<PromptManager />}
+            />
+          ),
+        },
+        {
+          path: Paths.tpaAgentMcp,
+          element: (
+            <LazyRouteElement
+              identifier="tpa-agent-mcp"
+              component={<McpSettings />}
+            />
           ),
         },
         {

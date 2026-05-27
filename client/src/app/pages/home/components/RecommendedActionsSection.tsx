@@ -28,17 +28,17 @@ const ACTIONS: ActionCard[] = [
     description:
       "Ingest a new Software Bill of Materials for automated analysis. The agent will immediately scan for known vulnerabilities and policy violations.",
     linkTo: Paths.sbomUpload,
-    buttonLabel: "Go to upload",
+    buttonLabel: "Upload SBOM",
   },
   {
     title: "Generate vulnerability report",
     description:
       "Create a PDF or CSV summary of your current security posture across all ingested SBOMs, including VEX status and remediation guidance.",
     linkTo: Paths.vulnerabilities,
-    buttonLabel: "View vulnerabilities",
+    buttonLabel: "Generate vulnerability report",
   },
   {
-    title: "Analyze with ExploitIQ",
+    title: "Analyze with Exploit Intelligence",
     description:
       "Use Exploit Intelligence to filter false positives and focus on vulnerabilities with known exploit activity in the wild.",
     linkTo: Paths.vulnerabilities,

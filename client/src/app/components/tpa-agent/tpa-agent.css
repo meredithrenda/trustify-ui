@@ -1,0 +1,255 @@
+/*
+ * Developer Hub: white chat shell + conversation area; grey is only the
+ * rounded MessageBar input, not a full-width footer band.
+ */
+.tpa-agent-chat.pf-chatbot,
+.tpa-agent-chat .pf-chatbot-container {
+  background-color: var(--pf-t--global--background--color--primary--default);
+}
+
+.tpa-agent-chat .pf-chatbot__content,
+.tpa-agent-chat .pf-chatbot__content.pf-m-primary {
+  background-color: var(--pf-t--global--background--color--primary--default);
+}
+
+.tpa-agent-chat .pf-chatbot__footer,
+.tpa-agent-chat .pf-chatbot__footer.pf-m-primary {
+  background-color: var(--pf-t--global--background--color--primary--default);
+}
+
+.tpa-agent-chat .pf-chatbot__footer-container {
+  background-color: transparent;
+}
+
+/* Corner popup — white header/shell like home; only MessageBar stays grey */
+.tpa-agent-chat--popup .pf-chatbot__header {
+  background-color: var(--pf-t--global--background--color--primary--default);
+}
+
+.tpa-agent-chat--popup .pf-chatbot__header__divider {
+  display: none;
+}
+
+/* Footer divider is redundant with the prompt card border (embedded hides it at wide breakpoints). */
+.tpa-agent-chat .pf-chatbot__footer > .pf-v6-c-divider {
+  display: none;
+}
+
+/* Grey prompt bubble — border on the element (PF ::after sits inset and leaves a gap) */
+.tpa-agent-chat .tpa-agent-message-bar.pf-chatbot__message-bar,
+.tpa-agent-chat .tpa-agent-message-bar.pf-chatbot__message-bar.pf-m-multiline {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 3.5rem;
+  background-color: var(--pf-t--global--background--color--secondary--default);
+  border: var(--pf-t--global--border--width--control--default) solid
+    var(--pf-t--global--border--color--default);
+  /* Keep pill radius when focused/typing (PF multiline shrinks to small radius) */
+  border-radius: calc(var(--pf-t--global--border--radius--medium) * 2);
+  /* Color only on hover/focus — thicker PF borders shift the layout */
+  transition: border-color var(--pf-t--global--motion--timing-function--accelerate)
+    var(--pf-t--global--motion--duration--sm);
+}
+
+.tpa-agent-chat .tpa-agent-message-bar.pf-chatbot__message-bar::after {
+  display: none;
+}
+
+.tpa-agent-chat .tpa-agent-message-bar.pf-chatbot__message-bar:hover {
+  border-color: var(--pf-t--global--border--color--default);
+}
+
+.tpa-agent-chat .tpa-agent-message-bar.pf-chatbot__message-bar:focus-within {
+  border-color: var(--pf-t--global--color--brand--default);
+}
+
+/* Match icon row padding (compact actions use sm block padding) */
+.tpa-agent-chat.pf-m-compact .tpa-agent-message-bar .pf-chatbot__message-bar-input,
+.tpa-agent-chat .tpa-agent-message-bar .pf-chatbot__message-bar-input.pf-m-compact {
+  display: flex;
+  align-items: center;
+  padding-block: var(--pf-t--global--spacer--sm);
+}
+
+.tpa-agent-chat .tpa-agent-message-bar .pf-chatbot__message-bar-input {
+  display: flex;
+  align-items: center;
+}
+
+/* Stabilize layout; do not stretch — PF height:100% misaligns text vs 1.5rem icons */
+.tpa-agent-chat .tpa-agent-message-bar .pf-chatbot__message-textarea,
+.tpa-agent-chat .tpa-agent-message-bar .pf-chatbot__message-textarea > * {
+  margin-block: 0 !important;
+}
+
+.tpa-agent-chat .tpa-agent-message-bar .pf-chatbot__message-textarea {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 1 auto;
+  height: auto !important;
+  min-height: 1.5rem;
+  min-width: 0;
+}
+
+.tpa-agent-chat .tpa-agent-message-bar .pf-chatbot__message-textarea textarea {
+  box-sizing: border-box;
+  height: 1.5rem !important;
+  line-height: 1.5rem !important;
+  min-height: 1.5rem !important;
+  padding-block: 0 !important;
+}
+
+.tpa-agent-header__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.tpa-agent-header__title-text {
+  font-weight: var(--pf-t--global--font--weight--heading--bold);
+  margin-block: 0;
+}
+
+.tpa-agent-chat--popup .pf-chatbot__header .pf-chatbot__actions {
+  gap: var(--pf-t--global--spacer--sm);
+}
+
+.tpa-agent-header__model,
+.tpa-agent-section__model {
+  flex-shrink: 0;
+}
+
+.tpa-agent-settings-menu__icon {
+  font-size: var(--pf-t--global--icon--size--md);
+  width: var(--pf-t--global--icon--size--md);
+  height: var(--pf-t--global--icon--size--md);
+}
+
+/* Welcome prompt cards (Lightspeed-style bordered tiles) */
+.tpa-agent-welcome__lead {
+  color: var(--pf-t--global--text--color--subtle);
+  margin-block-end: 0;
+}
+
+.tpa-agent-welcome__prompts {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--pf-t--global--spacer--md);
+  align-items: stretch;
+}
+
+.tpa-agent-welcome__prompt-card {
+  flex: 1 1 11rem;
+  min-width: 10rem;
+  max-width: 100%;
+  background-color: var(--pf-t--global--background--color--primary--default);
+  border: var(--pf-t--global--border--width--regular) solid
+    var(--pf-t--global--border--color--default);
+  border-radius: var(--pf-t--global--border--radius--medium);
+  box-shadow: none;
+}
+
+.tpa-agent-welcome__prompt-card:hover {
+  border-color: var(--pf-t--global--border--color--hover);
+}
+
+.tpa-agent-welcome__prompt-title {
+  font-size: var(--pf-t--global--font--size--body--default);
+  font-weight: var(--pf-t--global--font--weight--body--bold);
+  margin-block-end: var(--pf-t--global--spacer--xs);
+}
+
+.tpa-agent-welcome__prompt-description {
+  color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--sm);
+  margin-block-end: 0;
+}
+
+.tpa-agent-welcome.pf-m-compact .tpa-agent-welcome__prompts {
+  gap: var(--pf-t--global--spacer--sm);
+}
+
+.tpa-agent-welcome--single .tpa-agent-welcome__prompts {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.tpa-agent-welcome--single .tpa-agent-welcome__prompt-card {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Home section header — Red Hat AI experience icon beside title */
+.tpa-agent-section__ai-icon {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* Embedded home — full width, left-aligned (override PF centered embedded layout) */
+.tpa-agent-embedded {
+  width: 100%;
+  background-color: var(--pf-t--global--background--color--primary--default);
+}
+
+.tpa-agent-embedded--fill {
+  display: flex;
+  flex-direction: column;
+  min-height: 22rem;
+}
+
+.tpa-agent-embedded--fill .pf-chatbot.pf-chatbot--embedded,
+.tpa-agent-embedded--fill .pf-chatbot-container.pf-chatbot-container--embedded {
+  width: 100%;
+  max-width: 100%;
+  min-height: 22rem;
+  max-height: none;
+  flex: 1;
+}
+
+.tpa-agent-embedded--fill .pf-chatbot__content {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  width: 100%;
+  flex: 1;
+}
+
+.tpa-agent-embedded--fill .pf-chatbot__messagebox {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-inline: 0 !important;
+  align-self: stretch;
+  flex: 1;
+}
+
+.tpa-agent-embedded--fill .pf-chatbot__footer {
+  width: 100% !important;
+  align-items: stretch !important;
+}
+
+.tpa-agent-embedded--fill .pf-chatbot__footer-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-inline: var(--pf-t--global--spacer--lg);
+  align-items: stretch;
+}
+
+.tpa-agent-embedded--fill .tpa-agent-welcome {
+  width: 100%;
+  text-align: start;
+}
+
+.tpa-agent-embedded--fill .tpa-agent-welcome__prompts {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.tpa-agent-embedded--fill .tpa-agent-welcome__prompt-card {
+  flex: 1 1 0;
+  min-width: 0;
+}

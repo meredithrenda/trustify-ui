@@ -7,6 +7,7 @@ import { DefaultLayout } from "./layout";
 
 import "@patternfly/patternfly/patternfly.css";
 import "@patternfly/patternfly/patternfly-addons.css";
+import "@patternfly/chatbot/dist/css/main.css";
 
 const App: React.FC = () => {
   return (

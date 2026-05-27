@@ -2,9 +2,13 @@ import type React from "react";
 import { Link } from "react-router-dom";
 
 import {
+  Button,
   Card,
   CardBody,
+  CardFooter,
+  CardTitle,
   Content,
+  ContentVariants,
   Flex,
   FlexItem,
   Grid,
@@ -16,8 +20,9 @@ import {
 } from "@patternfly/react-core";
 
 import ExclamationCircleIcon from "@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon";
-import CheckCircleIcon from "@patternfly/react-icons/dist/esm/icons/check-circle-icon";
 import ExclamationTriangleIcon from "@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon";
+import ArrowRightIcon from "@patternfly/react-icons/dist/esm/icons/arrow-right-icon";
+
 import { Paths } from "@app/Routes";
 
 type Severity = "critical" | "high" | "medium";
@@ -34,9 +39,11 @@ interface AnalysisBrief {
   cve: string;
   conclusion: string;
   detail: string;
-  affectedProducts: string[];
   vexStatus: VexStatus;
-  lifecycle: string;
+  primaryAction?: {
+    label: string;
+    linkTo: string;
+  };
 }
 
 const MOCK_BRIEFS: AnalysisBrief[] = [
@@ -44,43 +51,43 @@ const MOCK_BRIEFS: AnalysisBrief[] = [
     id: "brief-1",
     severity: "critical",
     cve: "CVE-2026-4432",
-    conclusion:
-      "Actively exploited in the wild — 2 production SBOMs contain vulnerable versions.",
-    detail:
-      "The agent correlated CSAF advisory RHSA-2026:1234 with 4 ingested SBOMs. Two contain libxml2 2.9.12 in production deployments with no VEX mitigation documented.",
-    affectedProducts: ["RHEL 9.4", "UBI 9-minimal"],
+    conclusion: "Active exploitation observed",
+    detail: "Found in production deployments with no mitigation.",
     vexStatus: "Affected",
-    lifecycle: "Active support",
+    primaryAction: {
+      label: "View 2 affected SBOMs",
+      linkTo: Paths.sboms,
+    },
   },
   {
     id: "brief-2",
     severity: "high",
     cve: "CVE-2026-3891",
-    conclusion:
-      "Patch available but not yet applied — 1 SBOM still references the vulnerable package.",
-    detail:
-      "OpenSSL 3.1.4 has a fix in 3.1.5. The SBOM for Project Phoenix still pins 3.1.4. VEX status is Under Investigation.",
-    affectedProducts: ["Project Phoenix"],
+    conclusion: "Patch available but not applied",
+    detail: "OpenSSL 3.1.4 requires upgrade to 3.1.5.",
     vexStatus: "Under Investigation",
-    lifecycle: "Maintenance",
+    primaryAction: {
+      label: "Review 1 SBOM",
+      linkTo: Paths.sboms,
+    },
   },
   {
     id: "brief-3",
     severity: "medium",
     cve: "CVE-2025-9921",
-    conclusion:
-      "Mitigated — all affected deployments have documented VEX Not Affected status.",
-    detail:
-      "The kernel vulnerability does not apply to containerised workloads. All 3 SBOMs that include the kernel package carry a VEX Not Affected justification.",
-    affectedProducts: ["RHEL 8.9", "RHEL 9.3", "Fedora 39"],
-    vexStatus: "Not Affected",
-    lifecycle: "Extended support",
+    conclusion: "Fixed in latest patch",
+    detail: "VEX documentation confirms no impact.",
+    vexStatus: "Fixed",
+    primaryAction: {
+      label: "View 3 patched SBOMs",
+      linkTo: Paths.sboms,
+    },
   },
 ];
 
 const severityProps: Record<
   Severity,
-  { color: "red" | "orange" | "gold"; icon: React.ReactElement }
+  { color: "red" | "orange" | "yellow"; icon: React.ReactElement }
 > = {
   critical: {
     color: "red",
@@ -91,14 +98,14 @@ const severityProps: Record<
     icon: <ExclamationTriangleIcon />,
   },
   medium: {
-    color: "gold",
+    color: "yellow",
     icon: <ExclamationTriangleIcon />,
   },
 };
 
 const vexStatusColor = (
   status: VexStatus,
-): "red" | "green" | "blue" | "orange" | "gold" => {
+): "red" | "green" | "blue" | "orange" | "yellow" => {
   switch (status) {
     case "Affected":
       return "red";
@@ -109,7 +116,7 @@ const vexStatusColor = (
     case "Under Investigation":
       return "orange";
     case "Documented":
-      return "gold";
+      return "yellow";
   }
 };
 
@@ -133,82 +140,59 @@ export const AnalysisBriefsSection: React.FC = () => {
               <GridItem key={brief.id} md={4}>
                 <Card isFullHeight>
                   <CardBody>
-                    <Stack hasGutter>
-                      <StackItem>
-                        <Flex
-                          justifyContent={{
-                            default: "justifyContentSpaceBetween",
-                          }}
-                          alignItems={{ default: "alignItemsCenter" }}
+                    <Flex
+                      justifyContent={{
+                        default: "justifyContentSpaceBetween",
+                      }}
+                      alignItems={{ default: "alignItemsCenter" }}
+                      spaceItems={{ default: "spaceItemsSm" }}
+                    >
+                      <FlexItem>
+                        <Label color={sev.color} icon={sev.icon}>
+                          {brief.severity.toUpperCase()}
+                        </Label>
+                      </FlexItem>
+                      <FlexItem>
+                        <Link
+                          to={Paths.vulnerabilityDetails.replace(
+                            ":vulnerabilityId",
+                            brief.cve,
+                          )}
                         >
-                          <FlexItem>
-                            <Label color={sev.color} icon={sev.icon}>
-                              {brief.severity.toUpperCase()}
-                            </Label>
-                          </FlexItem>
-                          <FlexItem>
-                            <Link
-                              to={Paths.vulnerabilityDetails.replace(
-                                ":vulnerabilityId",
-                                brief.cve,
-                              )}
-                            >
-                              {brief.cve}
-                            </Link>
-                          </FlexItem>
-                        </Flex>
-                      </StackItem>
-
-                      <StackItem>
-                        <Content component="p">
-                          <strong>{brief.conclusion}</strong>
-                        </Content>
-                      </StackItem>
-
-                      <StackItem>
-                        <Content
-                          component="p"
-                          style={{
-                            fontSize: "var(--pf-v6-global--FontSize--sm)",
-                            color: "var(--pf-v6-global--Color--200)",
-                          }}
-                        >
-                          {brief.detail}
-                        </Content>
-                      </StackItem>
-
-                      <StackItem>
-                        <Flex
-                          direction={{ default: "column" }}
-                          gap={{ default: "gapXs" }}
-                        >
-                          <FlexItem>
-                            <Content component="small">
-                              <strong>Products:</strong>{" "}
-                              {brief.affectedProducts.join(", ")}
-                            </Content>
-                          </FlexItem>
-                          <FlexItem>
-                            <Flex
-                              gap={{ default: "gapSm" }}
-                              alignItems={{ default: "alignItemsCenter" }}
-                            >
-                              <FlexItem>
-                                <Label color={vexStatusColor(brief.vexStatus)}>
-                                  {brief.vexStatus}
-                                </Label>
-                              </FlexItem>
-                              <FlexItem>
-                                <Label color="blue" variant="outline">
-                                  {brief.lifecycle}
-                                </Label>
-                              </FlexItem>
-                            </Flex>
-                          </FlexItem>
-                        </Flex>
-                      </StackItem>
-                    </Stack>
+                          {brief.cve}
+                        </Link>
+                      </FlexItem>
+                    </Flex>
                   </CardBody>
+
+                  <CardTitle>{brief.conclusion}</CardTitle>
+
+                  <CardBody isFilled={false}>
+                    <Content component={ContentVariants.small}>
+                      {brief.detail}
+                    </Content>
+                  </CardBody>
+
+                  <CardBody>
+                    <Label color={vexStatusColor(brief.vexStatus)}>
+                      {brief.vexStatus}
+                    </Label>
+                  </CardBody>
+
+                  {brief.primaryAction && (
+                    <CardFooter>
+                      <Link to={brief.primaryAction.linkTo}>
+                        <Button
+                          variant="link"
+                          isInline
+                          icon={<ArrowRightIcon />}
+                          iconPosition="end"
+                        >
+                          {brief.primaryAction.label}
+                        </Button>
+                      </Link>
+                    </CardFooter>
+                  )}
                 </Card>
               </GridItem>
             );

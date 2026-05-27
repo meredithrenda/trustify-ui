@@ -24,7 +24,10 @@ const renderApp = () => {
       <OidcProvider>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={AppRoutes} />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <ReactQueryDevtools
+            buttonPosition="bottom-left"
+            initialIsOpen={false}
+          />
         </QueryClientProvider>
       </OidcProvider>
     </React.StrictMode>,

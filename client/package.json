@@ -13,6 +13,7 @@
     "format": "biome format .",
     "format:fix": "biome format --write .",
     "start:dev": "npm run generate && rsbuild dev",
+    "start:dev:mock": "MOCK_DATA=true npm run generate && MOCK_DATA=true rsbuild dev",
     "start": "rsbuild preview",
     "test": "cross-env NODE_ENV=test jest --rootDir=. --config=./config/jest.config.ts",
     "generate": "openapi-ts -f ./config/openapi-ts.config.ts",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^2.9.11",
+    "@patternfly/chatbot": "^6.5.0",
     "@patternfly/patternfly": "^6.4.0",
     "@patternfly/react-charts": "^8.4.1",
     "@patternfly/react-core": "^6.4.1",

@@ -1,0 +1,19 @@
+/* Fill the sidebar column so Agent Settings can sit at the bottom */
+.sidebar-app.pf-v6-c-page__sidebar-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.sidebar-app__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidebar-app__settings {
+  flex: 0 0 auto;
+  margin-block-start: auto;
+  border-block-start: var(--pf-t--global--border--width--regular) solid
+    var(--pf-t--global--border--color--default);
+}
