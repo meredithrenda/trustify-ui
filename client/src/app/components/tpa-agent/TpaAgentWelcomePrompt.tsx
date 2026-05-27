@@ -47,7 +47,6 @@ export const TpaAgentWelcomePrompt: React.FC<TpaAgentWelcomePromptProps> = ({
             className="tpa-agent-welcome__prompt-card"
             isClickable
             isCompact={isCompact}
-            isPlain
             onClick={prompt.onClick}
           >
             <CardBody>

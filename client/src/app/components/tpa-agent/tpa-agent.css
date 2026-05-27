@@ -125,8 +125,15 @@
 }
 
 /* Welcome prompt cards (Lightspeed-style bordered tiles) */
+.tpa-agent-welcome .pf-chatbot__hello {
+  font-size: var(--pf-t--global--font--size--heading--lg);
+  font-weight: var(--pf-t--global--font--weight--heading--bold);
+  line-height: var(--pf-t--global--font--line-height--heading);
+}
+
 .tpa-agent-welcome__lead {
   color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--default);
   margin-block-end: 0;
 }
 
@@ -138,30 +145,38 @@
   align-items: stretch;
 }
 
-.tpa-agent-welcome__prompt-card {
+/* Override PF plain/default card tokens so borders survive production CSS order */
+.tpa-agent-welcome__prompt-card.pf-v6-c-card {
+  --pf-v6-c-card--BorderColor: var(--pf-t--global--border--color--default);
+  --pf-v6-c-card--BackgroundColor: var(
+    --pf-t--global--background--color--primary--default
+  );
   flex: 1 1 11rem;
   min-width: 10rem;
   max-width: 100%;
-  background-color: var(--pf-t--global--background--color--primary--default);
   border: var(--pf-t--global--border--width--regular) solid
     var(--pf-t--global--border--color--default);
   border-radius: var(--pf-t--global--border--radius--medium);
   box-shadow: none;
 }
 
-.tpa-agent-welcome__prompt-card:hover {
+.tpa-agent-welcome__prompt-card.pf-v6-c-card:hover {
+  --pf-v6-c-card--BorderColor: var(--pf-t--global--border--color--hover);
   border-color: var(--pf-t--global--border--color--hover);
 }
 
-.tpa-agent-welcome__prompt-title {
+.tpa-agent-welcome .tpa-agent-welcome__prompt-title {
   font-size: var(--pf-t--global--font--size--body--default);
   font-weight: var(--pf-t--global--font--weight--body--bold);
+  line-height: var(--pf-t--global--font--line-height--body);
   margin-block-end: var(--pf-t--global--spacer--xs);
 }
 
-.tpa-agent-welcome__prompt-description {
+.tpa-agent-welcome .tpa-agent-welcome__prompt-description {
   color: var(--pf-t--global--text--color--subtle);
   font-size: var(--pf-t--global--font--size--body--sm);
+  font-weight: var(--pf-t--global--font--weight--body--default);
+  line-height: var(--pf-t--global--font--line-height--body);
   margin-block-end: 0;
 }
 
@@ -249,7 +264,7 @@
   width: 100%;
 }
 
-.tpa-agent-embedded--fill .tpa-agent-welcome__prompt-card {
+.tpa-agent-embedded--fill .tpa-agent-welcome__prompt-card.pf-v6-c-card {
   flex: 1 1 0;
   min-width: 0;
 }
