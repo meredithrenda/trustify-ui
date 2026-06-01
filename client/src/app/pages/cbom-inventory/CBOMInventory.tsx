@@ -2,11 +2,14 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 import {
+  Alert,
   Button,
   Content,
-  Label,
+  Form,
+  FormGroup,
   Modal,
   ModalBody,
+  ModalFooter,
   ModalHeader,
   PageSection,
   Stack,
@@ -23,279 +26,237 @@ import {
   FilterType,
   type IFilterValues,
 } from "@app/components/FilterToolbar";
-import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
-
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
 import { PageDrawerContent } from "@app/components/PageDrawerContext";
 import {
+  CBOM_FIXTURE_SCANNER_LABEL,
+  CBOM_SPEC_LABEL,
+  CbomInventoryProvider,
+  CryptographyPolicySection,
+  CryptoAssetsTable,
   CryptoDetailContent,
   type CryptographicAsset,
-  getRiskColor,
-  getTypeColor,
-} from "@app/pages/sbom-details/cryptography";
+  useCbomInventory,
+} from "@app/cbom";
 import { getSbomFilteredByAlgorithmUrl } from "@app/pages/sbom-list/helpers";
 
-const mockCryptographicAssets: CryptographicAsset[] = [
-  {
-    id: "1",
-    algorithm: "SHA-1",
-    keyStrength: 160,
-    libraryName: "Go crypto/sha1",
-    libraryVersion: "1.21",
-    discoverySource: "ScanOSS",
-    fips140_3Compliant: false,
-    risk: "Critical",
-    type: "Hard-coded Insecure Crypto",
-    primitive: "hash",
-    cryptoFunctions: ["digest"],
-    policySignals: ["Deprecated primitive"],
-    libraryCapabilities: ["SHA-256", "SHA-384", "SHA-512", "SHA-1"],
-    detectedUsage: ["SHA-1"],
-    evidence: [
-      {
-        location: "pkg/asset/imagebased/configimage/ingressoperatorsigner.go",
-        line: 172,
-        context: "hash := sha1.Sum(publicKeyBytes)",
-      },
-      {
-        location: "pkg/asset/tls/tls.go",
-        line: 142,
-        context: "hash := sha1.Sum(publicKeyBytes)",
-      },
-    ],
-    sboms: [
-      {
-        id: "a1b2c3d4-0001-4000-8000-000000000001",
-        name: "openshift-installer-v4.15.0",
-      },
-      {
-        id: "a1b2c3d4-0002-4000-8000-000000000002",
-        name: "openshift-installer-agent-v4.15.0",
-      },
-    ],
-  },
-  {
-    id: "2",
-    algorithm: "RSA",
-    keyStrength: 2048,
-    libraryName: "Go crypto/rsa",
-    libraryVersion: "1.21",
-    discoverySource: "ScanOSS",
-    fips140_3Compliant: true,
-    risk: "Medium",
-    type: "Hard-coded Insecure Crypto",
-    primitive: "pke",
-    cryptoFunctions: ["encrypt", "decrypt"],
-    libraryCapabilities: ["RSA-2048", "RSA-4096", "ECDSA"],
-    detectedUsage: ["RSA-2048"],
-    evidence: [
-      {
-        location: "internal/tshelpers/fakeregistry.go",
-        line: 302,
-        context: "pk, err := rsa.GenerateKey(rand.Reader, 2048)",
-      },
-      {
-        location: "pkg/asset/tls/tls.go",
-        line: 48,
-        context: "rsaKey, err := rsa.GenerateKey(rand.Reader, keySize)",
-      },
-    ],
-    sboms: [
-      {
-        id: "a1b2c3d4-0001-4000-8000-000000000001",
-        name: "openshift-installer-v4.15.0",
-      },
-    ],
-  },
-  {
-    id: "3",
-    algorithm: "AES-256",
-    keyStrength: 256,
-    libraryName: "OpenSSL",
-    libraryVersion: "3.0.8",
-    discoverySource: "ScanOSS",
-    fips140_3Compliant: true,
-    risk: "Low",
-    type: "Library Capability",
-    libraryCapabilities: ["AES-128", "AES-192", "AES-256", "ChaCha20"],
-  },
-  {
-    id: "4",
-    algorithm: "CRYSTALS-Kyber",
-    keyStrength: 768,
-    libraryName: "liboqs",
-    libraryVersion: "0.8.0",
-    discoverySource: "ScanOSS",
-    fips140_3Compliant: false,
-    risk: "Low",
-    type: "Library Capability",
-    policySignals: ["PQC / PQ candidate"],
-    libraryCapabilities: [
-      "CRYSTALS-Kyber",
-      "CRYSTALS-Dilithium",
-      "FALCON",
-      "SPHINCS+",
-    ],
-  },
-  {
-    id: "5",
-    algorithm: "MD5",
-    keyStrength: 128,
-    libraryName: "Go crypto/md5",
-    libraryVersion: "1.21",
-    discoverySource: "ScanOSS",
-    fips140_3Compliant: false,
-    risk: "Critical",
-    type: "Hard-coded Insecure Crypto",
-    primitive: "hash",
-    cryptoFunctions: ["digest"],
-    libraryCapabilities: ["SHA-256", "SHA-384", "SHA-512", "MD5"],
-    detectedUsage: ["MD5"],
-    evidence: [
-      {
-        location: "pkg/types/gcp/clouduid.go",
-        line: 11,
-        context: "hash := md5.Sum([]byte(infraID))",
-      },
-    ],
-    sboms: [
-      {
-        id: "a1b2c3d4-0001-4000-8000-000000000001",
-        name: "openshift-installer-v4.15.0",
-      },
-    ],
-  },
-  {
-    id: "6",
-    algorithm: "RSA",
-    keyStrength: 2048,
-    libraryName: "BoringSSL",
-    libraryVersion: "1.1.1",
-    discoverySource: "ScanOSS",
-    fips140_3Compliant: true,
-    risk: "Medium",
-    type: "Library Capability",
-    libraryCapabilities: ["RSA-2048", "RSA-4096", "ECDSA"],
-  },
-  {
-    id: "7",
-    algorithm: "DES",
-    keyStrength: 56,
-    libraryName: "libcrypto",
-    libraryVersion: "1.0.2",
-    discoverySource: "ScanOSS",
-    fips140_3Compliant: false,
-    risk: "Critical",
-    type: "Hard-coded Insecure Crypto",
-    libraryCapabilities: ["AES-256", "DES", "3DES"],
-    detectedUsage: ["DES"],
-  },
-  {
-    id: "8",
-    algorithm: "ECDSA-P256",
-    keyStrength: 256,
-    libraryName: "Go crypto/ecdsa",
-    libraryVersion: "1.21",
-    discoverySource: "ScanOSS",
-    fips140_3Compliant: true,
-    risk: "Low",
-    type: "Hard-coded Insecure Crypto",
-    primitive: "signature",
-    cryptoFunctions: ["sign", "verify"],
-    libraryCapabilities: ["ECDSA-P256", "ECDSA-P384", "ECDSA-P521"],
-    detectedUsage: ["ECDSA-P256"],
-    evidence: [
-      {
-        location: "pkg/asset/agent/gencrypto/authconfig.go",
-        line: 123,
-        context: "priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)",
-      },
-    ],
-    sboms: [
-      {
-        id: "a1b2c3d4-0002-4000-8000-000000000002",
-        name: "openshift-installer-agent-v4.15.0",
-      },
-    ],
-  },
+type CbomFilterKey = "search" | "assetType" | "primitive" | "usageType";
+
+const USAGE_OPTIONS = [
+  { value: "Usage in source", label: "Usage in source" },
+  { value: "Declared capability", label: "Declared capability" },
 ];
 
-type CbomFilterKey = "search" | "type" | "risk";
-
-const filterCategories: FilterCategory<CryptographicAsset, CbomFilterKey>[] = [
-  {
-    categoryKey: "search",
-    title: "Search",
-    placeholderText: "Search",
-    type: FilterType.search,
-  },
-  {
-    categoryKey: "type",
-    title: "Type",
-    type: FilterType.select,
-    selectOptions: [
-      { value: "Library Capability", label: "Library Capability" },
-      {
-        value: "Hard-coded Insecure Crypto",
-        label: "Hard-coded Insecure Crypto",
-      },
-    ],
-  },
-  {
-    categoryKey: "risk",
-    title: "Risk",
-    type: FilterType.select,
-    selectOptions: [
-      { value: "Critical", label: "Critical" },
-      { value: "High", label: "High" },
-      { value: "Medium", label: "Medium" },
-      { value: "Low", label: "Low" },
-    ],
-  },
+const ASSET_TYPE_OPTIONS = [
+  { value: "algorithm", label: "Algorithm" },
+  { value: "related-crypto-material", label: "Related material" },
 ];
 
-export const CBOMInventory: React.FC = () => {
+const CBOMInventoryPage: React.FC = () => {
+  const { assets, addUploadedCbom, uploadError, clearUploadError } =
+    useCbomInventory();
   const [selectedAsset, setSelectedAsset] =
     React.useState<CryptographicAsset | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = React.useState(false);
+  const [pendingFileName, setPendingFileName] = React.useState<string | null>(
+    null,
+  );
+  const [pendingJson, setPendingJson] = React.useState<string | null>(null);
   const [filterValues, setFilterValues] = React.useState<
     IFilterValues<CbomFilterKey>
   >({});
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const primitiveOptions = React.useMemo(() => {
+    const primitives = new Set<string>();
+    for (const asset of assets) {
+      if (asset.primitive) {
+        primitives.add(asset.primitive);
+      }
+      if (asset.materialType) {
+        primitives.add(asset.materialType);
+      }
+    }
+    return [...primitives].sort().map((value) => ({ value, label: value }));
+  }, [assets]);
+
+  const filterCategories = React.useMemo<
+    FilterCategory<CryptographicAsset, CbomFilterKey>[]
+  >(
+    () => [
+      {
+        categoryKey: "search",
+        title: "Search",
+        placeholderText: "Search by name",
+        type: FilterType.search,
+      },
+      {
+        categoryKey: "assetType",
+        title: "Asset type",
+        type: FilterType.select,
+        selectOptions: ASSET_TYPE_OPTIONS,
+      },
+      ...(primitiveOptions.length > 0
+        ? [
+            {
+              categoryKey: "primitive" as const,
+              title: "Primitive / material",
+              type: FilterType.select,
+              selectOptions: primitiveOptions,
+            },
+          ]
+        : []),
+      {
+        categoryKey: "usageType",
+        title: "Usage",
+        type: FilterType.select,
+        selectOptions: USAGE_OPTIONS,
+      },
+    ],
+    [primitiveOptions],
+  );
 
   const filteredAssets = React.useMemo(() => {
-    return mockCryptographicAssets.filter((asset) => {
+    return assets.filter((asset) => {
       const searchTerms = filterValues.search;
-      if (searchTerms && searchTerms.length > 0 && searchTerms[0]) {
-        const searchLower = searchTerms[0].toLowerCase();
-        const matchesSearch =
-          asset.algorithm.toLowerCase().includes(searchLower) ||
-          asset.libraryName.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
+      if (searchTerms?.[0]) {
+        const q = searchTerms[0].toLowerCase();
+        if (!asset.name.toLowerCase().includes(q)) {
+          return false;
+        }
       }
-      const typeFilter = filterValues.type;
-      if (typeFilter && typeFilter.length > 0) {
-        if (!typeFilter.includes(asset.type)) return false;
+      const assetTypes = filterValues.assetType;
+      if (assetTypes?.[0] && asset.assetType !== assetTypes[0]) {
+        return false;
       }
-      const riskFilter = filterValues.risk;
-      if (riskFilter && riskFilter.length > 0) {
-        if (!riskFilter.includes(asset.risk)) return false;
+      const primitives = filterValues.primitive;
+      if (primitives?.[0]) {
+        const match =
+          asset.primitive === primitives[0] ||
+          asset.materialType === primitives[0];
+        if (!match) {
+          return false;
+        }
+      }
+      const usage = filterValues.usageType;
+      if (usage?.[0] && asset.usageType !== usage[0]) {
+        return false;
       }
       return true;
     });
-  }, [filterValues]);
+  }, [assets, filterValues]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    clearUploadError();
+    const file = event.target.files?.[0];
+    if (!file) {
+      setPendingFileName(null);
+      setPendingJson(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPendingFileName(file.name);
+      setPendingJson(typeof reader.result === "string" ? reader.result : null);
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  };
+
+  const handleUploadConfirm = () => {
+    if (pendingJson && pendingFileName) {
+      const added = addUploadedCbom(pendingFileName, pendingJson);
+      if (added) {
+        setIsUploadModalOpen(false);
+        setPendingFileName(null);
+        setPendingJson(null);
+      }
+    }
+  };
+
+  const closeUploadModal = () => {
+    setIsUploadModalOpen(false);
+    setPendingFileName(null);
+    setPendingJson(null);
+    clearUploadError();
+  };
 
   return (
     <>
       <Modal
-        variant="small"
+        variant="medium"
         isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
+        onClose={closeUploadModal}
       >
-        <ModalHeader title="Upload cryptographic SBOM" />
+        <ModalHeader title="Upload SBOM" />
         <ModalBody>
-          Upload of Cyclone DX or SPDX cryptographic BOMs will be available when
-          ingestion is wired to the API.
+          <Stack hasGutter>
+            <StackItem>
+              <Content component="p">
+                Upload a CycloneDX 1.6 JSON BOM with{" "}
+                <code>cryptographic-asset</code> components. Parsed assets are
+                added to this workspace inventory for the current session.
+              </Content>
+            </StackItem>
+            {uploadError ? (
+              <StackItem>
+                <Alert
+                  variant="danger"
+                  title={uploadError}
+                  isInline
+                  actionClose={
+                    <Button variant="plain" onClick={clearUploadError}>
+                      Dismiss
+                    </Button>
+                  }
+                />
+              </StackItem>
+            ) : null}
+            <StackItem>
+              <Form>
+                <FormGroup label="CBOM file" fieldId="cbom-upload-file">
+                  <input
+                    ref={fileInputRef}
+                    accept=".json,application/json"
+                    id="cbom-upload-file"
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                    type="file"
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Choose JSON file
+                  </Button>
+                  {pendingFileName ? (
+                    <Content
+                      component="p"
+                      style={{
+                        marginTop: "var(--pf-t--global--spacer--sm)",
+                        marginBottom: 0,
+                      }}
+                    >
+                      Selected: <strong>{pendingFileName}</strong>
+                    </Content>
+                  ) : null}
+                </FormGroup>
+              </Form>
+            </StackItem>
+          </Stack>
         </ModalBody>
+        <ModalFooter>
+          <Button variant="link" onClick={closeUploadModal}>
+            Cancel
+          </Button>
+          <Button
+            isDisabled={!pendingJson}
+            variant="primary"
+            onClick={handleUploadConfirm}
+          >
+            Add to inventory
+          </Button>
+        </ModalFooter>
       </Modal>
 
       <PageDrawerContent
@@ -305,13 +266,17 @@ export const CBOMInventory: React.FC = () => {
         header={
           selectedAsset ? (
             <Title headingLevel="h2" size="lg">
-              {selectedAsset.algorithm}
+              {selectedAsset.name}
             </Title>
           ) : undefined
         }
       >
         {selectedAsset ? (
-          <CryptoDetailContent asset={selectedAsset} viewContext="inventory" />
+          <CryptoDetailContent
+            key={selectedAsset.id}
+            asset={selectedAsset}
+            viewContext="inventory"
+          />
         ) : null}
       </PageDrawerContent>
 
@@ -324,114 +289,79 @@ export const CBOMInventory: React.FC = () => {
             </Title>
             <Content>
               Discover and inventory cryptographic assets across your software
-              supply chain. Identify library capabilities, detect hard-coded
-              insecure cryptographic usage, and understand what cryptographic
-              components are available but not yet utilized.
+              supply chain from CycloneDX CBOMs. Sample data from{" "}
+              <strong>openshift-installer</strong> and{" "}
+              <strong>rsa-signer-c</strong> is loaded from SCANOSS crypto-finder
+              output ({CBOM_SPEC_LABEL}).
+            </Content>
+            <Content
+              component="small"
+              style={{
+                color: "var(--pf-t--global--text--color--subtle)",
+                marginTop: "var(--pf-t--global--spacer--sm)",
+              }}
+            >
+              Scanner: {CBOM_FIXTURE_SCANNER_LABEL}
             </Content>
           </StackItem>
         </Stack>
       </PageSection>
       <PageSection variant="light" style={{ paddingTop: 0 }}>
-        <Toolbar clearAllFilters={() => setFilterValues({})}>
-          <ToolbarContent>
-            <FilterToolbar<CryptographicAsset, CbomFilterKey>
-              filterCategories={filterCategories}
-              filterValues={filterValues}
-              setFilterValues={setFilterValues}
+        <Stack hasGutter>
+          <StackItem>
+            <CryptographyPolicySection />
+          </StackItem>
+          <StackItem>
+            <Toolbar clearAllFilters={() => setFilterValues({})}>
+              <ToolbarContent>
+                <FilterToolbar<CryptographicAsset, CbomFilterKey>
+                  filterCategories={filterCategories}
+                  filterValues={filterValues}
+                  setFilterValues={setFilterValues}
+                />
+                <ToolbarItem>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setIsUploadModalOpen(true)}
+                  >
+                    Upload SBOM
+                  </Button>
+                </ToolbarItem>
+              </ToolbarContent>
+            </Toolbar>
+          </StackItem>
+          <StackItem>
+            <CryptoAssetsTable
+              assets={filteredAssets}
+              onSelectAsset={setSelectedAsset}
+              showSbomColumn
+              renderSbomCell={(asset) =>
+                asset.sboms && asset.sboms.length > 0 ? (
+                  <Link to={getSbomFilteredByAlgorithmUrl([asset.algorithm])}>
+                    {asset.sboms.length} SBOM
+                    {asset.sboms.length !== 1 ? "s" : ""}
+                  </Link>
+                ) : (
+                  <Content
+                    component="small"
+                    style={{
+                      color: "var(--pf-t--global--text--color--subtle)",
+                    }}
+                  >
+                    Not linked to an SBOM
+                  </Content>
+                )
+              }
             />
-            <ToolbarItem>
-              <Button
-                variant="secondary"
-                onClick={() => setIsUploadModalOpen(true)}
-              >
-                Upload cryptographic SBOM
-              </Button>
-            </ToolbarItem>
-          </ToolbarContent>
-        </Toolbar>
-      </PageSection>
-      <PageSection>
-        <Table aria-label="Cryptographic assets table" variant="compact">
-          <Thead>
-            <Tr>
-              <Th>Algorithm</Th>
-              <Th>Library</Th>
-              <Th>Type</Th>
-              <Th>Risk</Th>
-              <Th>SBOMs</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {filteredAssets.map((asset) => (
-              <Tr key={asset.id} isHoverable>
-                <Td dataLabel="Algorithm">
-                  <Stack>
-                    <StackItem>
-                      <Button
-                        variant="link"
-                        isInline
-                        onClick={() => setSelectedAsset(asset)}
-                      >
-                        {asset.algorithm}
-                      </Button>
-                    </StackItem>
-                    {asset.keyStrength && (
-                      <StackItem>
-                        <Content
-                          component="small"
-                          style={{
-                            color: "var(--pf-v6-global--Color--200)",
-                          }}
-                        >
-                          {asset.keyStrength} bits
-                        </Content>
-                      </StackItem>
-                    )}
-                  </Stack>
-                </Td>
-                <Td dataLabel="Library">
-                  <Stack>
-                    <StackItem>{asset.libraryName}</StackItem>
-                    <StackItem>
-                      <Content
-                        component="small"
-                        style={{
-                          color: "var(--pf-v6-global--Color--200)",
-                        }}
-                      >
-                        v{asset.libraryVersion}
-                      </Content>
-                    </StackItem>
-                  </Stack>
-                </Td>
-                <Td dataLabel="Type">
-                  <Label color={getTypeColor(asset.type)}>{asset.type}</Label>
-                </Td>
-                <Td dataLabel="Risk">
-                  <Label color={getRiskColor(asset.risk)}>{asset.risk}</Label>
-                </Td>
-                <Td dataLabel="SBOMs">
-                  {asset.sboms && asset.sboms.length > 0 ? (
-                    <Link to={getSbomFilteredByAlgorithmUrl([asset.algorithm])}>
-                      {asset.sboms.length} SBOM
-                      {asset.sboms.length !== 1 ? "s" : ""}
-                    </Link>
-                  ) : (
-                    <Content
-                      component="small"
-                      style={{
-                        color: "var(--pf-v6-global--Color--200)",
-                      }}
-                    >
-                      Not linked to an SBOM
-                    </Content>
-                  )}
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
+          </StackItem>
+        </Stack>
       </PageSection>
     </>
   );
 };
+
+export const CBOMInventory: React.FC = () => (
+  <CbomInventoryProvider>
+    <CBOMInventoryPage />
+  </CbomInventoryProvider>
+);

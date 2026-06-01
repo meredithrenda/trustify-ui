@@ -183,7 +183,11 @@ export const SbomDetails: React.FC = () => {
     if (!drawerItem) return <></>;
     if (drawerItem.kind === "crypto") {
       return (
-        <CryptoDetailContent asset={drawerItem.asset} viewContext="sbom" />
+        <CryptoDetailContent
+          key={drawerItem.asset.id}
+          asset={drawerItem.asset}
+          viewContext="sbom"
+        />
       );
     }
     return <ModelDetailDrawer model={drawerItem.model} />;
