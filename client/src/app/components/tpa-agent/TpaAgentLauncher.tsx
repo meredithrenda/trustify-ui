@@ -13,6 +13,7 @@ export const TpaAgentLauncher: React.FC = () => {
     <>
       <ChatbotToggle
         isChatbotVisible={chatbotVisible}
+        isRound
         onToggleChatbot={toggleChatbot}
         tooltipLabel="TPA Agent"
         toggleButtonLabel="Open TPA Agent"

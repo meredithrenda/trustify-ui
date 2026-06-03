@@ -268,3 +268,13 @@
   flex: 1 1 0;
   min-width: 0;
 }
+
+/* Floating launcher FAB — circle in production (chatbot --round loses to PF button CSS order). */
+.pf-v6-c-button.pf-chatbot__button.pf-chatbot__button--round {
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding: var(--pf-t--global--spacer--md);
+}
