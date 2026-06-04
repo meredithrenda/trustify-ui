@@ -3,15 +3,16 @@ import type React from "react";
 import { Button, Card, CardBody, Flex, FlexItem, Title } from "@patternfly/react-core";
 import { ChatbotDisplayMode } from "@patternfly/chatbot";
 
+import tpaAgentAiExperienceIconMedium from "@app/images/rh-ui-icon-ai-experience-medium.png";
+
 import {
   TPA_AGENT_HOME_WELCOME_PROMPTS,
+  TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME,
   TpaAgentChatBody,
   TpaAgentHeaderSettingsMenu,
   TpaAgentModelSelector,
   useTpaAgent,
 } from "@app/components/tpa-agent";
-
-import tpaAgentAiIcon from "@app/images/tpa-agent-ai-icon.png";
 
 import "@app/components/tpa-agent/tpa-agent.css";
 
@@ -37,12 +38,12 @@ export const AskAgentSection: React.FC = () => {
                   alt=""
                   aria-hidden
                   className="tpa-agent-section__ai-icon"
-                  src={tpaAgentAiIcon}
+                  src={tpaAgentAiExperienceIconMedium}
                 />
               </FlexItem>
               <FlexItem>
                 <Title headingLevel="h2" size="lg">
-                  Ask TPA Agent
+                  {TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME}
                 </Title>
               </FlexItem>
             </Flex>
@@ -74,7 +75,7 @@ export const AskAgentSection: React.FC = () => {
         </Flex>
         <div className="tpa-agent-embedded tpa-agent-embedded--fill pf-v-u-mt-md">
           <TpaAgentChatBody
-            ariaLabel="TPA Agent on home"
+            ariaLabel={`${TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME} on home`}
             displayMode={ChatbotDisplayMode.embedded}
             isCompact
             isVisible

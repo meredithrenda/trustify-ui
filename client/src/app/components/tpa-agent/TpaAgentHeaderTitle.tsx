@@ -1,34 +1,25 @@
 import type React from "react";
 
-import { Flex, FlexItem, Title } from "@patternfly/react-core";
+import { Title } from "@patternfly/react-core";
 
-import tpaAgentAiIcon from "@app/images/tpa-agent-ai-icon.png";
+import { TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME } from "./constants";
 
-export const TpaAgentHeaderTitle: React.FC = () => {
+interface TpaAgentHeaderTitleProps {
+  title?: string;
+}
+
+export const TpaAgentHeaderTitle: React.FC<TpaAgentHeaderTitleProps> = ({
+  title = TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME,
+}) => {
   return (
     <div className="pf-chatbot__title tpa-agent-header__title">
-      <Flex
-        alignItems={{ default: "alignItemsCenter" }}
-        gap={{ default: "gapSm" }}
+      <Title
+        className="tpa-agent-header__title-text"
+        headingLevel="h2"
+        size="md"
       >
-        <FlexItem>
-          <img
-            alt=""
-            aria-hidden
-            className="tpa-agent-section__ai-icon"
-            src={tpaAgentAiIcon}
-          />
-        </FlexItem>
-        <FlexItem>
-          <Title
-            className="tpa-agent-header__title-text"
-            headingLevel="h2"
-            size="md"
-          >
-            TPA Agent
-          </Title>
-        </FlexItem>
-      </Flex>
+        {title}
+      </Title>
     </div>
   );
 };

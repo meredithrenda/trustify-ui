@@ -12,6 +12,8 @@ import CogIcon from "@patternfly/react-icons/dist/esm/icons/cog-icon";
 
 import { Paths } from "@app/Routes";
 
+import { TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME } from "./constants";
+
 export const TpaAgentHeaderSettingsMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -23,7 +25,7 @@ export const TpaAgentHeaderSettingsMenu: React.FC = () => {
       toggle={(toggleRef) => (
         <MenuToggle
           ref={toggleRef}
-          aria-label="TPA Agent settings"
+          aria-label={`${TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME} settings`}
           className="tpa-agent-settings-menu__toggle"
           isExpanded={isOpen}
           onClick={() => setIsOpen(!isOpen)}

@@ -5,10 +5,23 @@ import type { MessageProps } from "@patternfly/chatbot";
 
 import {
   TPA_AGENT_DEFAULT_MODEL,
+  TPA_AGENT_MESSAGE_USER_NAME,
+  TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME,
   type TpaAgentModel,
 } from "./constants";
-import { formatAgentResponseAsMarkdown } from "./formatAgentResponse";
+import {
+  tpaAgentBotAvatarSrc,
+  tpaAgentUserAvatarProps,
+  tpaAgentUserAvatarSrc,
+} from "./messageDisplay";
+import {
+  buildAgentThinkingBody,
+  formatAgentResponseAsMarkdown,
+} from "./formatAgentResponse";
 import { getAgentResponse } from "./mockResponses";
+import type { TpaAgentContextFocus } from "./agentContextFocus";
+import type { TpaPageContext } from "./pageContext";
+import { TpaAgentPageContextSync } from "./TpaAgentPageContextSync";
 
 const generateMessageId = () => `${Date.now()}-${Math.random()}`;
 
@@ -27,6 +40,13 @@ interface TpaAgentContextValue {
   scrollToBottomRef: React.RefObject<HTMLDivElement | null>;
   selectedModel: TpaAgentModel;
   setSelectedModel: (model: TpaAgentModel) => void;
+  pageContext: TpaPageContext | null;
+  setPageContext: (context: TpaPageContext | null) => void;
+  contextFocus: TpaAgentContextFocus | null;
+  usePageContext: boolean;
+  togglePageContext: () => void;
+  openAgentWithFocus: (focus: TpaAgentContextFocus) => void;
+  clearContextFocus: () => void;
 }
 
 const TpaAgentContext = React.createContext<TpaAgentContextValue | undefined>(
@@ -46,7 +66,43 @@ export const TpaAgentProvider: React.FC<{ children: React.ReactNode }> = ({
   const [selectedModel, setSelectedModel] = React.useState<TpaAgentModel>(
     TPA_AGENT_DEFAULT_MODEL,
   );
+  const [pageContext, setPageContext] = React.useState<TpaPageContext | null>(
+    null,
+  );
+  const [contextFocus, setContextFocus] =
+    React.useState<TpaAgentContextFocus | null>(null);
+  const [usePageContext, setUsePageContext] = React.useState(false);
   const scrollToBottomRef = React.useRef<HTMLDivElement>(null);
+
+  const clearContextFocus = React.useCallback(() => {
+    setContextFocus(null);
+  }, []);
+
+  const togglePageContext = React.useCallback(() => {
+    if (contextFocus) {
+      setContextFocus(null);
+      setUsePageContext(false);
+      return;
+    }
+    setUsePageContext((current) => {
+      if (current) {
+        return false;
+      }
+      return pageContext !== null;
+    });
+  }, [contextFocus, pageContext]);
+
+  const openAgentWithFocus = React.useCallback((focus: TpaAgentContextFocus) => {
+    setContextFocus(focus);
+    setUsePageContext(true);
+    setChatbotVisible(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!pageContext && !contextFocus) {
+      setUsePageContext(false);
+    }
+  }, [pageContext, contextFocus]);
 
   React.useEffect(() => {
     if (messages.length > 0) {
@@ -67,40 +123,68 @@ export const TpaAgentProvider: React.FC<{ children: React.ReactNode }> = ({
         id: generateMessageId(),
         role: "user",
         content: trimmed,
-        name: "You",
+        name: TPA_AGENT_MESSAGE_USER_NAME,
+        avatar: tpaAgentUserAvatarSrc,
+        avatarProps: tpaAgentUserAvatarProps,
         timestamp,
+        hasRoundAvatar: true,
       };
       const loadingMessage: MessageProps = {
         id: generateMessageId(),
         role: "bot",
-        content: "Searching across SBOMs, advisories, and VEX data...",
-        name: "TPA Agent",
+        content: "",
+        name: selectedModel,
+        avatar: tpaAgentBotAvatarSrc,
+        avatarProps: { isBordered: false },
         isLoading: true,
         timestamp,
+        hasRoundAvatar: false,
       };
 
       setMessages((current) => [...current, userMessage, loadingMessage]);
       setAnnouncement(
-        `Message from you: ${trimmed}. Message from TPA Agent is loading.`,
+        `Message from you: ${trimmed}. Message from ${TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME} is loading.`,
       );
 
       window.setTimeout(() => {
-        const response = getAgentResponse(trimmed);
+        const response = getAgentResponse(trimmed, {
+          pageContext: usePageContext ? pageContext : null,
+          contextFocus: usePageContext ? contextFocus : null,
+        });
         const botMessage: MessageProps = {
           id: generateMessageId(),
           role: "bot",
-          content: formatAgentResponseAsMarkdown(response),
-          name: "TPA Agent",
+          content: formatAgentResponseAsMarkdown(response, {
+            userQuery: trimmed,
+          }),
+          name: selectedModel,
+          avatar: tpaAgentBotAvatarSrc,
+          avatarProps: { isBordered: false },
           isLoading: false,
           timestamp: new Date().toLocaleString(),
+          hasRoundAvatar: false,
+          deepThinking: {
+            toggleContent: "Show thinking",
+            isDefaultExpanded: false,
+            subheading: "Reviewed trust and vulnerability context",
+            body: buildAgentThinkingBody(response, trimmed),
+          },
         };
 
         setMessages((current) => [...current.slice(0, -1), botMessage]);
-        setAnnouncement(`Message from TPA Agent: ${response.answer}`);
+        setAnnouncement(
+          `Message from ${TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME}: ${response.answer}`,
+        );
         setIsSendButtonDisabled(false);
       }, 1500);
     },
-    [isSendButtonDisabled],
+    [
+      isSendButtonDisabled,
+      usePageContext,
+      pageContext,
+      contextFocus,
+      selectedModel,
+    ],
   );
 
   const startNewChat = React.useCallback(() => {
@@ -125,6 +209,13 @@ export const TpaAgentProvider: React.FC<{ children: React.ReactNode }> = ({
       scrollToBottomRef,
       selectedModel,
       setSelectedModel,
+      pageContext,
+      setPageContext,
+      contextFocus,
+      usePageContext,
+      togglePageContext,
+      openAgentWithFocus,
+      clearContextFocus,
     }),
     [
       chatbotVisible,
@@ -135,11 +226,18 @@ export const TpaAgentProvider: React.FC<{ children: React.ReactNode }> = ({
       sendMessage,
       startNewChat,
       selectedModel,
+      pageContext,
+      contextFocus,
+      usePageContext,
+      togglePageContext,
+      openAgentWithFocus,
+      clearContextFocus,
     ],
   );
 
   return (
     <TpaAgentContext.Provider value={value}>
+      <TpaAgentPageContextSync />
       {children}
     </TpaAgentContext.Provider>
   );

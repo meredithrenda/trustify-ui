@@ -8,17 +8,20 @@ import {
   ChatbotFootnote,
   ChatbotHeader,
   ChatbotHeaderActions,
-  ChatbotHeaderMain,
   Message,
   MessageBar,
   MessageBox,
 } from "@patternfly/chatbot";
 
-import { TPA_AGENT_FOOTNOTE, TPA_AGENT_POPUP_WELCOME_PROMPTS } from "./constants";
+import {
+  TPA_AGENT_FOOTNOTE,
+  TPA_AGENT_POPUP_WELCOME_PROMPTS,
+  TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME,
+} from "./constants";
 import type { TpaAgentWelcomePromptItem } from "./TpaAgentWelcomePrompt";
 import { TpaAgentHeaderSettingsMenu } from "./TpaAgentHeaderSettingsMenu";
-import { TpaAgentHeaderTitle } from "./TpaAgentHeaderTitle";
 import { TpaAgentModelSelector } from "./TpaAgentModelSelector";
+import { TpaAgentContextLabel } from "./TpaAgentContextLabel";
 import { TpaAgentWelcomePrompt } from "./TpaAgentWelcomePrompt";
 import { useTpaAgent } from "./TpaAgentContext";
 
@@ -43,11 +46,12 @@ export const TpaAgentChatBody: React.FC<TpaAgentChatBodyProps> = ({
   isVisible = true,
   isCompact = false,
   showHeader = true,
-  ariaLabel = "TPA Agent",
+  ariaLabel = TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME,
   welcomePrompts: welcomePromptsProp,
 }) => {
   const {
     announcement,
+    contextFocus,
     displayMode: launcherDisplayMode,
     isSendButtonDisabled,
     messages,
@@ -60,36 +64,46 @@ export const TpaAgentChatBody: React.FC<TpaAgentChatBodyProps> = ({
       ? displayMode
       : launcherDisplayMode;
 
-  const useCompactChrome =
+  /** Compact input/header only — PF default message avatars are 3rem, not 1.5rem compact. */
+  const useCompactInputChrome =
     isCompact || activeDisplayMode !== ChatbotDisplayMode.fullscreen;
 
   const welcomePromptSource =
     welcomePromptsProp ?? TPA_AGENT_POPUP_WELCOME_PROMPTS;
-  const welcomePrompts: TpaAgentWelcomePromptItem[] =
-    welcomePromptSource.map((prompt) => ({
+
+  const welcomePrompts: TpaAgentWelcomePromptItem[] = React.useMemo(() => {
+    if (contextFocus?.suggestedPrompt) {
+      const suggestedPrompt = contextFocus.suggestedPrompt;
+      return [
+        {
+          title: contextFocus.label,
+          description: suggestedPrompt,
+          onClick: () => sendMessage(suggestedPrompt),
+        },
+      ];
+    }
+    return welcomePromptSource.map((prompt) => ({
       title: prompt.title,
       description: prompt.description,
       onClick: () => sendMessage(prompt.description),
     }));
+  }, [contextFocus, welcomePromptSource, sendMessage]);
 
   return (
     <Chatbot
       ariaLabel={ariaLabel}
       className={`tpa-agent-chat${showHeader ? " tpa-agent-chat--popup" : ""}`}
       displayMode={activeDisplayMode}
-      isCompact={useCompactChrome}
+      isCompact={false}
       isVisible={isVisible}
     >
       {showHeader ? (
         <ChatbotHeader>
-          <ChatbotHeaderMain>
-            <TpaAgentHeaderTitle />
-          </ChatbotHeaderMain>
           <ChatbotHeaderActions>
             <TpaAgentHeaderSettingsMenu />
             <TpaAgentModelSelector
               className="tpa-agent-header__model"
-              isCompact={useCompactChrome}
+              isCompact={useCompactInputChrome}
             />
           </ChatbotHeaderActions>
         </ChatbotHeader>
@@ -97,36 +111,43 @@ export const TpaAgentChatBody: React.FC<TpaAgentChatBodyProps> = ({
       <ChatbotContent isPrimary>
         <MessageBox announcement={announcement}>
           {messages.length === 0 && (
-            <TpaAgentWelcomePrompt
-              isCompact={useCompactChrome}
-              leadText="Ask about SBOMs, advisories, VEX, or policy. Prototype responses only—do not share sensitive data."
-              prompts={welcomePrompts}
-            />
+            <>
+              <TpaAgentWelcomePrompt
+                isCompact={useCompactInputChrome}
+                leadText="Ask about SBOMs, advisories, VEX, or policy. Prototype responses only—do not share sensitive data."
+                prompts={welcomePrompts}
+              />
+            </>
           )}
           {messages.map((message, index) => {
             if (index === messages.length - 1) {
               return (
                 <React.Fragment key={message.id}>
                   <div ref={scrollToBottomRef} />
-                  <Message {...message} isPrimary />
+                  <Message {...message} isCompact={false} isPrimary />
                 </React.Fragment>
               );
             }
-            return <Message key={message.id} {...message} isPrimary />;
+            return (
+              <Message key={message.id} {...message} isCompact={false} isPrimary />
+            );
           })}
         </MessageBox>
       </ChatbotContent>
-      <ChatbotFooter isCompact={useCompactChrome} isPrimary>
+      <ChatbotFooter isCompact={useCompactInputChrome} isPrimary>
         <MessageBar
           alwayShowSendButton
           className="tpa-agent-message-bar"
           displayMode={activeDisplayMode}
           hasAttachButton
-          isCompact={useCompactChrome}
+          isCompact={useCompactInputChrome}
           isSendButtonDisabled={isSendButtonDisabled}
           onSendMessage={sendMessage}
           placeholder="Send a message..."
         />
+        <div className="tpa-agent-message-bar-toolbar">
+          <TpaAgentContextLabel />
+        </div>
         <ChatbotFootnote {...TPA_AGENT_FOOTNOTE} />
       </ChatbotFooter>
     </Chatbot>

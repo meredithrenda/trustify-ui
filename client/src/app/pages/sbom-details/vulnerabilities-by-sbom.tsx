@@ -19,6 +19,7 @@ import {
   ToolbarItem,
 } from "@patternfly/react-core";
 import {
+  ActionsColumn,
   ExpandableRowContent,
   Table,
   TableText,
@@ -43,6 +44,11 @@ import {
   type ExploitIntelligenceCellState,
   ExploitIntelligenceAnalysisCell,
 } from "@app/components/exploit-intelligence";
+import {
+  buildSbomVulnerabilityFocus,
+  TPA_INTELLIGENCE_ASSISTANT_SHORT_NAME,
+  useTpaAgent,
+} from "@app/components/tpa-agent";
 import { LoadingWrapper } from "@app/components/LoadingWrapper";
 import { NotificationsContext } from "@app/components/NotificationsContext";
 import { PackageQualifiers } from "@app/components/PackageQualifiers";
@@ -115,6 +121,7 @@ interface VulnerabilitiesBySbomProps {
 export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
   sbomId,
 }) => {
+  const { openAgentWithFocus } = useTpaAgent();
   const { pushNotification } = React.useContext(NotificationsContext);
 
   const [exploitIntelByVulnId, setExploitIntelByVulnId] = React.useState<
@@ -200,16 +207,14 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
       cvss: "CVSS",
       exploitIntelligence: "Exploit Intelligence Analysis",
       affectedDependencies: "Affected dependencies",
-      published: "Published",
       updated: "Updated",
     },
-    hasActionsColumn: false,
+    hasActionsColumn: true,
     isSortEnabled: true,
     sortableColumns: [
       "id",
       "cvss",
       "affectedDependencies",
-      "published",
       "updated",
     ],
     initialSort: { columnKey: "cvss", direction: "desc" },
@@ -217,9 +222,6 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
       id: item.vulnerability.identifier,
       cvss: item.vulnerability.average_score,
       affectedDependencies: item.summary.totalPackages,
-      published: item.vulnerability?.published
-        ? dayjs(item.vulnerability.published).valueOf()
-        : 0,
       updated: item.vulnerability?.modified
         ? dayjs(item.vulnerability.modified).valueOf()
         : 0,
@@ -320,7 +322,6 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                   }}
                 />
                 <Th {...getThProps({ columnKey: "affectedDependencies" })} />
-                <Th {...getThProps({ columnKey: "published" })} />
                 <Th {...getThProps({ columnKey: "updated" })} />
               </TableHeaderContentWithControls>
             </Tr>
@@ -429,16 +430,34 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                       <Td
                         width={10}
                         modifier="truncate"
-                        {...getTdProps({ columnKey: "published" })}
-                      >
-                        {formatDate(item.vulnerability?.published)}
-                      </Td>
-                      <Td
-                        width={10}
-                        modifier="truncate"
                         {...getTdProps({ columnKey: "updated" })}
                       >
                         {formatDate(item.vulnerability?.modified)}
+                      </Td>
+                      <Td isActionCell>
+                        <ActionsColumn
+                          items={[
+                            {
+                              title: `Ask ${TPA_INTELLIGENCE_ASSISTANT_SHORT_NAME}`,
+                              onClick: () => {
+                                openAgentWithFocus(
+                                  buildSbomVulnerabilityFocus({
+                                    sbomId,
+                                    sbomName: sbom?.name,
+                                    vulnerabilityId:
+                                      item.vulnerability.identifier,
+                                    vulnerabilityTitle:
+                                      item.vulnerability.title,
+                                    severity:
+                                      item.vulnerability.average_severity,
+                                    exploitIntelligence:
+                                      exploitIntelligenceState,
+                                  }),
+                                );
+                              },
+                            },
+                          ]}
+                        />
                       </Td>
                     </TableRowContentWithControls>
                   </Tr>

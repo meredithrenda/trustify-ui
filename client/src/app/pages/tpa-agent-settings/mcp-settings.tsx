@@ -24,6 +24,7 @@ import {
 } from "@patternfly/react-table";
 
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
+import { TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME } from "@app/components/tpa-agent";
 
 import { MOCK_MCP_SERVERS } from "./constants";
 
@@ -48,9 +49,9 @@ export const McpSettings: React.FC = () => {
           </StackItem>
           <StackItem>
             <Alert title="Prototype" variant="info" isInline>
-              Configure Model Context Protocol servers for TPA Agent tool
-              calling. Settings shown here are illustrative and not wired to a
-              backend.
+              Configure Model Context Protocol servers for{" "}
+              {TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME} tool calling. Settings
+              shown here are illustrative and not wired to a backend.
             </Alert>
           </StackItem>
         </Stack>

@@ -12,6 +12,68 @@
   background-color: var(--pf-t--global--background--color--primary--default);
 }
 
+/* Message thread — PatternFly default density (3rem avatars, lg gaps) */
+.tpa-agent-chat .pf-chatbot__messagebox {
+  width: 100%;
+  max-width: 100%;
+  padding: var(--pf-t--global--spacer--lg);
+}
+
+.tpa-agent-chat .pf-chatbot__message {
+  gap: var(--pf-t--global--spacer--lg);
+  padding-bottom: var(--pf-t--global--spacer--lg);
+}
+
+.tpa-agent-chat
+  .pf-chatbot__message-avatar.pf-chatbot__message-avatar--round.pf-v6-c-avatar:not(
+    .pf-m-xl,
+    .pf-m-lg,
+    .pf-m-md,
+    .pf-m-sm
+  ) {
+  --pf-v6-c-avatar--Width: 3rem;
+  --pf-v6-c-avatar--Height: 3rem;
+}
+
+/*
+ * PF chatbot sets message avatars to position: sticky so they stay visible while
+ * reading one long reply. In a scrollable thread that stacks avatars at the top;
+ * use static positioning so each avatar scrolls with its message.
+ */
+.tpa-agent-chat .pf-chatbot__message-avatar.pf-v6-c-avatar {
+  position: static;
+  top: auto;
+}
+
+/* Bot avatar — standalone RH UI icon, not in a round Avatar chip */
+.tpa-agent-chat .pf-chatbot__message--bot .pf-chatbot__message-avatar.pf-v6-c-avatar {
+  --pf-v6-c-avatar--BorderRadius: 0;
+  --pf-v6-c-avatar--BackgroundColor: transparent;
+  background-color: transparent;
+}
+
+.tpa-agent-chat .pf-chatbot__message--bot .pf-chatbot__message-avatar.pf-v6-c-avatar img {
+  object-fit: contain;
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Bot header — model name matches Developer Hub emphasis */
+.tpa-agent-chat .pf-chatbot__message--bot .pf-chatbot__message-name {
+  font-size: var(--pf-t--global--font--size--body--lg);
+  font-weight: var(--pf-t--global--font--weight--body--bold);
+  line-height: var(--pf-t--global--font--line-height--body);
+}
+
+.tpa-agent-chat .pf-chatbot__message--user .pf-chatbot__message-name {
+  font-size: var(--pf-t--global--font--size--body--default);
+  font-weight: var(--pf-t--global--font--weight--body--bold);
+}
+
+.tpa-agent-chat .pf-chatbot__message-meta .pf-v6-c-label {
+  flex-shrink: 0;
+}
+
 .tpa-agent-chat .pf-chatbot__footer,
 .tpa-agent-chat .pf-chatbot__footer.pf-m-primary {
   background-color: var(--pf-t--global--background--color--primary--default);
@@ -24,10 +86,17 @@
 /* Corner popup — white header/shell like home; only MessageBar stays grey */
 .tpa-agent-chat--popup .pf-chatbot__header {
   background-color: var(--pf-t--global--background--color--primary--default);
+  justify-content: flex-end;
 }
 
 .tpa-agent-chat--popup .pf-chatbot__header__divider {
   display: none;
+}
+
+/* Corner popup — room below footnote (PF compact footer is tight by default) */
+.tpa-agent-chat--popup .pf-chatbot__footer-container {
+  padding-inline: var(--pf-t--global--spacer--md);
+  padding-block-end: var(--pf-t--global--spacer--lg);
 }
 
 /* Footer divider is redundant with the prompt card border (embedded hides it at wide breakpoints). */
@@ -198,9 +267,10 @@
 /* Home section header — Red Hat AI experience icon beside title */
 .tpa-agent-section__ai-icon {
   display: block;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 /* Embedded home — full width, left-aligned (override PF centered embedded layout) */
@@ -269,6 +339,87 @@
   min-width: 0;
 }
 
+/* Message bar toolbar — Developer Hub–style context control */
+.tpa-agent-message-bar-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-t--global--spacer--sm);
+  padding-block: var(--pf-t--global--spacer--xs)
+    var(--pf-t--global--spacer--sm);
+  padding-inline: var(--pf-t--global--spacer--md);
+}
+
+.tpa-agent-context-label.pf-v6-c-button.pf-m-plain {
+  font-size: var(--pf-t--global--font--size--body--sm);
+  font-weight: var(--pf-t--global--font--weight--body--default);
+  color: var(--pf-t--global--text--color--subtle);
+  background-color: var(--pf-t--global--background--color--secondary--default);
+  border: var(--pf-t--global--border--width--regular) solid
+    var(--pf-t--global--border--color--default);
+  border-radius: var(--pf-t--global--border--radius--pill);
+  padding-block: var(--pf-t--global--spacer--xs);
+  padding-inline: var(--pf-t--global--spacer--sm);
+  min-height: auto;
+  line-height: 1.2;
+}
+
+.tpa-agent-context-label.pf-v6-c-button.pf-m-plain:hover,
+.tpa-agent-context-label.pf-v6-c-button.pf-m-plain:focus-visible {
+  color: var(--pf-t--global--text--color--regular);
+  background-color: var(--pf-t--global--background--color--secondary--hover);
+  border-color: var(--pf-t--global--border--color--hover);
+}
+
+.tpa-agent-ask-action-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.tpa-agent-chat-icon {
+  width: var(--pf-t--global--spacer--lg);
+  height: var(--pf-t--global--spacer--lg);
+  display: block;
+  object-fit: contain;
+}
+
+/* Launcher FAB — between PF lg (1.5rem) and prior 2.25rem */
+.tpa-agent-launcher-icon {
+  width: 2rem;
+  height: 2rem;
+  display: block;
+  object-fit: contain;
+}
+
+.pf-v6-c-button.pf-chatbot__button.pf-chatbot__button--round .pf-v6-c-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* RH UI icon is dark; invert on the brand FAB for contrast */
+.pf-v6-c-button.pf-chatbot__button .tpa-agent-launcher-icon,
+.pf-v6-c-button.pf-chatbot__button .tpa-agent-chat-icon {
+  filter: brightness(0) invert(1);
+}
+
+.tpa-agent-ask-action.pf-v6-c-button.pf-m-plain {
+  --pf-v6-c-button__icon--Color: var(--pf-t--global--icon--color--subtle);
+  color: var(--pf-t--global--icon--color--subtle);
+  min-height: auto;
+  padding: var(--pf-t--global--spacer--xs);
+}
+
+.tpa-agent-ask-action.pf-v6-c-button.pf-m-plain:hover,
+.tpa-agent-ask-action.pf-v6-c-button.pf-m-plain:focus-visible {
+  --pf-v6-c-button__icon--Color: var(--pf-t--global--icon--color--regular);
+  color: var(--pf-t--global--icon--color--regular);
+}
+
+.tpa-agent-context-label--on.pf-v6-c-button.pf-m-plain {
+  color: var(--pf-t--global--text--color--regular);
+  border-color: var(--pf-t--global--border--color--brand--default);
+  background-color: var(--pf-t--global--background--color--secondary--default);
+}
+
 /* Floating launcher FAB — circle in production (chatbot --round loses to PF button CSS order). */
 .pf-v6-c-button.pf-chatbot__button.pf-chatbot__button--round {
   border-radius: 50%;
@@ -276,5 +427,5 @@
   height: 3rem;
   min-width: 3rem;
   min-height: 3rem;
-  padding: var(--pf-t--global--spacer--md);
+  padding: var(--pf-t--global--spacer--sm);
 }

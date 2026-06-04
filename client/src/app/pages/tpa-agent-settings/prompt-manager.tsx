@@ -23,6 +23,7 @@ import {
 } from "@patternfly/react-table";
 
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
+import { TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME } from "@app/components/tpa-agent";
 
 import { MOCK_AGENT_PROMPTS } from "./constants";
 
@@ -44,7 +45,8 @@ export const PromptManager: React.FC = () => {
               variant="info"
               isInline
             >
-              Manage reusable prompts for TPA Agent. Changes here are for
+              Manage reusable prompts for {TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME}
+              . Changes here are for
               layout review only and are not persisted.
             </Alert>
           </StackItem>
@@ -62,7 +64,9 @@ export const PromptManager: React.FC = () => {
           </ToolbarContent>
         </Toolbar>
 
-        <Table aria-label="TPA Agent prompts">
+        <Table
+          aria-label={`${TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME} prompts`}
+        >
           <Thead>
             <Tr>
               <Th>Name</Th>

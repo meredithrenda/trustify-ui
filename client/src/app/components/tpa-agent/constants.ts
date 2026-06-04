@@ -1,3 +1,13 @@
+/** User-facing product name (product + Intelligence assistant). */
+export const TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME =
+  "TPA Intelligence Assistant";
+
+/** Shorter title for the corner launcher and popup chat. */
+export const TPA_INTELLIGENCE_ASSISTANT_SHORT_NAME = "Intelligence assistant";
+
+/** Display name on user messages (Developer Hub uses “Guest”). */
+export const TPA_AGENT_MESSAGE_USER_NAME = "Guest";
+
 /** LLM options shown in the message bar model selector (Developer Hub layout). */
 export const TPA_AGENT_MODELS = [
   "granite-3.1-8b",
@@ -32,7 +42,7 @@ export const TPA_AGENT_POPUP_WELCOME_PROMPTS = [
 ];
 
 export const TPA_AGENT_FOOTNOTE = {
-  label: "TPA Agent uses AI. Check for mistakes.",
+  label: `${TPA_INTELLIGENCE_ASSISTANT_SHORT_NAME} uses AI. Check for mistakes.`,
   popover: {
     title: "Verify responses",
     description:

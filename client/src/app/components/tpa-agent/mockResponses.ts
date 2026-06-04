@@ -123,13 +123,54 @@ const FALLBACK_RESPONSE: AgentResponse = {
   sources: [],
 };
 
-export function getAgentResponse(query: string): AgentResponse {
+export interface AgentResponseContext {
+  pageContext?: { summary: string } | null;
+  contextFocus?: { kind: string; label: string; summary: string } | null;
+}
+
+const FOCUS_CVE_2024_9680_RESPONSE: AgentResponse = {
+  answer:
+    "CVE-2024-9680 is marked Vulnerable by exploit intelligence on this SBOM.",
+  detail:
+    "Mozilla Firefox security updates are required. Exploit intelligence indicates active exploitation risk for this CVE in your SBOM context. Review the full report, confirm affected packages, and align remediation with your VEX or patch policy.",
+  sources: ["CVE-2024-9680", "Exploit intelligence", "SBOM vulnerabilities"],
+  severity: "critical",
+  items: ["View exploit intelligence report", "Review affected dependencies"],
+};
+
+export function getAgentResponse(
+  query: string,
+  options?: AgentResponseContext,
+): AgentResponse {
   const lowerQuery = query.toLowerCase();
+  const focus = options?.contextFocus;
+
+  if (
+    focus?.kind === "sbom-vulnerability" &&
+    focus.label.toLowerCase() === "cve-2024-9680"
+  ) {
+    if (
+      lowerQuery.includes("cve-2024-9680") ||
+      lowerQuery.includes("exploit") ||
+      lowerQuery.includes("intelligence") ||
+      lowerQuery.includes("vulnerable")
+    ) {
+      return FOCUS_CVE_2024_9680_RESPONSE;
+    }
+  }
 
   for (const rule of RESPONSE_RULES) {
     if (rule.keywords.some((kw) => lowerQuery.includes(kw))) {
       return rule.response;
     }
+  }
+
+  if (focus && (lowerQuery.includes("this") || lowerQuery.includes("it"))) {
+    return {
+      answer: `Here is what I can share about ${focus.label} in your current view.`,
+      detail: focus.summary,
+      sources: [focus.label],
+    };
   }
 
   return FALLBACK_RESPONSE;
