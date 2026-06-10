@@ -86,7 +86,6 @@
 /* Corner popup — white header/shell like home; only MessageBar stays grey */
 .tpa-agent-chat--popup .pf-chatbot__header {
   background-color: var(--pf-t--global--background--color--primary--default);
-  justify-content: flex-end;
 }
 
 .tpa-agent-chat--popup .pf-chatbot__header__divider {
@@ -187,10 +186,38 @@
   flex-shrink: 0;
 }
 
-.tpa-agent-settings-menu__icon {
-  font-size: var(--pf-t--global--icon--size--md);
-  width: var(--pf-t--global--icon--size--md);
-  height: var(--pf-t--global--icon--size--md);
+/* Popup header icon buttons — between PF compact (2rem) and default (3rem) */
+.tpa-agent-chat--popup .pf-chatbot__button--toggle-menu.pf-m-compact,
+.tpa-agent-chat--popup
+  .tpa-agent-settings-menu__toggle.pf-chatbot__button--toggle-options.pf-m-compact {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+}
+
+/*
+ * Prefer darker header icons (GitHub / default MenuToggle) over PF chatbot subtle grey.
+ * New chat uses pf-chatbot__button--toggle-menu; settings uses --toggle-options.
+ */
+.tpa-agent-chat--popup .pf-chatbot__button--toggle-menu .pf-v6-c-icon__content,
+.tpa-agent-chat--popup .pf-chatbot__button--toggle-menu svg,
+.tpa-agent-settings-menu__toggle.pf-chatbot__button--toggle-options
+  .pf-v6-c-icon__content,
+.tpa-agent-settings-menu__toggle.pf-chatbot__button--toggle-options svg {
+  color: var(--pf-t--global--icon--color--regular);
+}
+
+.tpa-agent-chat--popup .pf-chatbot__button--toggle-menu:hover .pf-v6-c-icon__content,
+.tpa-agent-chat--popup .pf-chatbot__button--toggle-menu:hover svg,
+.tpa-agent-chat--popup .pf-chatbot__button--toggle-menu:focus .pf-v6-c-icon__content,
+.tpa-agent-chat--popup .pf-chatbot__button--toggle-menu:focus svg,
+.tpa-agent-settings-menu__toggle.pf-chatbot__button--toggle-options:hover
+  .pf-v6-c-icon__content,
+.tpa-agent-settings-menu__toggle.pf-chatbot__button--toggle-options:hover svg,
+.tpa-agent-settings-menu__toggle.pf-chatbot__button--toggle-options:focus
+  .pf-v6-c-icon__content,
+.tpa-agent-settings-menu__toggle.pf-chatbot__button--toggle-options:focus svg {
+  color: var(--pf-t--global--icon--color--regular);
 }
 
 /* Welcome prompt cards (Lightspeed-style bordered tiles) */
@@ -200,13 +227,14 @@
   line-height: var(--pf-t--global--font--line-height--heading);
 }
 
-.tpa-agent-welcome__lead {
+.tpa-agent-welcome .pf-chatbot__question {
   color: var(--pf-t--global--text--color--subtle);
   font-size: var(--pf-t--global--font--size--body--default);
-  margin-block-end: 0;
+  font-weight: var(--pf-t--global--font--weight--body--default);
+  line-height: var(--pf-t--global--font--line-height--body);
 }
 
-.tpa-agent-welcome__prompts {
+.tpa-agent-welcome .pf-chatbot__prompt-suggestions {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -214,8 +242,16 @@
   align-items: stretch;
 }
 
-/* Override PF plain/default card tokens so borders survive production CSS order */
-.tpa-agent-welcome__prompt-card.pf-v6-c-card {
+/*
+ * PF welcome layout sets flex:1 + height:100% on prompt cards, which stretches a
+ * lone card to fill the popup message area. Size cards to their content instead.
+ */
+.tpa-agent-welcome .pf-chatbot__prompt-suggestions > .pf-chatbot__prompt-suggestion {
+  height: auto;
+}
+
+/* PF v6 cards paint borders on ::before — set tokens only, never add a second border */
+.tpa-agent-welcome .pf-chatbot__prompt-suggestion.pf-v6-c-card {
   --pf-v6-c-card--BorderColor: var(--pf-t--global--border--color--default);
   --pf-v6-c-card--BackgroundColor: var(
     --pf-t--global--background--color--primary--default
@@ -223,45 +259,61 @@
   flex: 1 1 11rem;
   min-width: 10rem;
   max-width: 100%;
-  border: var(--pf-t--global--border--width--regular) solid
-    var(--pf-t--global--border--color--default);
-  border-radius: var(--pf-t--global--border--radius--medium);
   box-shadow: none;
 }
 
-.tpa-agent-welcome__prompt-card.pf-v6-c-card:hover {
+.tpa-agent-welcome .pf-chatbot__prompt-suggestion.pf-v6-c-card:hover {
   --pf-v6-c-card--BorderColor: var(--pf-t--global--border--color--hover);
-  border-color: var(--pf-t--global--border--color--hover);
+  --pf-v6-c-card--m-selectable--hover--BorderColor: var(
+    --pf-t--global--border--color--hover
+  );
 }
 
-.tpa-agent-welcome .tpa-agent-welcome__prompt-title {
+.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__title {
   font-size: var(--pf-t--global--font--size--body--default);
   font-weight: var(--pf-t--global--font--weight--body--bold);
   line-height: var(--pf-t--global--font--line-height--body);
-  margin-block-end: var(--pf-t--global--spacer--xs);
 }
 
-.tpa-agent-welcome .tpa-agent-welcome__prompt-description {
+.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__body {
   color: var(--pf-t--global--text--color--subtle);
   font-size: var(--pf-t--global--font--size--body--sm);
   font-weight: var(--pf-t--global--font--weight--body--default);
   line-height: var(--pf-t--global--font--line-height--body);
-  margin-block-end: 0;
 }
 
-.tpa-agent-welcome.pf-m-compact .tpa-agent-welcome__prompts {
+.tpa-agent-welcome.pf-m-compact .pf-chatbot__prompt-suggestions {
   gap: var(--pf-t--global--spacer--sm);
 }
 
-.tpa-agent-welcome--single .tpa-agent-welcome__prompts {
+.tpa-agent-welcome--single .pf-chatbot__prompt-suggestions {
   flex-direction: column;
   flex-wrap: nowrap;
 }
 
-.tpa-agent-welcome--single .tpa-agent-welcome__prompt-card {
+.tpa-agent-welcome--single .pf-chatbot__prompt-suggestions > .pf-chatbot__prompt-suggestion {
   flex: 0 1 auto;
   width: 100%;
   max-width: 100%;
+}
+
+/* Corner popup — welcome block and prompt card hug content, not the messagebox height */
+.tpa-agent-chat--popup .pf-chatbot__messagebox > .pf-chatbot--layout--welcome {
+  flex: 0 0 auto;
+  height: auto;
+}
+
+.tpa-agent-chat--popup .tpa-agent-welcome .pf-chatbot__prompt-suggestions {
+  flex: 0 0 auto;
+  height: auto;
+  align-items: flex-start;
+}
+
+.tpa-agent-chat--popup
+  .tpa-agent-welcome
+  .pf-chatbot__prompt-suggestions
+  > .pf-chatbot__prompt-suggestion {
+  flex: 0 1 auto;
 }
 
 /* Home section header — Red Hat AI experience icon beside title */
@@ -328,13 +380,13 @@
   text-align: start;
 }
 
-.tpa-agent-embedded--fill .tpa-agent-welcome__prompts {
+.tpa-agent-embedded--fill .tpa-agent-welcome .pf-chatbot__prompt-suggestions {
   flex-direction: row;
   flex-wrap: nowrap;
   width: 100%;
 }
 
-.tpa-agent-embedded--fill .tpa-agent-welcome__prompt-card.pf-v6-c-card {
+.tpa-agent-embedded--fill .tpa-agent-welcome .pf-chatbot__prompt-suggestion.pf-v6-c-card {
   flex: 1 1 0;
   min-width: 0;
 }

@@ -93,6 +93,9 @@ export const TpaAgentProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [contextFocus, pageContext]);
 
   const openAgentWithFocus = React.useCallback((focus: TpaAgentContextFocus) => {
+    setMessages([]);
+    setAnnouncement(undefined);
+    setIsSendButtonDisabled(false);
     setContextFocus(focus);
     setUsePageContext(true);
     setChatbotVisible(true);
@@ -191,6 +194,8 @@ export const TpaAgentProvider: React.FC<{ children: React.ReactNode }> = ({
     setMessages([]);
     setAnnouncement(undefined);
     setIsSendButtonDisabled(false);
+    setContextFocus(null);
+    setUsePageContext(false);
   }, []);
 
   const value = React.useMemo<TpaAgentContextValue>(

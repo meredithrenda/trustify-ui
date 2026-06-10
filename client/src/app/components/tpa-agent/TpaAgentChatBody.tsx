@@ -8,6 +8,9 @@ import {
   ChatbotFootnote,
   ChatbotHeader,
   ChatbotHeaderActions,
+  ChatbotHeaderMain,
+  ChatbotHeaderNewChatButton,
+  ChatbotWelcomePrompt,
   Message,
   MessageBar,
   MessageBox,
@@ -18,11 +21,9 @@ import {
   TPA_AGENT_POPUP_WELCOME_PROMPTS,
   TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME,
 } from "./constants";
-import type { TpaAgentWelcomePromptItem } from "./TpaAgentWelcomePrompt";
 import { TpaAgentHeaderSettingsMenu } from "./TpaAgentHeaderSettingsMenu";
 import { TpaAgentModelSelector } from "./TpaAgentModelSelector";
 import { TpaAgentContextLabel } from "./TpaAgentContextLabel";
-import { TpaAgentWelcomePrompt } from "./TpaAgentWelcomePrompt";
 import { useTpaAgent } from "./TpaAgentContext";
 
 import "./tpa-agent.css";
@@ -57,6 +58,8 @@ export const TpaAgentChatBody: React.FC<TpaAgentChatBodyProps> = ({
     messages,
     scrollToBottomRef,
     sendMessage,
+    startNewChat,
+    usePageContext,
   } = useTpaAgent();
 
   const activeDisplayMode =
@@ -71,20 +74,20 @@ export const TpaAgentChatBody: React.FC<TpaAgentChatBodyProps> = ({
   const welcomePromptSource =
     welcomePromptsProp ?? TPA_AGENT_POPUP_WELCOME_PROMPTS;
 
-  const welcomePrompts: TpaAgentWelcomePromptItem[] = React.useMemo(() => {
+  const welcomePrompts = React.useMemo(() => {
     if (contextFocus?.suggestedPrompt) {
       const suggestedPrompt = contextFocus.suggestedPrompt;
       return [
         {
           title: contextFocus.label,
-          description: suggestedPrompt,
+          message: suggestedPrompt,
           onClick: () => sendMessage(suggestedPrompt),
         },
       ];
     }
     return welcomePromptSource.map((prompt) => ({
       title: prompt.title,
-      description: prompt.description,
+      message: prompt.description,
       onClick: () => sendMessage(prompt.description),
     }));
   }, [contextFocus, welcomePromptSource, sendMessage]);
@@ -99,25 +102,36 @@ export const TpaAgentChatBody: React.FC<TpaAgentChatBodyProps> = ({
     >
       {showHeader ? (
         <ChatbotHeader>
+          <ChatbotHeaderMain>
+            <ChatbotHeaderNewChatButton
+              isCompact
+              isDisabled={
+                messages.length === 0 && !contextFocus && !usePageContext
+              }
+              menuAriaLabel="Start a new chat"
+              onClick={startNewChat}
+              tooltipContent="New chat"
+            />
+          </ChatbotHeaderMain>
           <ChatbotHeaderActions>
-            <TpaAgentHeaderSettingsMenu />
             <TpaAgentModelSelector
               className="tpa-agent-header__model"
               isCompact={useCompactInputChrome}
             />
+            <TpaAgentHeaderSettingsMenu isCompact />
           </ChatbotHeaderActions>
         </ChatbotHeader>
       ) : null}
       <ChatbotContent isPrimary>
         <MessageBox announcement={announcement}>
           {messages.length === 0 && (
-            <>
-              <TpaAgentWelcomePrompt
-                isCompact={useCompactInputChrome}
-                leadText="Ask about SBOMs, advisories, VEX, or policy. Prototype responses only—do not share sensitive data."
-                prompts={welcomePrompts}
-              />
-            </>
+            <ChatbotWelcomePrompt
+              className={`tpa-agent-welcome${welcomePrompts.length === 1 ? " tpa-agent-welcome--single" : ""}`}
+              description="Ask about SBOMs, advisories, VEX, or policy. Prototype responses only—do not share sensitive data."
+              isCompact={useCompactInputChrome}
+              prompts={welcomePrompts}
+              title="How can I help you today?"
+            />
           )}
           {messages.map((message, index) => {
             if (index === messages.length - 1) {

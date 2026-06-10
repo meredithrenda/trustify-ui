@@ -6,6 +6,7 @@ import {
   Dropdown,
   DropdownItem,
   DropdownList,
+  Icon,
   MenuToggle,
 } from "@patternfly/react-core";
 import CogIcon from "@patternfly/react-icons/dist/esm/icons/cog-icon";
@@ -14,7 +15,14 @@ import { Paths } from "@app/Routes";
 
 import { TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME } from "./constants";
 
-export const TpaAgentHeaderSettingsMenu: React.FC = () => {
+interface TpaAgentHeaderSettingsMenuProps {
+  /** Match ChatbotHeaderOptionsDropdown — full-size icons in the popup header. */
+  isCompact?: boolean;
+}
+
+export const TpaAgentHeaderSettingsMenu: React.FC<
+  TpaAgentHeaderSettingsMenuProps
+> = ({ isCompact = false }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -26,13 +34,17 @@ export const TpaAgentHeaderSettingsMenu: React.FC = () => {
         <MenuToggle
           ref={toggleRef}
           aria-label={`${TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME} settings`}
-          className="tpa-agent-settings-menu__toggle"
+          className={`pf-chatbot__button--toggle-options tpa-agent-settings-menu__toggle${isCompact ? " pf-m-compact" : ""}`}
+          icon={
+            <Icon isInline size={isCompact ? "lg" : "xl"}>
+              <CogIcon aria-hidden />
+            </Icon>
+          }
           isExpanded={isOpen}
           onClick={() => setIsOpen(!isOpen)}
+          size={isCompact ? "sm" : undefined}
           variant="plain"
-        >
-          <CogIcon aria-hidden className="tpa-agent-settings-menu__icon" />
-        </MenuToggle>
+        />
       )}
     >
       <DropdownList>
