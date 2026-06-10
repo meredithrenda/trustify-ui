@@ -245,7 +245,7 @@
   height: auto;
 }
 
-/* PF v6 cards paint borders on ::before — set tokens only, never add a second border */
+/* PF v6 card ::before borders are unreliable here — paint one stroke on the element */
 .tpa-agent-welcome__prompt-card.pf-v6-c-card {
   --pf-v6-c-card--BorderColor: var(--pf-t--global--border--color--default);
   --pf-v6-c-card--BackgroundColor: var(
@@ -254,7 +254,15 @@
   flex: 1 1 11rem;
   min-width: 10rem;
   max-width: 100%;
+  box-sizing: border-box;
+  border: var(--pf-t--global--border--width--regular) solid
+    var(--pf-t--global--border--color--default);
+  border-radius: var(--pf-t--global--border--radius--medium);
   box-shadow: none;
+}
+
+.tpa-agent-welcome__prompt-card.pf-v6-c-card::before {
+  display: none;
 }
 
 .tpa-agent-welcome__prompt-card.pf-v6-c-card:hover {
@@ -262,6 +270,7 @@
   --pf-v6-c-card--m-selectable--hover--BorderColor: var(
     --pf-t--global--border--color--hover
   );
+  border-color: var(--pf-t--global--border--color--hover);
 }
 
 .tpa-agent-welcome .tpa-agent-welcome__prompt-title {
