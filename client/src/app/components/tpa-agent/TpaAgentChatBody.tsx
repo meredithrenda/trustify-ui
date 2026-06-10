@@ -10,7 +10,6 @@ import {
   ChatbotHeaderActions,
   ChatbotHeaderMain,
   ChatbotHeaderNewChatButton,
-  ChatbotWelcomePrompt,
   Message,
   MessageBar,
   MessageBox,
@@ -24,6 +23,8 @@ import {
 import { TpaAgentHeaderSettingsMenu } from "./TpaAgentHeaderSettingsMenu";
 import { TpaAgentModelSelector } from "./TpaAgentModelSelector";
 import { TpaAgentContextLabel } from "./TpaAgentContextLabel";
+import type { TpaAgentWelcomePromptItem } from "./TpaAgentWelcomePrompt";
+import { TpaAgentWelcomePrompt } from "./TpaAgentWelcomePrompt";
 import { useTpaAgent } from "./TpaAgentContext";
 
 import "./tpa-agent.css";
@@ -74,20 +75,20 @@ export const TpaAgentChatBody: React.FC<TpaAgentChatBodyProps> = ({
   const welcomePromptSource =
     welcomePromptsProp ?? TPA_AGENT_POPUP_WELCOME_PROMPTS;
 
-  const welcomePrompts = React.useMemo(() => {
+  const welcomePrompts: TpaAgentWelcomePromptItem[] = React.useMemo(() => {
     if (contextFocus?.suggestedPrompt) {
       const suggestedPrompt = contextFocus.suggestedPrompt;
       return [
         {
           title: contextFocus.label,
-          message: suggestedPrompt,
+          description: suggestedPrompt,
           onClick: () => sendMessage(suggestedPrompt),
         },
       ];
     }
     return welcomePromptSource.map((prompt) => ({
       title: prompt.title,
-      message: prompt.description,
+      description: prompt.description,
       onClick: () => sendMessage(prompt.description),
     }));
   }, [contextFocus, welcomePromptSource, sendMessage]);
@@ -125,12 +126,10 @@ export const TpaAgentChatBody: React.FC<TpaAgentChatBodyProps> = ({
       <ChatbotContent isPrimary>
         <MessageBox announcement={announcement}>
           {messages.length === 0 && (
-            <ChatbotWelcomePrompt
-              className={`tpa-agent-welcome${welcomePrompts.length === 1 ? " tpa-agent-welcome--single" : ""}`}
-              description="Ask about SBOMs, advisories, VEX, or policy. Prototype responses only—do not share sensitive data."
+            <TpaAgentWelcomePrompt
               isCompact={useCompactInputChrome}
+              leadText="Ask about SBOMs, advisories, VEX, or policy. Prototype responses only—do not share sensitive data."
               prompts={welcomePrompts}
-              title="How can I help you today?"
             />
           )}
           {messages.map((message, index) => {

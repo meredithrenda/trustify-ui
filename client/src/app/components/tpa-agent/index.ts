@@ -17,3 +17,4 @@ export { TpaAgentChatIcon } from "./TpaAgentChatIcon";
 export { TpaAgentProvider, useTpaAgent } from "./TpaAgentContext";
 export { TpaAgentLauncher } from "./TpaAgentLauncher";
 export { TpaAgentChatBody } from "./TpaAgentChatBody";
+export { TpaAgentWelcomePrompt } from "./TpaAgentWelcomePrompt";

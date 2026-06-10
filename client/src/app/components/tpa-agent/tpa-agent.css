@@ -227,14 +227,13 @@
   line-height: var(--pf-t--global--font--line-height--heading);
 }
 
-.tpa-agent-welcome .pf-chatbot__question {
+.tpa-agent-welcome__lead {
   color: var(--pf-t--global--text--color--subtle);
   font-size: var(--pf-t--global--font--size--body--default);
-  font-weight: var(--pf-t--global--font--weight--body--default);
-  line-height: var(--pf-t--global--font--line-height--body);
+  margin-block-end: 0;
 }
 
-.tpa-agent-welcome .pf-chatbot__prompt-suggestions {
+.tpa-agent-welcome__prompts {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -242,16 +241,12 @@
   align-items: stretch;
 }
 
-/*
- * PF welcome layout sets flex:1 + height:100% on prompt cards, which stretches a
- * lone card to fill the popup message area. Size cards to their content instead.
- */
-.tpa-agent-welcome .pf-chatbot__prompt-suggestions > .pf-chatbot__prompt-suggestion {
+.tpa-agent-welcome__prompts > .tpa-agent-welcome__prompt-card {
   height: auto;
 }
 
 /* PF v6 cards paint borders on ::before — set tokens only, never add a second border */
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion.pf-v6-c-card {
+.tpa-agent-welcome__prompt-card.pf-v6-c-card {
   --pf-v6-c-card--BorderColor: var(--pf-t--global--border--color--default);
   --pf-v6-c-card--BackgroundColor: var(
     --pf-t--global--background--color--primary--default
@@ -262,85 +257,38 @@
   box-shadow: none;
 }
 
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion.pf-v6-c-card:hover {
+.tpa-agent-welcome__prompt-card.pf-v6-c-card:hover {
   --pf-v6-c-card--BorderColor: var(--pf-t--global--border--color--hover);
   --pf-v6-c-card--m-selectable--hover--BorderColor: var(
     --pf-t--global--border--color--hover
   );
 }
 
-/*
- * ChatbotWelcomePrompt clickable cards render CardActions before the title in the
- * header flex row, which shifts titles right on GitHub Pages. Stack header-main and
- * actions in one grid cell so the title aligns with the card body while keeping
- * the full-card click target.
- */
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-}
-
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__header-main,
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__actions {
-  grid-column: 1;
-  grid-row: 1;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__header-main {
-  position: relative;
-  z-index: 0;
-  width: 100%;
-  min-width: 0;
-}
-
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__actions {
-  position: relative;
-  z-index: 1;
-  align-self: stretch;
-  justify-self: stretch;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__selectable-actions,
-.tpa-agent-welcome
-  .pf-chatbot__prompt-suggestion
-  .pf-v6-c-card__clickable-action {
-  pointer-events: auto;
-}
-
-.tpa-agent-welcome
-  .pf-chatbot__prompt-suggestion
-  .pf-v6-c-card__header
-  .pf-v6-c-card__title {
-  padding: 0;
-  margin: 0;
+.tpa-agent-welcome .tpa-agent-welcome__prompt-title {
   font-size: var(--pf-t--global--font--size--body--default);
   font-weight: var(--pf-t--global--font--weight--body--bold);
   line-height: var(--pf-t--global--font--line-height--body);
+  margin-block-end: var(--pf-t--global--spacer--xs);
 }
 
-.tpa-agent-welcome .pf-chatbot__prompt-suggestion .pf-v6-c-card__body {
+.tpa-agent-welcome .tpa-agent-welcome__prompt-description {
   color: var(--pf-t--global--text--color--subtle);
   font-size: var(--pf-t--global--font--size--body--sm);
   font-weight: var(--pf-t--global--font--weight--body--default);
   line-height: var(--pf-t--global--font--line-height--body);
+  margin-block-end: 0;
 }
 
-.tpa-agent-welcome.pf-m-compact .pf-chatbot__prompt-suggestions {
+.tpa-agent-welcome.pf-m-compact .tpa-agent-welcome__prompts {
   gap: var(--pf-t--global--spacer--sm);
 }
 
-.tpa-agent-welcome--single .pf-chatbot__prompt-suggestions {
+.tpa-agent-welcome--single .tpa-agent-welcome__prompts {
   flex-direction: column;
   flex-wrap: nowrap;
 }
 
-.tpa-agent-welcome--single .pf-chatbot__prompt-suggestions > .pf-chatbot__prompt-suggestion {
+.tpa-agent-welcome--single .tpa-agent-welcome__prompt-card {
   flex: 0 1 auto;
   width: 100%;
   max-width: 100%;
@@ -352,16 +300,13 @@
   height: auto;
 }
 
-.tpa-agent-chat--popup .tpa-agent-welcome .pf-chatbot__prompt-suggestions {
+.tpa-agent-chat--popup .tpa-agent-welcome .tpa-agent-welcome__prompts {
   flex: 0 0 auto;
   height: auto;
   align-items: flex-start;
 }
 
-.tpa-agent-chat--popup
-  .tpa-agent-welcome
-  .pf-chatbot__prompt-suggestions
-  > .pf-chatbot__prompt-suggestion {
+.tpa-agent-chat--popup .tpa-agent-welcome .tpa-agent-welcome__prompt-card {
   flex: 0 1 auto;
 }
 
@@ -429,13 +374,13 @@
   text-align: start;
 }
 
-.tpa-agent-embedded--fill .tpa-agent-welcome .pf-chatbot__prompt-suggestions {
+.tpa-agent-embedded--fill .tpa-agent-welcome__prompts {
   flex-direction: row;
   flex-wrap: nowrap;
   width: 100%;
 }
 
-.tpa-agent-embedded--fill .tpa-agent-welcome .pf-chatbot__prompt-suggestion.pf-v6-c-card {
+.tpa-agent-embedded--fill .tpa-agent-welcome__prompt-card.pf-v6-c-card {
   flex: 1 1 0;
   min-width: 0;
 }
