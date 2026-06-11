@@ -1,0 +1,14 @@
+.home-version-switcher-bar {
+  padding-block: var(--pf-t--global--spacer--sm);
+  padding-inline: var(--pf-t--global--spacer--lg);
+}
+
+.home-version-switcher {
+  flex-wrap: nowrap;
+}
+
+.home-version-switcher__label {
+  color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--sm);
+  white-space: nowrap;
+}

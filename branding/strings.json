@@ -1,11 +1,11 @@
 {
   "application": {
-    "title": "Red Hat Trusted Product Advisor",
-    "name": "Red Hat Trusted Product Advisor",
-    "description": "Red Hat Trusted Product Advisor (RHTPA)"
+    "title": "Trusted Profile Analyzer",
+    "name": "Trusted Profile Analyzer",
+    "description": "Trusted Profile Analyzer (TPA)"
   },
   "about": {
-    "displayName": "Red Hat Trusted Product Advisor",
+    "displayName": "Trusted Profile Analyzer",
     "imageSrc": "<%= brandingRoot %>/images/masthead-logo.svg",
     "documentationUrl": "https://www.redhat.com/"
   },

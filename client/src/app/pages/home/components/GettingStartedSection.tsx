@@ -187,7 +187,7 @@ export const GettingStartedSection: React.FC = () => {
                   </StackItem>
                   <StackItem>
                     <Content>
-                      Learn how to use Red Hat Trusted Product Advisor to manage
+                      Learn how to use Trusted Profile Analyzer to manage
                       supply chain security, understand SBOM analysis, and
                       interpret vulnerability reports.
                     </Content>

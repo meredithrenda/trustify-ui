@@ -1,6 +1,6 @@
 {
   "short_name": "RHTPA",
-  "name": "Red Hat Trusted Product Advisor",
+  "name": "Trusted Profile Analyzer",
   "icons": [
     {
       "src": "favicon.ico",

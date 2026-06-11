@@ -1,5 +1,5 @@
 import type React from "react";
-import { generatePath, Link, useNavigate } from "react-router-dom";
+import { generatePath, useNavigate } from "react-router-dom";
 
 import {
   Chart,
@@ -16,10 +16,6 @@ import {
   CardBody,
   CardTitle,
   Content,
-  DescriptionList,
-  DescriptionListDescription,
-  DescriptionListGroup,
-  DescriptionListTerm,
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
@@ -34,10 +30,10 @@ import type { ExtendedSeverity } from "@app/api/models";
 import type { SbomHead } from "@app/client";
 import { LoadingWrapper } from "@app/components/LoadingWrapper";
 import { useVulnerabilitiesOfSboms } from "@app/hooks/domain-controls/useVulnerabilitiesOfSbom";
-import { useFetchAdvisories } from "@app/queries/advisories";
 import { useFetchSBOMs } from "@app/queries/sboms";
 import { Paths } from "@app/Routes";
-import { formatDateTime } from "@app/utils/utils";
+
+import { DashboardIngestionMetrics } from "./DashboardIngestionMetrics";
 
 interface Legend {
   severity: ExtendedSeverity;
@@ -58,7 +54,7 @@ export const MonitoringSection: React.FC = () => {
   //
 
   const {
-    result: { data: barchartSboms, total: totalSboms },
+    result: { data: barchartSboms },
     isFetching: isFetchingBarchartSboms,
     fetchError: fetchErrorBarchartSboms,
   } = useFetchSBOMs(undefined, {
@@ -81,15 +77,6 @@ export const MonitoringSection: React.FC = () => {
   };
 
   //
-
-  const {
-    result: { data: advisories, total: totalAdvisories },
-    isFetching: isFetchingAdvisories,
-    fetchError: fetchErrorAdvisories,
-  } = useFetchAdvisories({
-    page: { pageNumber: 1, itemsPerPage: 10 },
-    sort: { field: "ingested", direction: "desc" },
-  });
 
   return (
     <Card>
@@ -251,89 +238,7 @@ export const MonitoringSection: React.FC = () => {
             </LoadingWrapper>
           </GridItem>
           <GridItem md={6}>
-            <LoadingWrapper
-              isFetching={isFetchingAdvisories || isFetchingBarchartSboms}
-              fetchError={fetchErrorAdvisories || fetchErrorBarchartSboms}
-            >
-              <Grid hasGutter>
-                <GridItem md={6}>
-                  <DescriptionList>
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>
-                        Last SBOM ingested
-                      </DescriptionListTerm>
-                      <DescriptionListDescription>
-                        <Stack>
-                          <StackItem>
-                            {formatDateTime(barchartSboms?.[0]?.ingested)}
-                          </StackItem>
-                          <StackItem>
-                            {barchartSboms?.[0] && (
-                              <Link
-                                to={generatePath(Paths.sbomDetails, {
-                                  sbomId: barchartSboms?.[0]?.id,
-                                })}
-                              >
-                                {barchartSboms?.[0]?.name}
-                              </Link>
-                            )}
-                          </StackItem>
-                        </Stack>
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  </DescriptionList>
-                </GridItem>
-                <GridItem md={6}>
-                  <DescriptionList>
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>Total SBOMs</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        {totalSboms}
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  </DescriptionList>
-                </GridItem>
-                <GridItem md={6}>
-                  <DescriptionList>
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>
-                        Last Advisory ingested
-                      </DescriptionListTerm>
-                      <DescriptionListDescription>
-                        <Stack>
-                          <StackItem>
-                            {formatDateTime(advisories?.[0]?.ingested)}
-                          </StackItem>
-                          <StackItem>
-                            {advisories?.[0] && (
-                              <Link
-                                to={generatePath(Paths.advisoryDetails, {
-                                  advisoryId: advisories?.[0]?.uuid,
-                                })}
-                              >
-                                {advisories?.[0]?.document_id}
-                              </Link>
-                            )}
-                          </StackItem>
-                        </Stack>
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  </DescriptionList>
-                </GridItem>
-                <GridItem md={6}>
-                  <DescriptionList>
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>
-                        Total Advisories
-                      </DescriptionListTerm>
-                      <DescriptionListDescription>
-                        {totalAdvisories}
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  </DescriptionList>
-                </GridItem>
-              </Grid>
-            </LoadingWrapper>
+            <DashboardIngestionMetrics />
           </GridItem>
         </Grid>
       </CardBody>
