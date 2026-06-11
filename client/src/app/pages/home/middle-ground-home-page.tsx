@@ -14,10 +14,10 @@ export const MiddleGroundHomePage: React.FC = () => {
           <GetStartedSection />
         </StackItem>
         <StackItem>
-          <PortfolioMetricsSection />
+          <VulnerabilityAttentionSection />
         </StackItem>
         <StackItem>
-          <VulnerabilityAttentionSection />
+          <PortfolioMetricsSection />
         </StackItem>
       </Stack>
     </PageSection>
