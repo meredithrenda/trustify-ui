@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import {
   Dropdown,
@@ -24,6 +24,12 @@ export const TpaAgentHeaderSettingsMenu: React.FC<
   TpaAgentHeaderSettingsMenuProps
 > = ({ isCompact = false }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const goTo = (path: string) => {
+    setIsOpen(false);
+    navigate(path);
+  };
 
   return (
     <Dropdown
@@ -48,18 +54,10 @@ export const TpaAgentHeaderSettingsMenu: React.FC<
       )}
     >
       <DropdownList>
-        <DropdownItem
-          component={Link}
-          onClick={() => setIsOpen(false)}
-          to={Paths.tpaAgentPrompts}
-        >
+        <DropdownItem onClick={() => goTo(Paths.tpaAgentPrompts)}>
           Prompt manager
         </DropdownItem>
-        <DropdownItem
-          component={Link}
-          onClick={() => setIsOpen(false)}
-          to={Paths.tpaAgentMcp}
-        >
+        <DropdownItem onClick={() => goTo(Paths.tpaAgentMcp)}>
           MCP settings
         </DropdownItem>
       </DropdownList>
