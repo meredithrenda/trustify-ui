@@ -1,9 +1,7 @@
 name: Nightly CI (repo level @main)
 
+# Schedule disabled on this fork to avoid daily failure emails.
 on:
-  schedule:
-    - cron: "35 5 * * *" # every day @ 5:35am UTC
-
   workflow_dispatch:
 
 jobs:

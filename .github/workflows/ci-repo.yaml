@@ -1,11 +1,9 @@
 name: CI (repo level)
 
+# Callable only — push/PR CI disabled on this fork (GitHub Pages deploy is separate).
 on:
   workflow_dispatch:
-      - "release/*"
-  workflow_dispatch:
   workflow_call:
-  merge_group:
 
 jobs:
   ci:

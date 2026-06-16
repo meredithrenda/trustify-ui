@@ -1,10 +1,9 @@
 name: CI (e2e)
 
+# Callable only — e2e CI disabled on this fork (requires trustd backend + Docker).
 on:
   workflow_dispatch:
-      - "release/*"
   workflow_call:
-  merge_group:
 
 concurrency:
   group: ci-e2e-${{ github.ref }}
