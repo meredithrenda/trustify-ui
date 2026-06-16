@@ -1,9 +1,8 @@
-/** User-facing product name (product + Intelligence assistant). */
-export const TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME =
-  "TPA Intelligence Assistant";
+/** User-facing product name for the in-app assistant. */
+export const TPA_INTELLIGENCE_ASSISTANT_DISPLAY_NAME = "Intelligent assistant";
 
 /** Shorter title for the corner launcher and popup chat. */
-export const TPA_INTELLIGENCE_ASSISTANT_SHORT_NAME = "Intelligence assistant";
+export const TPA_INTELLIGENCE_ASSISTANT_SHORT_NAME = "Intelligent assistant";
 
 /** Display name on user messages (Developer Hub uses “Guest”). */
 export const TPA_AGENT_MESSAGE_USER_NAME = "Guest";
