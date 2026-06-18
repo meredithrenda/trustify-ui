@@ -2,6 +2,13 @@ import type { VulnerabilityDetails } from "@app/client";
 
 import { mockVulnSbomLink } from "./sbom-advisories";
 
+/** Recent published dates for home-page severity feed mock data. */
+const daysAgoIso = (days: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString();
+};
+
 export const mockVulnerabilities: VulnerabilityDetails[] = [
   {
     identifier: "CVE-2024-0232",
@@ -50,7 +57,7 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     cwes: ["CWE-416"],
     discovered: "2024-10-09T00:00:00Z",
     modified: "2024-10-09T00:00:00Z",
-    published: "2024-10-09T00:00:00Z",
+    published: daysAgoIso(1),
     reserved: "2024-10-08T00:00:00Z",
     released: null,
     withdrawn: null,
@@ -168,7 +175,7 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     cwes: ["CWE-829"],
     discovered: "2024-07-01T00:00:00Z",
     modified: "2024-09-27T00:00:00Z",
-    published: "2024-07-01T00:00:00Z",
+    published: daysAgoIso(3),
     reserved: "2024-06-15T00:00:00Z",
     released: null,
     withdrawn: null,
@@ -246,7 +253,7 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     cwes: ["CWE-59"],
     discovered: "2024-01-31T00:00:00Z",
     modified: "2024-02-05T00:00:00Z",
-    published: "2024-02-01T00:00:00Z",
+    published: daysAgoIso(5),
     reserved: "2024-01-25T00:00:00Z",
     released: null,
     withdrawn: null,

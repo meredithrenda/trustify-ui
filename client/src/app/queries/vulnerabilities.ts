@@ -1,7 +1,7 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
-import type { HubRequestParams } from "@app/api/models";
+import type { HubFilter, HubRequestParams } from "@app/api/models";
 import { client } from "@app/axios-config/apiInit";
 import {
   type AnalysisResponse,
@@ -84,6 +84,49 @@ function applyMockVulnerabilitySort<
   return copy;
 }
 
+function matchesMockVulnerabilityFilter<
+  T extends {
+    published?: string | null;
+    average_severity?: string | null;
+  },
+>(item: T, filter: HubFilter): boolean {
+  const { field, operator, value } = filter;
+
+  if (field === "published" && operator === ">" && typeof value === "string") {
+    const publishedAt = item.published ? new Date(item.published).getTime() : 0;
+    return publishedAt > new Date(value).getTime();
+  }
+
+  if (
+    field === "base_severity" &&
+    operator === "=" &&
+    typeof value === "object"
+  ) {
+    const severities = value.list.map(String);
+    return (
+      item.average_severity != null &&
+      severities.includes(item.average_severity)
+    );
+  }
+
+  return true;
+}
+
+function applyMockVulnerabilityFilters<
+  T extends {
+    published?: string | null;
+    average_severity?: string | null;
+  },
+>(items: T[], filters: HubFilter[] | undefined): T[] {
+  if (!filters?.length) {
+    return items;
+  }
+
+  return items.filter((item) =>
+    filters.every((filter) => matchesMockVulnerabilityFilter(item, filter)),
+  );
+}
+
 export const useFetchVulnerabilities = (
   params: HubRequestParams = {},
   opts?: boolean | UseFetchVulnerabilitiesOptions,
@@ -107,6 +150,7 @@ export const useFetchVulnerabilities = (
             v.advisories.some((a) => (a.sboms?.length ?? 0) > 0),
           );
         }
+        items = applyMockVulnerabilityFilters(items, params.filters);
         const sortString =
           baseQuery.sort?.trim() || DEFAULT_MOCK_VULNERABILITY_SORT;
         items = applyMockVulnerabilitySort(items, sortString);
