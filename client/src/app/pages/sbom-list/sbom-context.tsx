@@ -18,6 +18,7 @@ import type {
   SourceDocument,
 } from "@app/client";
 import { FilterType } from "@app/components/FilterToolbar";
+import { getPolicyRunSbomIds } from "@app/mocks/policy-evaluations";
 import {
   type BulkSelectionValues,
   useBulkSelection,
@@ -31,6 +32,8 @@ import {
 import { useFetchLicenses } from "@app/queries/licenses";
 import { useFetchSBOMLabels, useFetchSBOMs } from "@app/queries/sboms";
 
+declare const __MOCK_DATA__: boolean;
+
 interface ISbomSearchContext {
   tableControls: ITableControls<
     SbomSummary,
@@ -42,7 +45,7 @@ interface ISbomSearchContext {
     | "labels"
     | "vulnerabilities",
     "name" | "published",
-    "" | "published" | "labels" | "license",
+    "" | "published" | "labels" | "license" | "policyRun",
     string
   >;
 
@@ -59,6 +62,7 @@ interface ISbomSearchContext {
   totalItemCount: number;
   isFetching: boolean;
   fetchError: AxiosError | null;
+  policyRunFilter?: string;
 }
 
 const contextDefaultValue = {} as ISbomSearchContext;
@@ -151,6 +155,13 @@ export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
         }),
         onInputValueChange: setInputValueLicense,
       },
+      {
+        categoryKey: "policyRun",
+        title: "Policy evaluation run",
+        type: FilterType.search,
+        placeholderText: "Policy evaluation run",
+        excludeFromHubRequest: true,
+      },
     ],
     isExpansionEnabled: false,
     isSelectionEnabled: isBulkSelectionEnabled,
@@ -174,11 +185,28 @@ export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
     ),
   );
 
+  const policyRunFilter =
+    tableControlState.filterState.filterValues.policyRun?.[0];
+
+  const visibleSboms = React.useMemo(() => {
+    if (!__MOCK_DATA__ || !policyRunFilter) {
+      return advisories;
+    }
+    const allowedIds = getPolicyRunSbomIds(policyRunFilter);
+    if (allowedIds.size === 0) {
+      return advisories;
+    }
+    return advisories.filter((sbom) => allowedIds.has(sbom.id));
+  }, [advisories, policyRunFilter]);
+
+  const visibleTotal =
+    policyRunFilter && __MOCK_DATA__ ? visibleSboms.length : totalItemCount;
+
   const tableControls = useTableControlProps({
     ...tableControlState,
     idProperty: "id",
-    currentPageItems: advisories,
-    totalItemCount,
+    currentPageItems: visibleSboms,
+    totalItemCount: visibleTotal,
     isLoading: isFetching,
   });
 
@@ -195,6 +223,7 @@ export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
         isFetching,
         fetchError,
         tableControls,
+        policyRunFilter,
         bulkSelection: {
           isEnabled: !!isBulkSelectionEnabled,
           controls: bulkSelectionControls,

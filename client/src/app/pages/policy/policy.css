@@ -1,0 +1,30 @@
+.policy-external-link-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.policy-external-link {
+  display: inline-flex;
+  align-items: center;
+  column-gap: 0.5rem;
+  text-decoration: none;
+}
+
+.policy-external-link span {
+  text-decoration: underline;
+}
+
+.policy-external-link__icon {
+  flex-shrink: 0;
+  font-size: var(--pf-v6-global--FontSize--xs);
+}
+
+.policy-external-link-item__description {
+  margin: 0;
+}
+
+.policy-run-in-progress-label .pf-v6-c-label__icon .pf-v6-c-spinner {
+  --pf-v6-c-spinner--Color: currentColor;
+}
