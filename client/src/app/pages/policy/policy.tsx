@@ -9,7 +9,12 @@ import {
   Grid,
   GridItem,
   Label,
+  MenuToggle,
+  type MenuToggleElement,
   PageSection,
+  Select,
+  SelectList,
+  SelectOption,
   Spinner,
   Stack,
   StackItem,
@@ -18,8 +23,14 @@ import {
   Tabs,
   TabTitleText,
   Title,
+  Toolbar,
+  ToolbarContent,
+  ToolbarFilter,
+  ToolbarToggleGroup,
+  type ToolbarLabel,
 } from "@patternfly/react-core";
 import ExternalLinkAltIcon from "@patternfly/react-icons/dist/esm/icons/external-link-alt-icon";
+import FilterIcon from "@patternfly/react-icons/dist/esm/icons/filter-icon";
 import {
   Table,
   TableText,
@@ -46,6 +57,19 @@ import "./policy.css";
 
 type PolicyDetailTabKey = "sources" | "runs";
 
+type PolicyPortfolioRunStatus = "complete" | "in_progress";
+
+interface PolicyPortfolioRunView {
+  runId: string;
+  started: string;
+  policy: string;
+  evaluated: number;
+  pass?: number;
+  warn?: number;
+  fail?: number;
+  status: PolicyPortfolioRunStatus;
+}
+
 /** External destinations for policy sources (outside Trusted Profile Analyzer). */
 const POLICY_EXTERNAL_LINKS = [
   {
@@ -63,6 +87,31 @@ const POLICY_EXTERNAL_LINKS = [
 ];
 
 const MOCK_EVALUATIONS = mockPolicyEvaluationRuns;
+
+const PolicyRunStatusLabel: React.FC<{ isInProgress: boolean }> = ({
+  isInProgress,
+}) => {
+  if (isInProgress) {
+    return (
+      <Label
+        color="grey"
+        className="policy-run-in-progress-label"
+        icon={
+          <Spinner isInline aria-label="Evaluation in progress" />
+        }
+        variant="filled"
+      >
+        In progress
+      </Label>
+    );
+  }
+
+  return (
+    <Label color="green" variant="filled">
+      Completed
+    </Label>
+  );
+};
 
 const PolicyRunCountLink: React.FC<{
   runId: string;
@@ -99,10 +148,75 @@ export const Policy: React.FC = () => {
   const [inProgressRuns, setInProgressRuns] = React.useState<
     InProgressPolicyEvaluationRun[]
   >([]);
+  const [selectedPolicies, setSelectedPolicies] = React.useState<string[]>([]);
+  const [isPolicyFilterOpen, setIsPolicyFilterOpen] = React.useState(false);
   const portfolioPosture = React.useMemo(
     () => getPortfolioPolicyPosture(),
     [inProgressRuns],
   );
+
+  const evaluationRuns = React.useMemo<PolicyPortfolioRunView[]>(() => {
+    const inProgressRows: PolicyPortfolioRunView[] = inProgressRuns.map(
+      (run) => ({
+        runId: run.runId,
+        started: run.started,
+        policy: run.policy,
+        evaluated: run.evaluated,
+        status: "in_progress",
+      }),
+    );
+    const completedRows: PolicyPortfolioRunView[] = MOCK_EVALUATIONS.map(
+      (run) => ({
+        runId: run.runId,
+        started: run.started,
+        policy: run.policy,
+        evaluated: run.evaluated,
+        pass: run.pass,
+        warn: run.warn,
+        fail: run.fail,
+        status: "complete",
+      }),
+    );
+
+    return [...inProgressRows, ...completedRows];
+  }, [inProgressRuns]);
+
+  const availablePolicies = React.useMemo(() => {
+    const policies = new Set<string>();
+    for (const run of evaluationRuns) {
+      policies.add(run.policy);
+    }
+    return [...policies].sort();
+  }, [evaluationRuns]);
+
+  const filteredEvaluationRuns = React.useMemo(
+    () =>
+      selectedPolicies.length === 0
+        ? evaluationRuns
+        : evaluationRuns.filter((run) =>
+            selectedPolicies.includes(run.policy),
+          ),
+    [evaluationRuns, selectedPolicies],
+  );
+
+  const onPolicyFilterSelect = (value: string) => {
+    setSelectedPolicies((currentPolicies) =>
+      currentPolicies.includes(value)
+        ? currentPolicies.filter((policy) => policy !== value)
+        : [...currentPolicies, value],
+    );
+  };
+
+  const onPolicyFilterChipRemove = (chip: string | ToolbarLabel) => {
+    const value = typeof chip === "string" ? chip : chip.key;
+    if (!value) {
+      return;
+    }
+
+    setSelectedPolicies((currentPolicies) =>
+      currentPolicies.filter((policy) => policy !== value),
+    );
+  };
 
   React.useEffect(() => {
     const pendingPolicyEvaluation = (
@@ -133,12 +247,12 @@ export const Policy: React.FC = () => {
 
   return (
     <>
-      <DocumentMetadata title="Policy" />
+      <DocumentMetadata title="Policies" />
       <PageSection hasBodyWrapper={false}>
         <Stack hasGutter>
           <StackItem>
             <Content>
-              <Content component="h1">Policy</Content>
+              <Content component="h1">Policies</Content>
               <Content component="p">
                 See how your portfolio performed in recent policy evaluation
                 runs. Policy sources and rule definitions are maintained outside
@@ -238,6 +352,72 @@ export const Policy: React.FC = () => {
               </Content>
             </StackItem>
             <StackItem>
+              <Toolbar
+                aria-label="Evaluation runs filters"
+                clearAllFilters={() => setSelectedPolicies([])}
+                clearFiltersButtonText="Clear all filters"
+                collapseListedFiltersBreakpoint="xl"
+              >
+                <ToolbarContent>
+                  <ToolbarToggleGroup
+                    breakpoint="xl"
+                    toggleIcon={<FilterIcon />}
+                    variant="filter-group"
+                  >
+                    <ToolbarFilter
+                      categoryName="Policy"
+                      deleteLabel={(_category, label) =>
+                        onPolicyFilterChipRemove(label)
+                      }
+                      deleteLabelGroup={() => setSelectedPolicies([])}
+                      labels={selectedPolicies}
+                    >
+                      <Select
+                        aria-label="Policy filter"
+                        isOpen={isPolicyFilterOpen}
+                        onOpenChange={setIsPolicyFilterOpen}
+                        onSelect={(_event, value) => {
+                          onPolicyFilterSelect(String(value));
+                        }}
+                        popperProps={{ placement: "bottom-start" }}
+                        selected={selectedPolicies}
+                        shouldFocusToggleOnSelect={false}
+                        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                          <MenuToggle
+                            ref={toggleRef}
+                            aria-label="Policy filter"
+                            icon={<FilterIcon aria-hidden />}
+                            isExpanded={isPolicyFilterOpen}
+                            onClick={() =>
+                              setIsPolicyFilterOpen((open) => !open)
+                            }
+                            {...(selectedPolicies.length > 0 && {
+                              badge: selectedPolicies.length,
+                            })}
+                          >
+                            Policy
+                          </MenuToggle>
+                        )}
+                      >
+                        <SelectList>
+                          {availablePolicies.map((policy) => (
+                            <SelectOption
+                              key={policy}
+                              hasCheckbox
+                              isSelected={selectedPolicies.includes(policy)}
+                              value={policy}
+                            >
+                              {policy}
+                            </SelectOption>
+                          ))}
+                        </SelectList>
+                      </Select>
+                    </ToolbarFilter>
+                  </ToolbarToggleGroup>
+                </ToolbarContent>
+              </Toolbar>
+            </StackItem>
+            <StackItem>
               <Table aria-label="Recent policy evaluations">
                 <Thead>
                   <Tr>
@@ -247,11 +427,11 @@ export const Policy: React.FC = () => {
                     <Th>Pass</Th>
                     <Th>Warn</Th>
                     <Th>Fail</Th>
-                    <Th>Duration</Th>
+                    <Th>Status</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {inProgressRuns.map((row) => (
+                  {filteredEvaluationRuns.map((row) => (
                     <Tr key={row.runId}>
                       <Td dataLabel="Started">
                         {formatShortDate(row.started)}
@@ -268,68 +448,46 @@ export const Policy: React.FC = () => {
                           unitLabel="SBOMs"
                         />
                       </Td>
-                      <Td dataLabel="Pass">—</Td>
-                      <Td dataLabel="Warn">—</Td>
-                      <Td dataLabel="Fail">—</Td>
-                      <Td dataLabel="Duration">
-                        <Label
-                          color="grey"
-                          className="policy-run-in-progress-label"
-                          icon={
-                            <Spinner
-                              isInline
-                              aria-label="Evaluation in progress"
+                      {row.status === "in_progress" ? (
+                        <>
+                          <Td dataLabel="Pass">—</Td>
+                          <Td dataLabel="Warn">—</Td>
+                          <Td dataLabel="Fail">—</Td>
+                          <Td dataLabel="Status">
+                            <PolicyRunStatusLabel isInProgress />
+                          </Td>
+                        </>
+                      ) : (
+                        <>
+                          <Td dataLabel="Pass">
+                            <PolicyRunCountLink
+                              count={row.pass ?? 0}
+                              outcome="pass"
+                              runId={row.runId}
+                              unitLabel="SBOMs"
                             />
-                          }
-                          variant="filled"
-                        >
-                          In progress
-                        </Label>
-                      </Td>
-                    </Tr>
-                  ))}
-                  {MOCK_EVALUATIONS.map((row) => (
-                    <Tr key={row.runId}>
-                      <Td dataLabel="Started">
-                        {formatShortDate(row.started)}
-                      </Td>
-                      <Td dataLabel="Policy" modifier="breakWord">
-                        <TableText wrapModifier="breakWord">
-                          {row.policy}
-                        </TableText>
-                      </Td>
-                      <Td dataLabel="Total SBOMs">
-                        <PolicyRunCountLink
-                          count={row.evaluated}
-                          runId={row.runId}
-                          unitLabel="SBOMs"
-                        />
-                      </Td>
-                      <Td dataLabel="Pass">
-                        <PolicyRunCountLink
-                          count={row.pass}
-                          outcome="pass"
-                          runId={row.runId}
-                          unitLabel="SBOMs"
-                        />
-                      </Td>
-                      <Td dataLabel="Warn">
-                        <PolicyRunCountLink
-                          count={row.warn}
-                          outcome="warn"
-                          runId={row.runId}
-                          unitLabel="SBOMs"
-                        />
-                      </Td>
-                      <Td dataLabel="Fail">
-                        <PolicyRunCountLink
-                          count={row.fail}
-                          outcome="fail"
-                          runId={row.runId}
-                          unitLabel="SBOMs"
-                        />
-                      </Td>
-                      <Td dataLabel="Duration">{row.duration}</Td>
+                          </Td>
+                          <Td dataLabel="Warn">
+                            <PolicyRunCountLink
+                              count={row.warn ?? 0}
+                              outcome="warn"
+                              runId={row.runId}
+                              unitLabel="SBOMs"
+                            />
+                          </Td>
+                          <Td dataLabel="Fail">
+                            <PolicyRunCountLink
+                              count={row.fail ?? 0}
+                              outcome="fail"
+                              runId={row.runId}
+                              unitLabel="SBOMs"
+                            />
+                          </Td>
+                          <Td dataLabel="Status">
+                            <PolicyRunStatusLabel isInProgress={false} />
+                          </Td>
+                        </>
+                      )}
                     </Tr>
                   ))}
                 </Tbody>

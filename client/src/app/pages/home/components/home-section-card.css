@@ -28,6 +28,32 @@
   padding-block-end: var(--pf-t--global--spacer--md);
 }
 
+.home-section-card__header--with-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pf-t--global--spacer--md);
+}
+
+.home-section-card__header-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--pf-t--global--spacer--xs);
+  min-width: min(100%, 16rem);
+}
+
+.home-section-card__header-actions {
+  flex-shrink: 0;
+}
+
+.home-section-card__scenario-label {
+  color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--sm);
+  white-space: nowrap;
+}
+
 .home-section-card__subtitle {
   color: var(--pf-t--global--text--color--subtle);
   font-size: var(--pf-t--global--font--size--body--default);
@@ -80,6 +106,10 @@
 
 .home-section-card__footer {
   padding-block-start: var(--pf-t--global--spacer--sm);
+}
+
+.vulnerability-attention-section .pf-v6-c-empty-state {
+  --pf-v6-c-empty-state--PaddingBlockEnd: 0;
 }
 
 @media (max-width: 768px) {

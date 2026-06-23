@@ -50,7 +50,10 @@ interface PolicyBySbomProps {
   sbomId: string;
 }
 
-type PolicyRunFilterCategoryKey = typeof FILTER_TEXT_CATEGORY_KEY | "result";
+type PolicyRunFilterCategoryKey =
+  | typeof FILTER_TEXT_CATEGORY_KEY
+  | "policy"
+  | "result";
 
 const formatShortDate = (iso: string) =>
   new Date(iso).toLocaleString(undefined, {
@@ -121,6 +124,72 @@ export const PolicyBySbom: React.FC<PolicyBySbomProps> = ({ sbomId }) => {
     refreshRuns();
   }, [refreshRuns]);
 
+  const availablePolicies = React.useMemo(() => {
+    const policies = new Set<string>();
+    for (const run of runs) {
+      policies.add(run.policy);
+    }
+    return [...policies].sort();
+  }, [runs]);
+
+  const filterCategories = React.useMemo(
+    () => [
+      {
+        categoryKey: FILTER_TEXT_CATEGORY_KEY,
+        title: "Filter text",
+        placeholderText: "Search",
+        type: FilterType.search,
+        matcher: (filter: string, item: SbomPolicyRunView) => {
+          const query = filter.toLowerCase();
+          const ruleDetails =
+            item.rules
+              ?.map((rule) => `${rule.rule} ${rule.message ?? ""}`)
+              .join(" ")
+              .toLowerCase() ?? "";
+
+          return (
+            item.policy.toLowerCase().includes(query) ||
+            ruleDetails.includes(query)
+          );
+        },
+      },
+      {
+        categoryKey: "policy" as const,
+        title: "Policy",
+        placeholderText: "Policy",
+        type: FilterType.multiselect,
+        logicOperator: "OR" as const,
+        selectOptions: availablePolicies.map((policy) => ({
+          value: policy,
+          label: policy,
+        })),
+        matcher: (filter: string, item: SbomPolicyRunView) =>
+          item.policy === filter,
+      },
+      {
+        categoryKey: "result" as const,
+        title: "Result",
+        placeholderText: "Result",
+        type: FilterType.multiselect,
+        logicOperator: "OR" as const,
+        selectOptions: [
+          { value: "pass", label: "Pass" },
+          { value: "warn", label: "Warn" },
+          { value: "fail", label: "Fail" },
+          { value: "in_progress", label: "In progress" },
+        ],
+        matcher: (filter: string, item: SbomPolicyRunView) => {
+          if (filter === "in_progress") {
+            return item.status === "in_progress";
+          }
+
+          return item.status === "complete" && item.outcome === filter;
+        },
+      },
+    ],
+    [availablePolicies],
+  );
+
   const tableControls = useLocalTableControls<
     SbomPolicyRunView,
     "started" | "policy" | "result" | "duration",
@@ -137,47 +206,7 @@ export const PolicyBySbom: React.FC<PolicyBySbomProps> = ({ sbomId }) => {
       duration: "Duration",
     },
     isFilterEnabled: true,
-    filterCategories: [
-      {
-        categoryKey: FILTER_TEXT_CATEGORY_KEY,
-        title: "Filter text",
-        placeholderText: "Search",
-        type: FilterType.search,
-        matcher: (filter, item) => {
-          const query = filter.toLowerCase();
-          const ruleDetails =
-            item.rules
-              ?.map((rule) => `${rule.rule} ${rule.message ?? ""}`)
-              .join(" ")
-              .toLowerCase() ?? "";
-
-          return (
-            item.policy.toLowerCase().includes(query) ||
-            ruleDetails.includes(query)
-          );
-        },
-      },
-      {
-        categoryKey: "result",
-        title: "Result",
-        placeholderText: "Result",
-        type: FilterType.multiselect,
-        logicOperator: "OR",
-        selectOptions: [
-          { value: "pass", label: "Pass" },
-          { value: "warn", label: "Warn" },
-          { value: "fail", label: "Fail" },
-          { value: "in_progress", label: "In progress" },
-        ],
-        matcher: (filter, item) => {
-          if (filter === "in_progress") {
-            return item.status === "in_progress";
-          }
-
-          return item.status === "complete" && item.outcome === filter;
-        },
-      },
-    ],
+    filterCategories,
     isPaginationEnabled: true,
     isSortEnabled: false,
     hasActionsColumn: true,

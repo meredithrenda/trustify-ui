@@ -325,3 +325,9 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     ],
   },
 ];
+
+/** Prototype: two items for the home "Highest vulnerabilities" limited scenario. */
+export const mockLimitedAttentionVulnerabilities: VulnerabilityDetails[] = [
+  mockVulnerabilities[1],
+  mockVulnerabilities[2],
+];
