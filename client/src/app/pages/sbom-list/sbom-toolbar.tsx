@@ -2,10 +2,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-  Button,
   Dropdown,
   DropdownItem,
   DropdownList,
+  Divider,
   MenuToggle,
   type MenuToggleElement,
   Toolbar,
@@ -15,7 +15,6 @@ import {
 } from "@patternfly/react-core";
 
 import { FilterToolbar } from "@app/components/FilterToolbar";
-import { KebabDropdown } from "@app/components/KebabDropdown";
 import { SimplePagination } from "@app/components/SimplePagination";
 import { ToolbarBulkSelector } from "@app/components/ToolbarBulkSelector";
 import {
@@ -37,7 +36,7 @@ export const SbomToolbar: React.FC<SbomToolbarProps> = ({
   showActions,
 }) => {
   const navigate = useNavigate();
-  const [isBulkActionsOpen, setIsBulkActionsOpen] = React.useState(false);
+  const [isActionsOpen, setIsActionsOpen] = React.useState(false);
   const [isRunPolicyModalOpen, setIsRunPolicyModalOpen] = React.useState(false);
   const [selectedPolicyId, setSelectedPolicyId] = React.useState(
     mockConfiguredPolicies[0]?.id ?? "",
@@ -94,73 +93,82 @@ export const SbomToolbar: React.FC<SbomToolbarProps> = ({
           {showBulkSelector && (
             <ToolbarGroup align={{ default: "alignStart" }}>
               <ToolbarBulkSelector {...toolbarBulkSelectorProps} />
-              {hasSelectedSboms && (
-                <ToolbarItem>
-                  <Dropdown
-                    isOpen={isBulkActionsOpen}
-                    onOpenChange={setIsBulkActionsOpen}
-                    popperProps={{ position: "right" }}
-                    toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                      <MenuToggle
-                        ref={toggleRef}
-                        isExpanded={isBulkActionsOpen}
-                        onClick={() => setIsBulkActionsOpen(!isBulkActionsOpen)}
-                        variant="secondary"
-                      >
-                        Actions
-                      </MenuToggle>
-                    )}
-                  >
-                    <DropdownList>
-                      <DropdownItem
-                        key="add-to-group"
-                        component="button"
-                        onClick={() => setIsBulkActionsOpen(false)}
-                      >
-                        Add to group
-                      </DropdownItem>
-                      <DropdownItem
-                        key="run-policy-evaluation"
-                        component="button"
-                        onClick={() => {
-                          setIsBulkActionsOpen(false);
-                          openRunPolicyModal();
-                        }}
-                      >
-                        Run policy evaluation
-                      </DropdownItem>
-                    </DropdownList>
-                  </Dropdown>
-                </ToolbarItem>
-              )}
             </ToolbarGroup>
           )}
           {showFilters && <FilterToolbar {...filterToolbarProps} />}
           {showActions && (
             <ToolbarGroup variant="action-group-plain">
               <ToolbarItem>
-                <Button variant="primary">Create group</Button>
-              </ToolbarItem>
-              <ToolbarItem>
-                <KebabDropdown
-                  ariaLabel="SBOM actions"
-                  dropdownItems={[
+                <Dropdown
+                  isOpen={isActionsOpen}
+                  onSelect={() => setIsActionsOpen(false)}
+                  onOpenChange={setIsActionsOpen}
+                  popperProps={{ position: "right" }}
+                  shouldFocusToggleOnSelect
+                  toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                    <MenuToggle
+                      ref={toggleRef}
+                      isExpanded={isActionsOpen}
+                      onClick={() => setIsActionsOpen(!isActionsOpen)}
+                    >
+                      Actions
+                    </MenuToggle>
+                  )}
+                >
+                  <DropdownList>
+                    <DropdownItem
+                      key="create-group"
+                      component="button"
+                      onClick={() => setIsActionsOpen(false)}
+                    >
+                      Create group
+                    </DropdownItem>
                     <DropdownItem
                       key="upload-sbom"
                       component="button"
-                      onClick={() => navigate(Paths.sbomUpload)}
+                      onClick={() => {
+                        setIsActionsOpen(false);
+                        navigate(Paths.sbomUpload);
+                      }}
                     >
                       Upload SBOM
-                    </DropdownItem>,
+                    </DropdownItem>
                     <DropdownItem
                       key="scan-sbom"
                       component="button"
-                      onClick={() => navigate(Paths.sbomScan)}
+                      onClick={() => {
+                        setIsActionsOpen(false);
+                        navigate(Paths.sbomScan);
+                      }}
                     >
                       Generate vulnerability report
-                    </DropdownItem>,
-                  ]}
-                />
+                    </DropdownItem>
+                    {showBulkSelector && (
+                      <>
+                        <Divider component="li" key="bulk-actions-separator" />
+                        <DropdownItem
+                          key="add-to-group"
+                          component="button"
+                          isDisabled={!hasSelectedSboms}
+                          onClick={() => setIsActionsOpen(false)}
+                        >
+                          Add to group
+                        </DropdownItem>
+                        <DropdownItem
+                          key="run-policy-evaluation"
+                          component="button"
+                          isDisabled={!hasSelectedSboms}
+                          onClick={() => {
+                            setIsActionsOpen(false);
+                            openRunPolicyModal();
+                          }}
+                        >
+                          Run policy evaluation
+                        </DropdownItem>
+                      </>
+                    )}
+                  </DropdownList>
+                </Dropdown>
               </ToolbarItem>
             </ToolbarGroup>
           )}

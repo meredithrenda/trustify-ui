@@ -338,7 +338,7 @@ export const SbomDetails: React.FC = () => {
           />
           <Tab
             {...getTabProps("policy")}
-            title={<TabTitleText>Policy</TabTitleText>}
+            title={<TabTitleText>Policies</TabTitleText>}
             tabContentRef={policyTabRef}
           />
           {validTabKeys.includes("cryptography") && (

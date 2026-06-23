@@ -69,7 +69,7 @@ export const SidebarApp: React.FC = () => {
             to={Paths.policy}
             className={({ isActive }) => navLinkClass(isActive)}
           >
-            Policy
+            Policies
           </NavLink>
         </li>
         <li className={nav.navItem}>

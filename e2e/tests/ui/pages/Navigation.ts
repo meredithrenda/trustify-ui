@@ -21,7 +21,7 @@ export class Navigation {
       | "All SBOMs"
       | "Vulnerabilities"
       | "Packages"
-      | "Policy"
+      | "Policies"
       | "Advisories"
       | "Importers"
       | "Licenses",
