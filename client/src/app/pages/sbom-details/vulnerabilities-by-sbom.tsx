@@ -84,18 +84,44 @@ const MOCK_PROTOTYPE_EXPLOIT_INTEL_BY_CVE: Record<
 > = {
   "CVE-2024-9680": {
     kind: "finding",
-    finding: { variant: "vulnerable", count: 21 },
+    finding: {
+      variant: "vulnerable",
+      count: 21,
+      breakdown: {
+        vulnerableCount: 21,
+        uncertainCount: 5,
+        notVulnerableCount: 24,
+        failedCount: 3,
+      },
+    },
     reportUrl: MOCK_PROTOTYPE_EXPLOIT_REPORT_URL,
   },
   "CVE-2024-12747": {
     kind: "finding",
-    finding: { variant: "not_vulnerable" },
+    finding: {
+      variant: "not_vulnerable",
+      breakdown: {
+        vulnerableCount: 0,
+        uncertainCount: 0,
+        notVulnerableCount: 88,
+        failedCount: 0,
+      },
+    },
     reportUrl: MOCK_PROTOTYPE_EXPLOIT_REPORT_URL,
   },
   "CVE-2024-6119": { kind: "finding", finding: { variant: "in_progress" } },
   "CVE-2024-47176": {
     kind: "finding",
-    finding: { variant: "uncertain", count: 4 },
+    finding: {
+      variant: "uncertain",
+      count: 4,
+      breakdown: {
+        vulnerableCount: 0,
+        uncertainCount: 4,
+        notVulnerableCount: 70,
+        failedCount: 0,
+      },
+    },
     reportUrl: MOCK_PROTOTYPE_EXPLOIT_REPORT_URL,
   },
   "CVE-2024-21626": {
@@ -105,7 +131,15 @@ const MOCK_PROTOTYPE_EXPLOIT_INTEL_BY_CVE: Record<
   },
   "CVE-2023-44487": {
     kind: "finding",
-    finding: { variant: "vulnerable" },
+    finding: {
+      variant: "vulnerable",
+      breakdown: {
+        vulnerableCount: 1,
+        uncertainCount: 0,
+        notVulnerableCount: 0,
+        failedCount: 0,
+      },
+    },
     reportUrl: MOCK_PROTOTYPE_EXPLOIT_REPORT_URL,
   },
   "CVE-2024-0232": { kind: "not_run" },
