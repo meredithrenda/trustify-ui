@@ -375,7 +375,7 @@ export const PolicyBySbom: React.FC<PolicyBySbomProps> = ({ sbomId }) => {
                               aria-label="Evaluation in progress"
                             />
                           }
-                          variant="filled"
+                          variant="outline"
                         >
                           In progress
                         </Label>

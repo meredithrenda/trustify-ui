@@ -99,7 +99,7 @@ const PolicyRunStatusLabel: React.FC<{ isInProgress: boolean }> = ({
         icon={
           <Spinner isInline aria-label="Evaluation in progress" />
         }
-        variant="filled"
+        variant="outline"
       >
         In progress
       </Label>
