@@ -18,11 +18,15 @@ const describeExploitIntelligence = (
   }
   switch (state.finding.variant) {
     case "vulnerable":
-      return "Exploit intelligence: Vulnerable";
+      return state.finding.count != null
+        ? `Exploit intelligence: ${state.finding.count} vulnerable`
+        : "Exploit intelligence: Vulnerable";
     case "not_vulnerable":
       return "Exploit intelligence: Not vulnerable";
     case "uncertain":
-      return "Exploit intelligence: Uncertain";
+      return state.finding.count != null
+        ? `Exploit intelligence: ${state.finding.count} uncertain`
+        : "Exploit intelligence: Uncertain";
     case "in_progress":
       return "Exploit intelligence: Analysis in progress";
     case "failed":

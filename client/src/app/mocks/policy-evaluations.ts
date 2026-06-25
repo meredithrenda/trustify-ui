@@ -65,6 +65,10 @@ export const beginPolicyEvaluationFromNavigation = (
     return existing;
   }
 
+  for (const sbomId of request.sbomIds) {
+    removeExistingPolicyRunsForSbom(sbomId, request.policy);
+  }
+
   const run = createInProgressPolicyRun(request);
   inProgressPolicyRunsByRequestId.set(request.requestId, run);
   return run;
@@ -557,6 +561,34 @@ export const deletePolicyRunForSbom = (sbomId: string, runId: string): void => {
       if (run.runId === runId) {
         inProgressPolicyRunsByRequestId.delete(requestId);
       }
+    }
+  }
+};
+
+const resolvePolicyKey = (policy: string): string =>
+  mockConfiguredPolicies.find(
+    (configured) => configured.id === policy || configured.label === policy,
+  )?.id ?? policy;
+
+const policiesMatch = (left: string, right: string): boolean =>
+  resolvePolicyKey(left) === resolvePolicyKey(right);
+
+/** One SBOM keeps a single row per policy; new runs replace prior results. */
+const removeExistingPolicyRunsForSbom = (
+  sbomId: string,
+  policy: string,
+): void => {
+  for (const [runId, run] of [...inProgressPolicyRuns.entries()]) {
+    if (run.sbomIds.includes(sbomId) && policiesMatch(run.policy, policy)) {
+      deletePolicyRunForSbom(sbomId, runId);
+    }
+  }
+
+  const historicalRuns =
+    mockSbomPolicyRunHistory[sbomId] ?? defaultHistoryForSbom(sbomId);
+  for (const run of historicalRuns) {
+    if (policiesMatch(run.policy, policy)) {
+      deletedSbomPolicyRunKeys.add(sbomPolicyRunKey(sbomId, run.runId));
     }
   }
 };
