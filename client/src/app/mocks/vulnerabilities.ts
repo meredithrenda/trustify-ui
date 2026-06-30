@@ -331,3 +331,10 @@ export const mockLimitedAttentionVulnerabilities: VulnerabilityDetails[] = [
   mockVulnerabilities[1],
   mockVulnerabilities[2],
 ];
+
+/** Prototype: top three CVEs from the last-7-days mock feed (CVSS desc). */
+export const mockDefaultAttentionVulnerabilities: VulnerabilityDetails[] = [
+  mockVulnerabilities[1],
+  mockVulnerabilities[6],
+  mockVulnerabilities[4],
+];
