@@ -4,6 +4,8 @@ import { generatePath, Link } from "react-router-dom";
 import dayjs from "dayjs";
 
 import {
+  Alert,
+  AlertActionCloseButton,
   Card,
   CardBody,
   DescriptionList,
@@ -41,8 +43,14 @@ import type {
   SbomStatus,
 } from "@app/client";
 import {
+  buildExploitIntelligenceErrorBanner,
+  buildExploitIntelligenceSuccessBanner,
+  canRequestNewExploitIntelligenceAnalysis,
+  type ExploitIntelligenceAnalysisRequestOptions,
   type ExploitIntelligenceCellState,
+  type ExploitIntelligenceRequestBanner,
   ExploitIntelligenceAnalysisCell,
+  formatExploitIntelligenceRequestError,
 } from "@app/components/exploit-intelligence";
 import {
   buildSbomVulnerabilityFocus,
@@ -50,7 +58,6 @@ import {
   useTpaAgent,
 } from "@app/components/tpa-agent";
 import { LoadingWrapper } from "@app/components/LoadingWrapper";
-import { NotificationsContext } from "@app/components/NotificationsContext";
 import { PackageQualifiers } from "@app/components/PackageQualifiers";
 import { SbomVulnerabilitiesDonutChart } from "@app/components/SbomVulnerabilitiesDonutChart";
 import { SeverityShieldAndText } from "@app/components/SeverityShieldAndText";
@@ -77,6 +84,40 @@ const MOCK_PROTOTYPE_EXPLOIT_INTEL_SBOM_ID =
 
 const MOCK_PROTOTYPE_EXPLOIT_REPORT_URL =
   "https://example.com/exploit-intelligence-report";
+
+/** Prototype interactives: click Request Analysis to demo success vs submit failure banners. */
+const MOCK_PROTOTYPE_REQUEST_SUCCESS_DEMO_CVE = "CVE-2023-44487";
+const MOCK_PROTOTYPE_REQUEST_FAILURE_DEMO_CVE = "CVE-2024-0232";
+
+const MOCK_PROTOTYPE_REQUEST_FAILURE_ERROR =
+  formatExploitIntelligenceRequestError({
+    statusCode: 400,
+    body: JSON.stringify({
+      sbomValidationIssues: [
+        {
+          code: "MISSING_SOURCE_CODE_URL",
+          configuredProperty: "exploit-iq.image.source.location-keys",
+          expectedLabels: [
+            "image.source-location",
+            "io.openshift.build.source-location",
+            "upstream-source-url",
+            "org.opencontainers.image.source",
+          ],
+        },
+        {
+          code: "MISSING_SOURCE_COMMIT_ID",
+          configuredProperty: "exploit-iq.image.source.commit-id-keys",
+          expectedLabels: [
+            "image.source.commit-id",
+            "io.openshift.build.commit.id",
+            "upstream-source-ref",
+            "org.opencontainers.image.revision",
+          ],
+        },
+      ],
+      error: "SBOM is missing source code URL and commit ID labels.",
+    }),
+  });
 
 const MOCK_PROTOTYPE_EXPLOIT_INTEL_BY_CVE: Record<
   string,
@@ -129,19 +170,7 @@ const MOCK_PROTOTYPE_EXPLOIT_INTEL_BY_CVE: Record<
     finding: { variant: "failed" },
     reportUrl: MOCK_PROTOTYPE_EXPLOIT_REPORT_URL,
   },
-  "CVE-2023-44487": {
-    kind: "finding",
-    finding: {
-      variant: "vulnerable",
-      breakdown: {
-        vulnerableCount: 1,
-        uncertainCount: 0,
-        notVulnerableCount: 0,
-        failedCount: 0,
-      },
-    },
-    reportUrl: MOCK_PROTOTYPE_EXPLOIT_REPORT_URL,
-  },
+  "CVE-2023-44487": { kind: "not_run" },
   "CVE-2024-0232": { kind: "not_run" },
 };
 
@@ -168,17 +197,42 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
   sbomId,
 }) => {
   const { openAgentWithFocus } = useTpaAgent();
-  const { pushNotification } = React.useContext(NotificationsContext);
 
   const [exploitIntelByVulnId, setExploitIntelByVulnId] = React.useState<
     Record<string, ExploitIntelligenceCellState>
   >({});
+  const [exploitIntelRequestBanner, setExploitIntelRequestBanner] =
+    React.useState<ExploitIntelligenceRequestBanner | null>(null);
 
-  const handleRequestExploitAnalysis = (vulnerabilityIdentifier: string) => {
-    pushNotification({
-      title: "Exploit intelligence analysis requested",
-      variant: "info",
-    });
+  /** Success path: row moves to in progress and a success inline alert is shown above the table. */
+  const handleRequestExploitAnalysis = (
+    vulnerabilityIdentifier: string,
+    options?: ExploitIntelligenceAnalysisRequestOptions,
+  ) => {
+    if (
+      __MOCK_DATA__ &&
+      sbomId === MOCK_PROTOTYPE_EXPLOIT_INTEL_SBOM_ID &&
+      vulnerabilityIdentifier === MOCK_PROTOTYPE_REQUEST_FAILURE_DEMO_CVE
+    ) {
+      setExploitIntelRequestBanner(
+        buildExploitIntelligenceErrorBanner(
+          vulnerabilityIdentifier,
+          MOCK_PROTOTYPE_REQUEST_FAILURE_ERROR,
+        ),
+      );
+      setExploitIntelByVulnId((prev) => ({
+        ...prev,
+        [vulnerabilityIdentifier]: {
+          kind: "request_failed",
+          error: MOCK_PROTOTYPE_REQUEST_FAILURE_ERROR,
+        },
+      }));
+      return;
+    }
+
+    setExploitIntelRequestBanner(
+      buildExploitIntelligenceSuccessBanner(vulnerabilityIdentifier, options),
+    );
     setExploitIntelByVulnId((prev) => ({
       ...prev,
       [vulnerabilityIdentifier]: {
@@ -341,6 +395,29 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
         </Card>
       </StackItem>
       <StackItem>
+        {exploitIntelRequestBanner ? (
+          <Alert
+            actionClose={
+              <AlertActionCloseButton
+                onClose={() => setExploitIntelRequestBanner(null)}
+              />
+            }
+            className="vulnerabilities-exploit-intel-request-banner"
+            isInline
+            onTimeout={() => setExploitIntelRequestBanner(null)}
+            timeout={8000}
+            title={exploitIntelRequestBanner.title}
+            variant={exploitIntelRequestBanner.variant}
+          >
+            {exploitIntelRequestBanner.message}
+            {exploitIntelRequestBanner.detail ? (
+              <>
+                <br />
+                {exploitIntelRequestBanner.detail}
+              </>
+            ) : null}
+          </Alert>
+        ) : null}
         <Toolbar {...toolbarProps}>
           <ToolbarContent>
             <ToolbarItem {...paginationToolbarItemProps}>
@@ -364,7 +441,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                   {...getThProps({ columnKey: "exploitIntelligence" })}
                   info={{
                     tooltip:
-                      "Request analysis is available only for Critical and High severity vulnerabilities.",
+                      "Run Exploit Intelligence analysis for this vulnerability, or view the current finding.",
                   }}
                 />
                 <Th {...getThProps({ columnKey: "affectedDependencies" })} />
@@ -383,12 +460,6 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                 item.vulnerability.identifier
               ] ??
                 item.exploitIntelligence ?? { kind: "not_run" as const };
-
-              const severity = extendedSeverityFromSeverity(
-                item.vulnerability.average_severity,
-              );
-              const requestAnalysisEligible =
-                severity === "critical" || severity === "high";
 
               return (
                 <Tbody
@@ -458,7 +529,6 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                           }
                           state={exploitIntelligenceState}
                           onRequestAnalysis={handleRequestExploitAnalysis}
-                          requestAnalysisEligible={requestAnalysisEligible}
                         />
                       </Td>
                       <Td
@@ -502,6 +572,21 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                                 );
                               },
                             },
+                            ...(canRequestNewExploitIntelligenceAnalysis(
+                              exploitIntelligenceState,
+                            )
+                              ? [
+                                  {
+                                    title: "Request new analysis",
+                                    onClick: () => {
+                                      handleRequestExploitAnalysis(
+                                        item.vulnerability.identifier,
+                                        { isRerun: true },
+                                      );
+                                    },
+                                  },
+                                ]
+                              : []),
                           ]}
                         />
                       </Td>

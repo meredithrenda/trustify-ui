@@ -16,6 +16,11 @@ const describeExploitIntelligence = (
   if (state.kind === "not_run") {
     return "Exploit intelligence analysis has not been requested.";
   }
+
+  if (state.kind === "request_failed") {
+    return `Exploit intelligence request failed: ${state.error.summary}`;
+  }
+
   switch (state.finding.variant) {
     case "vulnerable":
       return state.finding.count != null
@@ -70,6 +75,8 @@ export const buildSbomVulnerabilityFocus = (input: {
       default:
         break;
     }
+  } else if (input.exploitIntelligence.kind === "request_failed") {
+    suggestedPrompt = `Why could exploit intelligence analysis not be started for ${input.vulnerabilityId}?`;
   }
 
   const summaryParts = [
