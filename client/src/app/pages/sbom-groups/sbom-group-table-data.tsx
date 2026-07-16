@@ -35,11 +35,6 @@ export const SbomGroupTableData = ({ item }: { item: SbomGroupItem }) => {
           <Content component="p">{item.description}</Content>
         </FlexItem>
       )}
-      {item.number_of_sboms != null && item.number_of_sboms > 0 && (
-        <FlexItem>
-          <Content component="small">{item.number_of_sboms} SBOMs</Content>
-        </FlexItem>
-      )}
     </Flex>
   );
 };
