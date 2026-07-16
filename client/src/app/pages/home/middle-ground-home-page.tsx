@@ -4,11 +4,12 @@ import { PageSection, Stack, StackItem } from "@patternfly/react-core";
 
 import { GetStartedSection } from "./components/GetStartedSection";
 import { PortfolioMetricsSection } from "./components/PortfolioMetricsSection";
-import { VulnerabilityAttentionSection } from "./components/VulnerabilityAttentionSection";
+import { VulnerabilityAttentionSection } from "./components/WhatNeedsAttention";
 
+/** Product middle-ground home (aligned with upstream). */
 export const MiddleGroundHomePage: React.FC = () => {
   return (
-    <PageSection variant="light">
+    <PageSection>
       <Stack hasGutter>
         <StackItem>
           <GetStartedSection />

@@ -27,7 +27,9 @@ export class DetailsPage {
   }
 
   async verifyPageHeader(header: string) {
-    await expect(this.page.getByRole("heading")).toContainText(header);
+    await expect(this.page.getByRole("heading", { level: 1 })).toContainText(
+      header,
+    );
   }
 
   async verifyActionIsAvailable(actionName: string) {
@@ -95,7 +97,6 @@ export class DetailsPage {
     const tableVulnSev = await this.getCVSSCountFromVulnTable();
     let mismatch = false;
     await expect(
-      // biome-ignore lint/style/noNonNullAssertion: allowed
       parseInt(totalVulnPanel!, 10),
       `Total Vulnerabilities count ${totalVulnPanel} mismatches with sum of individual ${sumPanelVulnSev}`,
     ).toEqual(sumPanelVulnSev);
@@ -171,7 +172,7 @@ export class DetailsPage {
         keyof typeof counts
       >) {
         const cvssLocator = await this.page
-          .locator(`xpath=//td[@data-label='CVSS']//div[.='${cvssType}']`)
+          .locator(`xpath=//td[@data-label='CVSS']//div[text()='${cvssType}']`)
           .all();
         counts[cvssType] += await cvssLocator.length;
       }

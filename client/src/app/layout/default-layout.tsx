@@ -1,10 +1,19 @@
 import type React from "react";
 
-import { Page, SkipToContent } from "@patternfly/react-core";
+import {
+  Banner,
+  Flex,
+  FlexItem,
+  Page,
+  SkipToContent,
+} from "@patternfly/react-core";
+import InfoCircleIcon from "@patternfly/react-icons/dist/esm/icons/info-circle-icon";
 
 import { Notifications } from "@app/components/Notifications";
 import { PageContentWithDrawerProvider } from "@app/components/PageDrawerContext";
+import { ReadOnlyContext } from "@app/components/ReadOnlyContext";
 import { TpaAgentLauncher, TpaAgentProvider } from "@app/components/tpa-agent";
+
 import { HeaderApp } from "./header";
 import { SidebarApp } from "./sidebar";
 
@@ -13,6 +22,7 @@ interface DefaultLayoutProps {
 }
 
 export const DefaultLayout: React.FC<DefaultLayoutProps> = ({ children }) => {
+  const { areMutationsDisabled } = React.useContext(ReadOnlyContext);
   const pageId = "main-content-page-layout-horizontal-nav";
   const PageSkipToContent = (
     <SkipToContent href={`#${pageId}`}>Skip to content</SkipToContent>
@@ -26,6 +36,27 @@ export const DefaultLayout: React.FC<DefaultLayoutProps> = ({ children }) => {
       skipToContent={PageSkipToContent}
       mainContainerId={pageId}
     >
+      {areMutationsDisabled ? (
+        <Banner
+          isSticky
+          status="info"
+          screenReaderText="Info banner: application is in read-only mode"
+        >
+          <Flex
+            justifyContent={{ default: "justifyContentCenter" }}
+            alignItems={{ default: "alignItemsCenter" }}
+            gap={{ default: "gapSm" }}
+          >
+            <FlexItem>
+              <InfoCircleIcon />
+            </FlexItem>
+            <FlexItem>
+              This instance is running in read-only mode. Uploads, imports, and
+              other modifications are disabled.
+            </FlexItem>
+          </Flex>
+        </Banner>
+      ) : null}
       <TpaAgentProvider>
         <PageContentWithDrawerProvider>
           {children}

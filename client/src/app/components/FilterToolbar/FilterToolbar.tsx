@@ -15,6 +15,7 @@ import FilterIcon from "@patternfly/react-icons/dist/esm/icons/filter-icon";
 
 import { FilterControl } from "./FilterControl";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export enum FilterType {
   select = "select",
   multiselect = "multiselect",
@@ -100,18 +101,24 @@ export interface IAsyncMultiselectFilterCategory<
   onInputValueChange?: (value: string) => void;
 }
 
-export interface ISelectFilterCategory<TItem, TFilterCategoryKey extends string>
-  extends IBasicFilterCategory<TItem, TFilterCategoryKey> {
+export interface ISelectFilterCategory<
+  TItem,
+  TFilterCategoryKey extends string,
+> extends IBasicFilterCategory<TItem, TFilterCategoryKey> {
   selectOptions: FilterSelectOptionProps[];
 }
 
-export interface ISearchFilterCategory<TItem, TFilterCategoryKey extends string>
-  extends IBasicFilterCategory<TItem, TFilterCategoryKey> {
+export interface ISearchFilterCategory<
+  TItem,
+  TFilterCategoryKey extends string,
+> extends IBasicFilterCategory<TItem, TFilterCategoryKey> {
   placeholderText: string;
 }
 
-export interface IToggleFilterCategory<TItem, TFilterCategoryKey extends string>
-  extends IBasicFilterCategory<TItem, TFilterCategoryKey> {
+export interface IToggleFilterCategory<
+  TItem,
+  TFilterCategoryKey extends string,
+> extends IBasicFilterCategory<TItem, TFilterCategoryKey> {
   label: string;
   /** Optional helper text below the toggle (PatternFly `Checkbox` description). */
   description?: string;
@@ -131,6 +138,7 @@ export type IFilterValues<TFilterCategoryKey extends string> = Partial<
   Record<TFilterCategoryKey, FilterValue>
 >;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const getFilterLogicOperator = <
   TItem,
   TFilterCategoryKey extends string,

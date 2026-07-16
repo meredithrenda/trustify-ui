@@ -1,14 +1,12 @@
 import type React from "react";
 
 import type { LabelProps, ProgressProps } from "@patternfly/react-core";
-import {
-  SeverityCriticalIcon,
-  SeverityImportantIcon,
-  SeverityMinorIcon,
-  SeverityModerateIcon,
-  SeverityNoneIcon,
-  SeverityUndefinedIcon,
-} from "@patternfly/react-icons";
+import SeverityCriticalIcon from "@patternfly/react-icons/dist/esm/icons/severity-critical-icon";
+import SeverityImportantIcon from "@patternfly/react-icons/dist/esm/icons/severity-important-icon";
+import SeverityMinorIcon from "@patternfly/react-icons/dist/esm/icons/severity-minor-icon";
+import SeverityModerateIcon from "@patternfly/react-icons/dist/esm/icons/severity-moderate-icon";
+import SeverityNoneIcon from "@patternfly/react-icons/dist/esm/icons/severity-none-icon";
+import SeverityUndefinedIcon from "@patternfly/react-icons/dist/esm/icons/severity-undefined-icon";
 import {
   t_global_icon_color_severity_critical_default as criticalColor,
   t_global_icon_color_severity_important_default as importantColor,
@@ -21,51 +19,60 @@ import {
 import type { Score, ScoreType } from "@app/client";
 import type { ExtendedSeverity, Label, VulnerabilityStatus } from "./models";
 
-type ListType = {
-  [key in ExtendedSeverity]: {
-    name: string;
-    color: { name: string; value: string; var: string };
-    progressProps: Pick<ProgressProps, "variant">;
+export type SeverityProps = {
+  name: string;
+  color: { name: string; value: string; var: string };
+  labelColor: LabelProps["color"];
+  progressProps: Pick<ProgressProps, "variant">;
 
-    // biome-ignore lint/suspicious/noExplicitAny: allowed
-    icon: React.ComponentType<any>;
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- allowed
+  icon: React.ComponentType<any>;
+};
+
+type ListType = {
+  [key in ExtendedSeverity]: SeverityProps;
 };
 
 export const severityList: ListType = {
   unknown: {
     name: "Unknown",
     color: undefinedColor,
+    labelColor: "grey",
     progressProps: { variant: undefined },
     icon: SeverityUndefinedIcon,
   },
   none: {
     name: "None",
     color: noneColor,
+    labelColor: "grey",
     progressProps: { variant: undefined },
     icon: SeverityNoneIcon,
   },
   low: {
     name: "Low",
     color: minorColor,
+    labelColor: "blue",
     progressProps: { variant: undefined },
     icon: SeverityMinorIcon,
   },
   medium: {
     name: "Medium",
     color: moderateColor,
+    labelColor: "orangered",
     progressProps: { variant: "warning" },
     icon: SeverityModerateIcon,
   },
   high: {
     name: "High",
     color: importantColor,
+    labelColor: "orange",
     progressProps: { variant: "danger" },
     icon: SeverityImportantIcon,
   },
   critical: {
     name: "Critical",
     color: criticalColor,
+    labelColor: "red",
     progressProps: { variant: "danger" },
     icon: SeverityCriticalIcon,
   },
@@ -151,13 +158,13 @@ const getScoreTypePriority = (val: ScoreType | null) => {
   }
 
   switch (val) {
-    case "3.1":
-      return 1;
-    case "3.0":
-      return 2;
-    case "4.0":
-      return 3;
     case "2.0":
+      return 1;
+    case "3.1":
+      return 2;
+    case "3.0":
+      return 3;
+    case "4.0":
       return 4;
     default:
       return 0;
@@ -181,4 +188,19 @@ export const extractPriorityScoreFromScores = (scores: Score[]) => {
   }
 
   return [...scores].sort(compareByScoreTypeFn((item) => item.type))[0];
+};
+
+export const extractPriorityItemBasedOnScoresType = <T>(
+  items: T[],
+  getScoreType: (item: T) => ScoreType | null,
+): T | null => {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return [...items].sort((a, b) => {
+    const scoreTypeA = getScoreType(a);
+    const scoreTypeB = getScoreType(b);
+    return getScoreTypePriority(scoreTypeA) - getScoreTypePriority(scoreTypeB);
+  })[0];
 };

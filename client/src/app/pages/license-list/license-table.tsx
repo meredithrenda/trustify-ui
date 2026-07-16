@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@patternfly/react-core";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 
-import { LoadingWrapper } from "@app/components/LoadingWrapper";
+import { LoadingWrapper } from "@tsd-ui/core";
 import { SimplePagination } from "@app/components/SimplePagination";
 import { TableCellError } from "@app/components/TableCellError";
 import {
@@ -21,7 +21,7 @@ import { getSbomFilteredByLicenseUrl } from "@app/pages/sbom-list/helpers";
 import { LicenseSearchContext } from "./license-context";
 
 export const LicenseTable: React.FC = () => {
-  const { isFetching, fetchError, totalItemCount, tableControls } =
+  const { isFetching, fetchError, tableControls } =
     React.useContext(LicenseSearchContext);
 
   const {
@@ -51,7 +51,7 @@ export const LicenseTable: React.FC = () => {
         <ConditionalTableBody
           isLoading={isFetching}
           isError={!!fetchError}
-          isNoData={totalItemCount === 0}
+          isNoData={currentPageItems.length === 0}
           numRenderedColumns={numRenderedColumns}
         >
           {currentPageItems.map((item, rowIndex) => {

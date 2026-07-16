@@ -47,6 +47,14 @@ export const SidebarApp: React.FC = () => {
               All SBOMs
             </NavLink>
           </li>
+          <li className={nav.navItem}>
+            <NavLink
+              to={Paths.sbomGroups}
+              className={({ isActive }) => navLinkClass(isActive)}
+            >
+              Groups
+            </NavLink>
+          </li>
         </NavExpandable>
         <li className={nav.navItem}>
           <NavLink
