@@ -11,14 +11,13 @@ Background:
 # Advisory Explorer
 Scenario: Navigating to the Advisory Explorer page by selecting it from the list of all advisories
     Given User is on the Home page
-    When User clicks on the Search button in the menu
-    And User selects the Advisories tab
+    When User navigates to "Advisories" page
     And User selects an advisory from the list
     Then The Advisory Explorer page should display
 
 Scenario: Navigating to the Advisory Explorer page by searching for it in the search bar
     Given User is on the Home page
-    When User clicks on the Search textbox
+    When User navigates to "Advisories" page
     And User enters the ID of an advisory
     And User searches for the advisory
     And User selects the advisory returned by the search
@@ -26,8 +25,7 @@ Scenario: Navigating to the Advisory Explorer page by searching for it in the se
 
 Scenario: Navigating to the Advisory Explorer page by filtering advisories in the list of all advisories
     Given User is on the Home page
-    When User clicks on the Search button in the menu
-    And User selects the Advisories tab
+    When User navigates to "Advisories" page
     And User selects a filter
     And User selects an advisory returned by the filter
     Then The Advisory Explorer page should display

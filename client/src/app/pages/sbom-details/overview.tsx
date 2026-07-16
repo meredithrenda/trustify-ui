@@ -154,20 +154,20 @@ export const Overview: React.FC<InfoProps> = ({ sbom }) => {
                 <DescriptionListGroup>
                   <DescriptionListTerm>Version</DescriptionListTerm>
                   <DescriptionListDescription>
-                    {sbom.described_by.map((e) => e.version).join(", ")}
+                    {sbom.described_by?.map((e) => e.version).join(", ")}
                   </DescriptionListDescription>
                 </DescriptionListGroup>
                 <DescriptionListGroup>
                   <DescriptionListTerm>External References</DescriptionListTerm>
                   <DescriptionListDescription>
                     <List>
-                      {sbom.described_by
-                        .flatMap((e) => e.cpe)
+                      {(sbom.described_by ?? [])
+                        .flatMap((e) => e.cpe ?? [])
                         .map((e) => (
                           <ListItem key={e}>{e}</ListItem>
                         ))}
-                      {sbom.described_by
-                        .flatMap((e) => e.purl)
+                      {(sbom.described_by ?? [])
+                        .flatMap((e) => e.purl ?? [])
                         .map((e) => (
                           <ListItem key={e.uuid}>{e.purl}</ListItem>
                         ))}

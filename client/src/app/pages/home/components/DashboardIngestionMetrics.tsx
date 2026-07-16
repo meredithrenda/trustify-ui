@@ -12,7 +12,7 @@ import {
   StackItem,
 } from "@patternfly/react-core";
 
-import { LoadingWrapper } from "@app/components/LoadingWrapper";
+import { LoadingWrapper } from "@tsd-ui/core";
 import { useFetchAdvisories } from "@app/queries/advisories";
 import { useFetchSBOMs } from "@app/queries/sboms";
 import { Paths } from "@app/Routes";
@@ -23,7 +23,7 @@ export const DashboardIngestionMetrics: React.FC = () => {
     result: { data: sboms, total: totalSboms },
     isFetching: isFetchingSboms,
     fetchError: fetchErrorSboms,
-  } = useFetchSBOMs(undefined, {
+  } = useFetchSBOMs(null, {
     page: { pageNumber: 1, itemsPerPage: 1 },
     sort: { field: "ingested", direction: "desc" },
   });

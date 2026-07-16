@@ -213,8 +213,11 @@ const mkSbomStatus = (
   released: null,
   withdrawn: null,
   normative: true,
-  average_score: cve.score,
-  average_severity: cve.severity,
+  base_score: {
+    score: cve.score,
+    severity: cve.severity,
+    type: "3.1",
+  },
   packages: [pkg],
   scores: [mkScore(cve.score, cve.severity)],
   status: vulnStatus,

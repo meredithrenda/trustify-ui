@@ -41,7 +41,6 @@ const SbomGroupList = lazy(() => import("./pages/sbom-groups"));
 const SBOMGroupDetails = lazy(() => import("./pages/sbom-group-details"));
 
 // Others
-const Search = lazy(() => import("./pages/search"));
 const ImporterList = lazy(() => import("./pages/importer-list"));
 const LicenseList = lazy(() => import("./pages/license-list"));
 const CBOMInventory = lazy(() => import("./pages/cbom-inventory"));
@@ -81,7 +80,6 @@ export const Paths = {
   sbomDetails: `/sboms/:${PathParam.SBOM_ID}`,
   packages: "/packages",
   packageDetails: `/packages/:${PathParam.PACKAGE_ID}`,
-  search: "/search",
   importers: "/importers",
   licenses: "/licenses",
   policy: "/policy",
@@ -277,12 +275,6 @@ export const AppRoutes = createBrowserRouter(
               sbomGroup: response?.data,
             };
           },
-        },
-        {
-          path: Paths.search,
-          element: (
-            <LazyRouteElement identifier="search" component={<Search />} />
-          ),
         },
         {
           path: Paths.vulnerabilities,

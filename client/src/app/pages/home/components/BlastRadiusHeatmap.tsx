@@ -16,7 +16,7 @@ import {
 import { ExclamationTriangleIcon } from "@patternfly/react-icons";
 
 import { Paths } from "@app/Routes";
-import { LoadingWrapper } from "@app/components/LoadingWrapper";
+import { LoadingWrapper } from "@tsd-ui/core";
 import { useFetchVulnerabilities } from "@app/queries/vulnerabilities";
 import { vulnerabilityByIdQueryOptions } from "@app/queries/vulnerabilities";
 import { severityList } from "@app/api/model-utils";
@@ -300,9 +300,9 @@ export const BlastRadiusHeatmap: React.FC = () => {
           id: vuln.identifier,
           identifier: vuln.identifier,
           title: vuln.title || vuln.identifier,
-          severity: vuln.average_severity?.toLowerCase() || "unknown",
+          severity: vuln.base_score?.severity?.toLowerCase() || "unknown",
           impactCount: count,
-          baseScore: vuln.average_score,
+          baseScore: vuln.base_score?.score,
         };
       })
       .filter((v) => v.impactCount > 0)

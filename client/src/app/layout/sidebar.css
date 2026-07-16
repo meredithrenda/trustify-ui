@@ -9,11 +9,21 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  /*
+   * PatternFly paints the current-item accent on .pf-v6-c-nav__item::before with a
+   * negative inline-start offset. overflow-y creates a scrollport that also clips that
+   * accent on top-level items; nested items under .pf-v6-c-nav__subnav keep padding so
+   * theirs stay visible. Match the accent offset so every selected item shows the bar.
+   */
+  padding-inline-start: var(--pf-t--global--spacer--sm);
+  padding-inline-end: var(--pf-t--global--spacer--sm);
 }
 
 .sidebar-app__settings {
   flex: 0 0 auto;
   margin-block-start: auto;
+  padding-inline-start: var(--pf-t--global--spacer--sm);
+  padding-inline-end: var(--pf-t--global--spacer--sm);
   border-block-start: var(--pf-t--global--border--width--regular) solid
     var(--pf-t--global--border--color--default);
 }

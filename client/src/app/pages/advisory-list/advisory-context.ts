@@ -5,12 +5,12 @@ import type { AxiosError } from "axios";
 import type { AdvisorySummary } from "@app/client";
 import type { ITableControls } from "@app/hooks/table-controls";
 
-interface IAdvisorySearchContext {
+export interface IAdvisorySearchContext {
   tableControls: ITableControls<
     AdvisorySummary,
     "identifier" | "title" | "type" | "labels" | "modified" | "vulnerabilities",
     "identifier" | "modified",
-    "" | "average_severity" | "modified" | "labels",
+    "" | "average_severity" | "modified" | "labels" | "type",
     string
   >;
 

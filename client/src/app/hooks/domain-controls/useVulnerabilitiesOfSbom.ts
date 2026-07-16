@@ -94,10 +94,10 @@ export const DEFAULT_SUMMARY: VulnerabilityOfSbomSummary = {
 
 const enrichPurlMapWithPackages = (
   purls: Map<string, PurlAnalysis>,
-  packages: SbomPackage[],
+  packages: SbomPackage[] | null | undefined,
 ) => {
-  const packagePurls = packages.flatMap((pkg) => {
-    const hasNoPurlsButOnlyName = pkg.name && pkg.purl.length === 0;
+  const packagePurls = (packages ?? []).flatMap((pkg) => {
+    const hasNoPurlsButOnlyName = pkg.name && (pkg.purl?.length ?? 0) === 0;
     const result: PurlAnalysis[] = hasNoPurlsButOnlyName
       ? [
           {
@@ -105,7 +105,7 @@ const enrichPurlMapWithPackages = (
             parentName: pkg.name,
           },
         ]
-      : pkg.purl.map((p) => ({
+      : (pkg.purl ?? []).map((p) => ({
           isOrphan: false,
           purlSummary: p,
         }));
@@ -128,7 +128,7 @@ const advisoryToModels = (advisories: SbomAdvisory[]) => {
           vulnerability: sbomStatus,
           vulnerabilityStatus: sbomStatus.status as VulnerabilityStatus,
           advisory: advisory,
-          packages: sbomStatus.packages,
+          packages: sbomStatus.packages ?? [],
           base_score: sbomStatus.base_score ?? null,
           scores: sbomStatus.scores || [],
         };

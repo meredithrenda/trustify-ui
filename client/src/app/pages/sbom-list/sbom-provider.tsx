@@ -1,6 +1,5 @@
 import React from "react";
 
-import type { AxiosError } from "axios";
 import { useDebounceValue } from "usehooks-ts";
 
 import {
@@ -11,20 +10,10 @@ import {
   joinKeyValueAsString,
   splitStringAsKeyValue,
 } from "@app/api/model-utils";
-import type {
-  SbomHead,
-  SbomPackage,
-  SbomSummary,
-  SourceDocument,
-} from "@app/client";
 import { FilterType } from "@app/components/FilterToolbar";
 import { getPolicyRunSbomIds } from "@app/mocks/policy-evaluations";
+import { useBulkSelection } from "@app/hooks/selection";
 import {
-  type BulkSelectionValues,
-  useBulkSelection,
-} from "@app/hooks/selection";
-import {
-  type ITableControls,
   getHubRequestParams,
   useTableControlProps,
   useTableControlState,
@@ -32,50 +21,18 @@ import {
 import { useFetchLicenses } from "@app/queries/licenses";
 import { useFetchSBOMLabels, useFetchSBOMs } from "@app/queries/sboms";
 
+import { SbomSearchContext } from "./sbom-context";
+
 declare const __MOCK_DATA__: boolean;
 
-interface ISbomSearchContext {
-  tableControls: ITableControls<
-    SbomSummary,
-    | "name"
-    | "version"
-    | "packages"
-    | "published"
-    | "supplier"
-    | "labels"
-    | "vulnerabilities",
-    "name" | "published",
-    "" | "published" | "labels" | "license" | "policyRun",
-    string
-  >;
-
-  bulkSelection: {
-    isEnabled: boolean;
-    controls: BulkSelectionValues<
-      SbomHead &
-        SourceDocument & {
-          described_by: Array<SbomPackage>;
-        }
-    >;
-  };
-
-  totalItemCount: number;
-  isFetching: boolean;
-  fetchError: AxiosError | null;
-  policyRunFilter?: string;
-}
-
-const contextDefaultValue = {} as ISbomSearchContext;
-
-export const SbomSearchContext =
-  React.createContext<ISbomSearchContext>(contextDefaultValue);
-
 interface ISbomProvider {
+  sbomGroupId?: string;
   isBulkSelectionEnabled?: boolean;
   children: React.ReactNode;
 }
 
 export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
+  sbomGroupId,
   isBulkSelectionEnabled,
   children,
 }) => {
@@ -168,18 +125,21 @@ export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
   });
 
   const {
-    result: { data: advisories, total: totalItemCount },
+    result: { data: sboms, total: totalItemCount },
     isFetching,
     fetchError,
   } = useFetchSBOMs(
-    undefined,
-    getHubRequestParams({
-      ...tableControlState,
-      hubSortFieldKeys: {
-        name: "name",
-        published: "published",
-      },
-    }),
+    sbomGroupId ?? null,
+    {
+      ...getHubRequestParams({
+        ...tableControlState,
+        hubSortFieldKeys: {
+          name: "name",
+          published: "published",
+        },
+      }),
+      total: true,
+    },
     (tableControlState.filterState.filterValues.labels ?? []).map((label) =>
       splitStringAsKeyValue(label),
     ),
@@ -190,14 +150,14 @@ export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
 
   const visibleSboms = React.useMemo(() => {
     if (!__MOCK_DATA__ || !policyRunFilter) {
-      return advisories;
+      return sboms;
     }
     const allowedIds = getPolicyRunSbomIds(policyRunFilter);
     if (allowedIds.size === 0) {
-      return advisories;
+      return sboms;
     }
-    return advisories.filter((sbom) => allowedIds.has(sbom.id));
-  }, [advisories, policyRunFilter]);
+    return sboms.filter((sbom) => allowedIds.has(sbom.id));
+  }, [sboms, policyRunFilter]);
 
   const visibleTotal =
     policyRunFilter && __MOCK_DATA__ ? visibleSboms.length : totalItemCount;
@@ -219,7 +179,8 @@ export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
   return (
     <SbomSearchContext.Provider
       value={{
-        totalItemCount,
+        sbomGroupId,
+        totalItemCount: visibleTotal,
         isFetching,
         fetchError,
         tableControls,

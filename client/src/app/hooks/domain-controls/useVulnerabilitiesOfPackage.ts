@@ -19,19 +19,13 @@ const areVulnerabilityOfPackageEqual = (
 };
 
 interface FlatVulnerabilityOfPackage {
-  vulnerability: VulnerabilityHead & {
-    average_severity: ExtendedSeverity;
-    average_score: number | null;
-  };
+  vulnerability: VulnerabilityHead;
   vulnerabilityStatus: VulnerabilityStatus;
   advisory: PurlAdvisory;
 }
 
 interface VulnerabilityOfPackage {
-  vulnerability: VulnerabilityHead & {
-    average_severity: ExtendedSeverity;
-    average_score: number | null;
-  };
+  vulnerability: VulnerabilityHead;
   vulnerabilityStatus: VulnerabilityStatus;
   relatedSboms: {
     advisory: PurlAdvisory;
@@ -68,16 +62,8 @@ const advisoryToModels = (advisories: PurlAdvisory[]) => {
   const vulnerabilities = advisories
     .flatMap((advisory) => {
       return (advisory.status ?? []).map((pkgStatus) => {
-        const extendedSeverity = extendedSeverityFromSeverity(
-          pkgStatus.vulnerability.base_score?.severity,
-        );
-
         const result: FlatVulnerabilityOfPackage = {
-          vulnerability: {
-            ...pkgStatus.vulnerability,
-            average_severity: extendedSeverity,
-            average_score: pkgStatus.vulnerability.base_score?.score ?? null,
-          },
+          vulnerability: pkgStatus.vulnerability,
           vulnerabilityStatus: pkgStatus.status as VulnerabilityStatus,
           advisory: advisory,
         };
@@ -127,7 +113,9 @@ const advisoryToModels = (advisories: PurlAdvisory[]) => {
   const summary = vulnerabilities.reduce(
     (prev, current) => {
       const vulnStatus = current.vulnerabilityStatus;
-      const severity = current.vulnerability.average_severity;
+      const severity = extendedSeverityFromSeverity(
+        current.vulnerability.base_score?.severity,
+      );
 
       const prevVulnStatusValue = prev.vulnerabilityStatus[vulnStatus];
 

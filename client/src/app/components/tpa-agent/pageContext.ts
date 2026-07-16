@@ -91,7 +91,6 @@ export function resolveTpaPageContext(
     { path: "/cbom-prototype", pageKey: "cbom", label: "Cryptography" },
     { path: "/policy", pageKey: "policy", label: "Policy" },
     { path: "/models", pageKey: "models", label: "Models" },
-    { path: "/search", pageKey: "search", label: "Search" },
     { path: "/importers", pageKey: "importers", label: "Importers" },
     { path: "/licenses", pageKey: "licenses", label: "Licenses" },
     { path: "/tpa-agent/prompts", pageKey: "agent-prompts", label: "Prompt manager" },

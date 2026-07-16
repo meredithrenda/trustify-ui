@@ -1,4 +1,4 @@
-import type { PurlSummary } from "@app/client";
+import type { LicenseRefMapping, PurlSummary, SbomPackage } from "@app/client";
 
 /** Package UUIDs that mock mode treats as having ≥1 vulnerability (for `has_vulnerabilities` UX). */
 export const mockPackageUuidsWithVulnerabilities = new Set<string>([
@@ -7,6 +7,50 @@ export const mockPackageUuidsWithVulnerabilities = new Set<string>([
   "pkg-004",
   "pkg-007",
 ]);
+
+const MOCK_LICENSE_IDS: LicenseRefMapping[] = [
+  { license_id: "Apache-2.0", license_name: "Apache License 2.0" },
+  { license_id: "MIT", license_name: "MIT License" },
+  { license_id: "GPL-2.0-or-later", license_name: "GNU GPL v2 or later" },
+  { license_id: "BSD-3-Clause", license_name: "BSD 3-Clause" },
+];
+
+const packageNameFromPurl = (purl: string): string => {
+  const withoutQualifiers = purl.split("?")[0] ?? purl;
+  const namePart = withoutQualifiers.split("/").pop() ?? withoutQualifiers;
+  return namePart.split("@")[0] ?? namePart;
+};
+
+/** SBOM-scoped package rows for detail Packages tab. */
+export const getMockSbomPackages = (sbomId: string): SbomPackage[] => {
+  // Rotate a stable slice of mock packages per SBOM so every detail page has rows.
+  const seed = [...sbomId].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  const start = seed % mockPackages.length;
+  const count = 4 + (seed % 4);
+  const selected = Array.from({ length: count }, (_, index) => {
+    return mockPackages[(start + index) % mockPackages.length];
+  });
+
+  return selected.map((pkg, index) => ({
+    id: `${sbomId}-pkg-${index + 1}`,
+    name: packageNameFromPurl(pkg.purl),
+    version: pkg.version.version,
+    group: null,
+    purl: [pkg],
+    cpe: [],
+    licenses: [
+      {
+        license_name: MOCK_LICENSE_IDS[index % MOCK_LICENSE_IDS.length].license_id,
+        license_type: "declared" as const,
+      },
+    ],
+    licenses_ref_mapping: [],
+  }));
+};
+
+export const getMockSbomLicenseIds = (
+  _sbomId: string,
+): LicenseRefMapping[] => MOCK_LICENSE_IDS;
 
 export const mockPackages: PurlSummary[] = [
   {

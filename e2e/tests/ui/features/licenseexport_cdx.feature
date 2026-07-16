@@ -6,25 +6,25 @@ Feature: License Explorer
 Background:
 	Given User is on TPA Application
 	And User successfully uploaded a CycloneDX SBOM from Upload SBOM page
-	And Uploaded CycloneDX SBOM appears on Search List page under SBOMs tab
+	And Uploaded CycloneDX SBOM appears on the All SBOMs page
 
-Scenario: Verify Download Licences option on SBOM Search Results page for CycloneDX SBOM
-	Given User Searches for CycloneDX SBOM using Search Text box and Navigates to Search results page
-	When User Selects CycloneDX SBOM of interest from the Search Results
+Scenario: Verify Download Licences option on SBOM list page for CycloneDX SBOM
+	Given User navigates to "All SBOMs" page
+	When User Selects CycloneDX SBOM of interest from the SBOM list
 	And User Clicks "Action" button
 	Then "Download License Report" Option should be visible
 
-Scenario: User Downloads license information for CycloneDX SBOM from SBOM Search Results page
-	Given User Searches for CycloneDX SBOM using Search Text box and Navigates to Search results page
-	When User Selects CycloneDX SBOM of interest from the Search Results
+Scenario: User Downloads license information for CycloneDX SBOM from SBOM list page
+	Given User navigates to "All SBOMs" page
+	When User Selects CycloneDX SBOM of interest from the SBOM list
 	And User Clicks "Action" button
 	And Selects "Download License Report" option
 	Then Licenses associated with the SBOM should be downloaded in ZIP format using the SBOM name
 
 Scenario: Verify Download Licences option on SBOM Explorer page for CycloneDX SBOM
-	Given User Searches for CycloneDX SBOM using Search Text box and Navigates to Search results page
-	When User Selects CycloneDX SBOM of interest from the Search Results
-	And User Clicks on SBOM name hyperlink from the Search Results
+	Given User navigates to "All SBOMs" page
+	When User Selects CycloneDX SBOM of interest from the SBOM list
+	And User Clicks on SBOM name hyperlink from the SBOM list
 	Then Application Navigates to SBOM Explorer page 
 	And "Download License Report" Option should be visible
 

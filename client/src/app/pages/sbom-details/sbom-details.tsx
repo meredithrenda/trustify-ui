@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import type { AxiosError } from "axios";
+import { LoadingWrapper } from "@tsd-ui/core";
 
 import {
   Breadcrumb,
@@ -38,7 +39,6 @@ import {
 import { PathParam, Paths, useRouteParams } from "@app/Routes";
 import type { SbomSummary } from "@app/client";
 import { ConfirmDialog } from "@app/components/ConfirmDialog";
-import { LoadingWrapper } from "@app/components/LoadingWrapper";
 import { NotificationsContext } from "@app/components/NotificationsContext";
 import { PageDrawerContent } from "@app/components/PageDrawerContext";
 import { useDownload } from "@app/hooks/domain-controls/useDownload";

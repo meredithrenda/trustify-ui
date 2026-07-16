@@ -23,8 +23,11 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     released: null,
     withdrawn: null,
     normative: true,
-    average_score: 4.7,
-    average_severity: "low",
+    base_score: {
+      score: 4.7,
+      severity: "low",
+      type: "3.1",
+    },
     advisories: [
       {
         uuid: "adv-0001-0001-0001-000000000001",
@@ -36,9 +39,14 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
         labels: { type: "csaf", severity: "low" },
         issuer: null,
         withdrawn: null,
-        score: 4.7,
-        severity: "low",
-        cvss3_scores: ["CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:H"],
+        scores: [
+          {
+            type: "3.1",
+            value: 4.7,
+            severity: "low",
+            vector: "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:H",
+          },
+        ],
         number_of_vulnerabilities: 1,
         purls: {},
         sboms: [
@@ -62,8 +70,11 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     released: null,
     withdrawn: null,
     normative: true,
-    average_score: 9.8,
-    average_severity: "critical",
+    base_score: {
+      score: 9.8,
+      severity: "critical",
+      type: "3.1",
+    },
     advisories: [
       {
         uuid: "adv-0002-0002-0002-000000000002",
@@ -75,9 +86,14 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
         labels: { type: "csaf", severity: "critical" },
         issuer: null,
         withdrawn: null,
-        score: 9.8,
-        severity: "critical",
-        cvss3_scores: ["CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"],
+        scores: [
+          {
+            type: "3.1",
+            value: 9.8,
+            severity: "critical",
+            vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+          },
+        ],
         number_of_vulnerabilities: 1,
         purls: {},
         sboms: [
@@ -101,8 +117,11 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     released: null,
     withdrawn: null,
     normative: true,
-    average_score: 7.5,
-    average_severity: "high",
+    base_score: {
+      score: 7.5,
+      severity: "high",
+      type: "3.1",
+    },
     advisories: [
       {
         uuid: "adv-0003-0003-0003-000000000003",
@@ -114,9 +133,14 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
         labels: { type: "csaf", severity: "important" },
         issuer: null,
         withdrawn: null,
-        score: 7.5,
-        severity: "high",
-        cvss3_scores: ["CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"],
+        scores: [
+          {
+            type: "3.1",
+            value: 7.5,
+            severity: "high",
+            vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          },
+        ],
         number_of_vulnerabilities: 1,
         purls: {},
         sboms: [
@@ -140,8 +164,11 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     released: null,
     withdrawn: null,
     normative: true,
-    average_score: 7.5,
-    average_severity: "high",
+    base_score: {
+      score: 7.5,
+      severity: "high",
+      type: "3.1",
+    },
     advisories: [
       {
         uuid: "adv-0005-0005-0005-000000000005",
@@ -153,9 +180,14 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
         labels: { type: "csaf", severity: "critical" },
         issuer: null,
         withdrawn: null,
-        score: 7.5,
-        severity: "high",
-        cvss3_scores: ["CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"],
+        scores: [
+          {
+            type: "3.1",
+            value: 7.5,
+            severity: "high",
+            vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          },
+        ],
         number_of_vulnerabilities: 3,
         purls: {},
         sboms: [
@@ -180,8 +212,11 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     released: null,
     withdrawn: null,
     normative: true,
-    average_score: 8.1,
-    average_severity: "high",
+    base_score: {
+      score: 8.1,
+      severity: "high",
+      type: "3.1",
+    },
     advisories: [
       {
         uuid: "adv-0006-0006-0006-000000000006",
@@ -193,9 +228,14 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
         labels: { type: "csaf", severity: "important" },
         issuer: null,
         withdrawn: null,
-        score: 8.1,
-        severity: "high",
-        cvss3_scores: ["CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"],
+        scores: [
+          {
+            type: "3.1",
+            value: 8.1,
+            severity: "high",
+            vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N",
+          },
+        ],
         number_of_vulnerabilities: 1,
         purls: {},
         sboms: [
@@ -219,8 +259,11 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     released: null,
     withdrawn: null,
     normative: true,
-    average_score: 7.5,
-    average_severity: "high",
+    base_score: {
+      score: 7.5,
+      severity: "high",
+      type: "3.1",
+    },
     advisories: [
       {
         uuid: "adv-0007-0007-0007-000000000007",
@@ -232,9 +275,14 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
         labels: { type: "csaf", severity: "important" },
         issuer: null,
         withdrawn: null,
-        score: 7.5,
-        severity: "high",
-        cvss3_scores: ["CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"],
+        scores: [
+          {
+            type: "3.1",
+            value: 7.5,
+            severity: "high",
+            vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          },
+        ],
         number_of_vulnerabilities: 1,
         purls: {},
         sboms: [
@@ -258,8 +306,11 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     released: null,
     withdrawn: null,
     normative: true,
-    average_score: 8.6,
-    average_severity: "high",
+    base_score: {
+      score: 8.6,
+      severity: "high",
+      type: "3.1",
+    },
     advisories: [
       {
         uuid: "adv-0008-0008-0008-000000000008",
@@ -271,9 +322,14 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
         labels: { type: "csaf", severity: "important" },
         issuer: null,
         withdrawn: null,
-        score: 8.6,
-        severity: "high",
-        cvss3_scores: ["CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H"],
+        scores: [
+          {
+            type: "3.1",
+            value: 8.6,
+            severity: "high",
+            vector: "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
+          },
+        ],
         number_of_vulnerabilities: 1,
         purls: {},
         sboms: [
@@ -297,8 +353,11 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
     released: null,
     withdrawn: null,
     normative: true,
-    average_score: 3.9,
-    average_severity: "low",
+    base_score: {
+      score: 3.9,
+      severity: "low",
+      type: "3.1",
+    },
     advisories: [
       {
         uuid: "adv-0009-0009-0009-000000000009",
@@ -310,9 +369,14 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
         labels: { type: "csaf", severity: "low" },
         issuer: null,
         withdrawn: null,
-        score: 3.9,
-        severity: "low",
-        cvss3_scores: ["CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"],
+        scores: [
+          {
+            type: "3.1",
+            value: 3.9,
+            severity: "low",
+            vector: "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+          },
+        ],
         number_of_vulnerabilities: 1,
         purls: {},
         sboms: [

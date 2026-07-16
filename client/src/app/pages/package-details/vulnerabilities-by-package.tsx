@@ -14,6 +14,7 @@ import {
   Tr,
 } from "@patternfly/react-table";
 
+import { extendedSeverityFromSeverity } from "@app/api/models";
 import { SeverityShieldAndText } from "@app/components/SeverityShieldAndText";
 import { SimplePagination } from "@app/components/SimplePagination";
 import {
@@ -70,7 +71,7 @@ export const VulnerabilitiesByPackage: React.FC<
     getSortValues: (item) => {
       return {
         identifier: item.vulnerability.identifier,
-        severity: item.vulnerability?.average_score || 0,
+        severity: item.vulnerability?.base_score?.score || 0,
         published: item.vulnerability?.published
           ? dayjs(item.vulnerability?.published).valueOf()
           : 0,
@@ -174,10 +175,12 @@ export const VulnerabilitiesByPackage: React.FC<
                       )}
                     </TdWithFocusStatus>
                     <Td width={15} {...getTdProps({ columnKey: "severity" })}>
-                      {item.vulnerability?.average_severity && (
+                      {item.vulnerability?.base_score && (
                         <SeverityShieldAndText
-                          value={item.vulnerability.average_severity}
-                          score={item.vulnerability.average_score}
+                          value={extendedSeverityFromSeverity(
+                            item.vulnerability.base_score.severity,
+                          )}
+                          score={item.vulnerability.base_score.score}
                           showLabel
                           showScore
                         />

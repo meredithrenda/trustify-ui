@@ -30,14 +30,6 @@ export const SidebarApp: React.FC = () => {
             Home
           </NavLink>
         </li>
-        <li className={nav.navItem}>
-          <NavLink
-            to={Paths.search}
-            className={({ isActive }) => navLinkClass(isActive)}
-          >
-            Search
-          </NavLink>
-        </li>
         <NavExpandable title="SBOMs" isExpanded>
           <li className={nav.navItem}>
             <NavLink

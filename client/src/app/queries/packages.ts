@@ -7,6 +7,7 @@ import { client } from "../axios-config/apiInit";
 import { getPurl, listPackages, listPurl } from "../client";
 import { requestParamsQuery } from "../hooks/table-controls";
 import {
+  getMockSbomPackages,
   mockPackageUuidsWithVulnerabilities,
   mockPackages,
 } from "@app/mocks/packages";
@@ -110,12 +111,19 @@ export const useFetchPackagesBySbomId = (
 ) => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [PackagesQueryKey, "by-sbom", sbomId, params],
-    queryFn: () =>
-      listPackages({
+    queryFn: () => {
+      if (__MOCK_DATA__) {
+        const items = getMockSbomPackages(sbomId);
+        return Promise.resolve({
+          data: { items, total: items.length },
+        });
+      }
+      return listPackages({
         client,
         path: { id: sbomId },
         query: { ...requestParamsQuery(params) },
-      }),
+      });
+    },
   });
 
   return {

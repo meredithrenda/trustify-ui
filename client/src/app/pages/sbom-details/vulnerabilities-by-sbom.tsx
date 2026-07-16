@@ -2,6 +2,7 @@ import React from "react";
 import { generatePath, Link } from "react-router-dom";
 
 import dayjs from "dayjs";
+import { LoadingWrapper } from "@tsd-ui/core";
 
 import {
   Alert,
@@ -32,14 +33,9 @@ import {
   Tr,
 } from "@patternfly/react-table";
 
-import {
-  type VulnerabilityStatus,
-  extendedSeverityFromSeverity,
-} from "@app/api/models";
+import { type VulnerabilityStatus } from "@app/api/models";
 import type {
   PurlSummary,
-  SbomAdvisory,
-  SbomPackage,
   SbomStatus,
 } from "@app/client";
 import {
@@ -57,7 +53,6 @@ import {
   TPA_INTELLIGENCE_ASSISTANT_SHORT_NAME,
   useTpaAgent,
 } from "@app/components/tpa-agent";
-import { LoadingWrapper } from "@app/components/LoadingWrapper";
 import { PackageQualifiers } from "@app/components/PackageQualifiers";
 import { SbomVulnerabilitiesDonutChart } from "@app/components/SbomVulnerabilitiesDonutChart";
 import { SeverityShieldAndText } from "@app/components/SeverityShieldAndText";
@@ -177,14 +172,11 @@ const MOCK_PROTOTYPE_EXPLOIT_INTEL_BY_CVE: Record<
 interface TableData {
   vulnerability: SbomStatus;
   vulnerabilityStatus: VulnerabilityStatus;
-  relatedPackages: {
-    advisory: SbomAdvisory;
-    packages: SbomPackage[];
-  }[];
-  summary: {
-    totalPackages: number;
-    allPackages: SbomPackage[];
-  };
+  purls: Map<
+    string,
+    | { isOrphan: true; parentName: string }
+    | { isOrphan: false; purlSummary: PurlSummary }
+  >;
   /** When the API returns exploit-intelligence state for this row, it is passed through here */
   exploitIntelligence?: ExploitIntelligenceCellState;
 }
@@ -261,16 +253,6 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 
   const tableData = React.useMemo(() => {
     return affectedVulnerabilities.map((item) => {
-      const allPackages = item.relatedPackages
-        .flatMap((i) => i.packages)
-        .reduce((prev, current) => {
-          const existingElement = prev.find((item) => item.id === current.id);
-          if (!existingElement) {
-            prev.push(current);
-          }
-          return prev;
-        }, [] as SbomPackage[]);
-
       const exploitIntelligence =
         __MOCK_DATA__ &&
         sbomId === MOCK_PROTOTYPE_EXPLOIT_INTEL_SBOM_ID &&
@@ -279,11 +261,9 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
           : undefined;
 
       const result: TableData = {
-        ...item,
-        summary: {
-          totalPackages: allPackages.length,
-          allPackages,
-        },
+        vulnerability: item.vulnerability,
+        vulnerabilityStatus: item.vulnerabilityStatus,
+        purls: item.purls,
         exploitIntelligence,
       };
 
@@ -320,8 +300,8 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
     initialSort: { columnKey: "cvss", direction: "desc" },
     getSortValues: (item) => ({
       id: item.vulnerability.identifier,
-      cvss: item.vulnerability.average_score,
-      affectedDependencies: item.summary.totalPackages,
+      cvss: item.opinionatedAdvisory.score?.value ?? 0,
+      affectedDependencies: item.purls.size,
       updated: item.vulnerability?.modified
         ? dayjs(item.vulnerability.modified).valueOf()
         : 0,
@@ -510,10 +490,8 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                       </TdWithFocusStatus>
                       <Td width={10} {...getTdProps({ columnKey: "cvss" })}>
                         <SeverityShieldAndText
-                          value={extendedSeverityFromSeverity(
-                            item.vulnerability.average_severity,
-                          )}
-                          score={item.vulnerability.average_score}
+                          value={item.opinionatedAdvisory.extendedSeverity}
+                          score={item.opinionatedAdvisory.score?.value ?? null}
                           showLabel
                           showScore
                         />
@@ -541,7 +519,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                           rowIndex,
                         })}
                       >
-                        {item.summary.totalPackages}
+                        {item.purls.size}
                       </Td>
                       <Td
                         width={10}
@@ -565,7 +543,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                                     vulnerabilityTitle:
                                       item.vulnerability.title,
                                     severity:
-                                      item.vulnerability.average_severity,
+                                      item.opinionatedAdvisory.extendedSeverity,
                                     exploitIntelligence:
                                       exploitIntelligenceState,
                                   }),
@@ -613,34 +591,9 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                                 </Tr>
                               </Thead>
                               <Tbody>
-                                {item.summary.allPackages
-                                  .flatMap((item) => {
-                                    // Some packages do not have purl neither ID. So we render only the parent name meanwhile
-                                    type EnrichedPurlSummary = {
-                                      parentName: string;
-                                      purlSummary?: PurlSummary;
-                                    };
-
-                                    const hasNoPurlsButOnlyName =
-                                      item.name && item.purl.length === 0;
-
-                                    if (hasNoPurlsButOnlyName) {
-                                      const result: EnrichedPurlSummary = {
-                                        parentName: item.name,
-                                      };
-                                      return [result];
-                                    }
-
-                                    return item.purl.map((i) => {
-                                      const result: EnrichedPurlSummary = {
-                                        parentName: item.name,
-                                        purlSummary: i,
-                                      };
-                                      return result;
-                                    });
-                                  })
-                                  .map((purl, index) => {
-                                    if (purl.purlSummary) {
+                                {Array.from(item.purls.values()).map(
+                                  (purl, index) => {
+                                    if (!purl.isOrphan) {
                                       const decomposedPurl = decomposePurl(
                                         purl.purlSummary.purl,
                                       );
@@ -688,7 +641,8 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
                                         <Td />
                                       </Tr>
                                     );
-                                  })}
+                                  },
+                                )}
                               </Tbody>
                             </Table>
                           ) : null}

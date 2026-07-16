@@ -2,6 +2,10 @@ import type React from "react";
 import { Outlet } from "react-router-dom";
 import "./App.css";
 
+import { ThemeProvider, type ThemeMode } from "@tsd-ui/core";
+
+import { useLocalStorage } from "@app/hooks/useStorage";
+
 import { NotificationsProvider } from "./components/NotificationsContext";
 import { ReadOnlyProvider } from "./components/ReadOnlyContext";
 import { DefaultLayout } from "./layout";
@@ -12,15 +16,24 @@ import "@patternfly/patternfly/patternfly-charts.css";
 import "@patternfly/chatbot/dist/css/main.css";
 import "@app/components/tpa-agent/tpa-agent.css";
 
+export const STORAGE_KEY = "theme-preference";
+
 const App: React.FC = () => {
+  const [mode, setMode] = useLocalStorage<ThemeMode>({
+    key: STORAGE_KEY,
+    defaultValue: "system",
+  });
+
   return (
-    <ReadOnlyProvider>
-      <NotificationsProvider>
-        <DefaultLayout>
-          <Outlet />
-        </DefaultLayout>
-      </NotificationsProvider>
-    </ReadOnlyProvider>
+    <ThemeProvider mode={mode} setMode={setMode}>
+      <ReadOnlyProvider>
+        <NotificationsProvider>
+          <DefaultLayout>
+            <Outlet />
+          </DefaultLayout>
+        </NotificationsProvider>
+      </ReadOnlyProvider>
+    </ThemeProvider>
   );
 };
 

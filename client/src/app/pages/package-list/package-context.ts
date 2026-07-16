@@ -10,7 +10,7 @@ export interface PackageTableData extends PurlSummary {
   decomposedPurl?: DecomposedPurl;
 }
 
-interface IPackageSearchContext {
+export interface IPackageSearchContext {
   tableControls: ITableControls<
     PackageTableData,
     | "name"
@@ -22,7 +22,7 @@ interface IPackageSearchContext {
     | "qualifiers"
     | "vulnerabilities",
     "name" | "namespace" | "version",
-    "name" | "type" | "arch" | "license",
+    "" | "type" | "arch" | "license" | "has_vulnerabilities",
     string
   >;
 

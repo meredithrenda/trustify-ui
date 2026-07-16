@@ -5,6 +5,9 @@ import type { HubRequestParams } from "@app/api/models";
 import { client } from "@app/axios-config/apiInit";
 import { listAllModels } from "@app/client";
 import { requestParamsQuery } from "@app/hooks/table-controls";
+import { mockSbomModels } from "@app/mocks/models";
+
+declare const __MOCK_DATA__: boolean;
 
 export const ModelsQueryKey = "models";
 
@@ -15,6 +18,14 @@ export const useFetchAllModels = (
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [ModelsQueryKey, params],
     queryFn: () => {
+      if (__MOCK_DATA__) {
+        return Promise.resolve({
+          data: {
+            items: mockSbomModels,
+            total: mockSbomModels.length,
+          },
+        });
+      }
       return listAllModels({
         client,
         query: { ...requestParamsQuery(params), counts: true },

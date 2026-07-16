@@ -12,8 +12,8 @@
   "masthead": {
     "leftBrand": {
       "src": "<%= brandingRoot %>/images/masthead-logo.svg",
-      "alt": "Red Hat",
-      "height": "48px"
+      "alt": "Red Hat Trusted Profile Analyzer",
+      "height": "40px"
     },
     "leftTitle": null,
     "rightBrand": null,

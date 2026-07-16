@@ -1,4 +1,31 @@
+import type { PurlSummary, SbomModel } from "@app/client";
 import type { AIModel } from "@app/pages/models/types";
+
+const toMockPurlSummary = (purl: string, id: string): PurlSummary => ({
+  uuid: id,
+  purl,
+  qualifiers: {},
+  base: { uuid: id, purl },
+  version: { uuid: id, purl, version: "0" },
+});
+
+/** API-shaped models for query hooks (listAllModels). */
+export const toMockSbomModel = (model: AIModel): SbomModel => ({
+  id: model.id,
+  name: model.name,
+  purls: [toMockPurlSummary(model.purl, model.id)],
+  properties: {
+    suppliedBy: model.suppliedBy,
+    licenses: model.license,
+    bomFormat: model.sbomFormat,
+    specVersion: model.sbomSpecVersion,
+    typeOfModel: model.modelType,
+    serialNumber: model.serialNumber,
+    primaryPurpose: model.primaryPurpose,
+    safetyRiskAssessment: model.risk,
+  },
+  sbom_count: model.sbomCount,
+});
 
 export const mockModels: AIModel[] = [
   {
@@ -178,3 +205,5 @@ export const mockModels: AIModel[] = [
     sbomCount: 1,
   },
 ];
+
+export const mockSbomModels: SbomModel[] = mockModels.map(toMockSbomModel);

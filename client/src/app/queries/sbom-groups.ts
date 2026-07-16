@@ -24,15 +24,32 @@ import {
   readSbomGroup,
   updateSbomGroup,
 } from "@app/client";
+import { FILTER_NULL_VALUE } from "@app/Constants";
 import { requestParamsQuery } from "@app/hooks/table-controls/getHubRequestParams";
+import {
+  getMockSbomGroupById,
+  getMockSbomGroupsWithCounts,
+} from "@app/mocks/sbom-groups";
+
 import { SBOMsQueryKey } from "./sboms";
+
+declare const __MOCK_DATA__: boolean;
 
 export const SBOMGroupsQueryKey = "sbom-groups";
 
 export const SBOMGroupByIdQueryOptions = (id: string) => {
   return queryOptions({
     queryKey: [SBOMGroupsQueryKey, id],
-    queryFn: () => readSbomGroup({ client, path: { id } }),
+    queryFn: () => {
+      if (__MOCK_DATA__) {
+        const found = getMockSbomGroupById(id);
+        if (!found) {
+          return Promise.reject(new Error(`Mock SBOM group not found: ${id}`));
+        }
+        return Promise.resolve({ data: found });
+      }
+      return readSbomGroup({ client, path: { id } });
+    },
     enabled: !!id,
   });
 };
@@ -70,6 +87,17 @@ export const useFetchSBOMGroups = (
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [SBOMGroupsQueryKey, parentId, { params, extraQueryParams }],
     queryFn: () => {
+      if (__MOCK_DATA__) {
+        let items = getMockSbomGroupsWithCounts();
+        if (parentId === FILTER_NULL_VALUE) {
+          items = items.filter((group) => group.parent == null);
+        } else if (parentId) {
+          items = items.filter((group) => group.parent === parentId);
+        }
+        return Promise.resolve({
+          data: { items, total: items.length, referenced: [] },
+        });
+      }
       const { q, ...rest } = requestParamsQuery(params);
       const parentQuery = parentId ? `parent=${parentId}` : "";
       return listSbomGroups({

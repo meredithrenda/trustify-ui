@@ -4,8 +4,8 @@ import type { AxiosError } from "axios";
 import type { HubFilter, HubRequestParams } from "@app/api/models";
 import { client } from "@app/axios-config/apiInit";
 import {
-  type AnalysisResponse,
-  analyze,
+  type AnalysisResponseV3,
+  analyzeV3,
   getVulnerability,
   listVulnerabilities,
 } from "@app/client";
@@ -46,7 +46,7 @@ function applyMockVulnerabilitySort<
   T extends {
     identifier: string;
     published?: string | null;
-    average_score?: number | null;
+    base_score?: { score: number } | null;
   },
 >(items: T[], sortString: string | undefined): T[] {
   if (!sortString?.trim()) {
@@ -65,7 +65,7 @@ function applyMockVulnerabilitySort<
     let cmp = 0;
     switch (field) {
       case "base_score":
-        cmp = (a.average_score ?? 0) - (b.average_score ?? 0);
+        cmp = (a.base_score?.score ?? 0) - (b.base_score?.score ?? 0);
         break;
       case "published": {
         const ta = a.published ? new Date(a.published).getTime() : 0;
@@ -87,7 +87,7 @@ function applyMockVulnerabilitySort<
 function matchesMockVulnerabilityFilter<
   T extends {
     published?: string | null;
-    average_severity?: string | null;
+    base_score?: { severity: string } | null;
   },
 >(item: T, filter: HubFilter): boolean {
   const { field, operator, value } = filter;
@@ -104,8 +104,8 @@ function matchesMockVulnerabilityFilter<
   ) {
     const severities = value.list.map(String);
     return (
-      item.average_severity != null &&
-      severities.includes(item.average_severity)
+      item.base_score?.severity != null &&
+      severities.includes(item.base_score.severity)
     );
   }
 
@@ -115,7 +115,7 @@ function matchesMockVulnerabilityFilter<
 function applyMockVulnerabilityFilters<
   T extends {
     published?: string | null;
-    average_severity?: string | null;
+    base_score?: { severity: string } | null;
   },
 >(items: T[], filters: HubFilter[] | undefined): T[] {
   if (!filters?.length) {
@@ -199,11 +199,11 @@ export const useFetchVulnerabilitiesByPackageIds = (ids: string[]) => {
       return chunks;
     }, []),
     dataResolver: async (ids: string[]) => {
-      const response = await analyze({
+      const response = await analyzeV3({
         client,
         body: { purls: ids },
       });
-      return response.data;
+      return response.data ?? null;
     },
   };
 
@@ -220,7 +220,7 @@ export const useFetchVulnerabilitiesByPackageIds = (ids: string[]) => {
   const isFetching = userQueries.some(({ isFetching }) => isFetching);
   const fetchError = userQueries.find(({ error }) => !!error);
 
-  const analysisResponse: AnalysisResponse = {};
+  const analysisResponse: AnalysisResponseV3 = {};
 
   if (!isFetching) {
     for (const data of userQueries.map((item) => item?.data ?? {})) {

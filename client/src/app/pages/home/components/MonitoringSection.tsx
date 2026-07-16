@@ -28,7 +28,7 @@ import {
 import { severityList } from "@app/api/model-utils";
 import type { ExtendedSeverity } from "@app/api/models";
 import type { SbomHead } from "@app/client";
-import { LoadingWrapper } from "@app/components/LoadingWrapper";
+import { LoadingWrapper } from "@tsd-ui/core";
 import { useVulnerabilitiesOfSboms } from "@app/hooks/domain-controls/useVulnerabilitiesOfSbom";
 import { useFetchSBOMs } from "@app/queries/sboms";
 import { Paths } from "@app/Routes";
@@ -57,7 +57,7 @@ export const MonitoringSection: React.FC = () => {
     result: { data: barchartSboms },
     isFetching: isFetchingBarchartSboms,
     fetchError: fetchErrorBarchartSboms,
-  } = useFetchSBOMs(undefined, {
+  } = useFetchSBOMs(null, {
     page: { pageNumber: 1, itemsPerPage: 10 },
     sort: { field: "ingested", direction: "desc" },
   });

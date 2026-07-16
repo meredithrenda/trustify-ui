@@ -11,8 +11,10 @@ import type { HubRequestParams, Label } from "@app/api/models";
 import { uploadSbom } from "@app/api/rest";
 import { client } from "@app/axios-config/apiInit";
 import {
+  type Group,
   type IngestResult,
   type Labels,
+  type SbomHead,
   type SbomSummary,
   deleteSbom,
   downloadSbom,
@@ -22,11 +24,13 @@ import {
   listRelatedSboms,
   listSbomLabels,
   listSboms,
+  patchSbomGroupAssignments,
   updateSbomLabels,
 } from "@app/client";
-import { FILTER_NULL_VALUE } from "@app/Constants";
 import { useUpload } from "@app/hooks/useUpload";
+import { getMockSbomLicenseIds } from "@app/mocks/packages";
 import { getMockSbomAdvisories } from "@app/mocks/sbom-advisories";
+import { getMockSbomIdsForGroup } from "@app/mocks/sbom-groups";
 import { mockSboms } from "@app/mocks/sboms";
 
 import {
@@ -62,30 +66,35 @@ export const useFetchSBOMLabels = (filterText: string) => {
 };
 
 export const useFetchSBOMs = (
-  groups: string[] = [FILTER_NULL_VALUE],
+  groupId: string | null = null,
   params: HubRequestParams = {},
   labels: Label[] = [],
   disableQuery = false,
+  advisories = false,
 ) => {
   const { q, ...rest } = requestParamsQuery(params);
   const labelQuery = labelRequestParamsQuery(labels);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [SBOMsQueryKey, params, labelQuery],
+    queryKey: [SBOMsQueryKey, groupId, params, labelQuery, advisories],
     queryFn: () => {
       if (__MOCK_DATA__) {
+        let items = [...mockSboms];
+        if (groupId) {
+          const allowed = getMockSbomIdsForGroup(groupId);
+          items = items.filter((sbom) => allowed.has(sbom.id));
+        }
         return Promise.resolve({
-          data: { items: mockSboms, total: mockSboms.length },
+          data: { items, total: items.length },
         });
       }
       return listSboms({
         client,
         query: {
           ...rest,
+          group: groupId ? [groupId] : [],
           q: [q, labelQuery].filter((e) => e).join("&"),
-        },
-        path: {
-          group: groups,
+          advisories,
         },
       });
     },
@@ -286,6 +295,11 @@ export const useFetchSbomsLicenseIds = (sbomId: string) => {
   const { data, isLoading, error } = useQuery({
     queryKey: [SBOMsQueryKey, sbomId, "license-ids"],
     queryFn: () => {
+      if (__MOCK_DATA__) {
+        return Promise.resolve({
+          data: getMockSbomLicenseIds(sbomId),
+        });
+      }
       return listAllLicenseIds({
         client,
         path: { id: sbomId },
@@ -298,4 +312,58 @@ export const useFetchSbomsLicenseIds = (sbomId: string) => {
     isFetching: isLoading,
     fetchError: error as AxiosError | null,
   };
+};
+
+export const useAddSBOMsToGroupsMutation = (
+  onSuccess: (payload: { group: Group; sboms: SbomHead[] }) => void,
+  onError: (err: AxiosError) => void,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { group: Group; sboms: SbomHead[] }) => {
+      const { sboms, group } = payload;
+      const response = await patchSbomGroupAssignments({
+        client,
+        body: {
+          sbom_ids: sboms.map((e) => e.id),
+          add: [group.id],
+        },
+      });
+      return response.data;
+    },
+    onSuccess: async (_response, payload) => {
+      await queryClient.invalidateQueries({
+        queryKey: [SBOMsQueryKey, payload.group.id],
+      });
+      onSuccess(payload);
+    },
+    onError: onError,
+  });
+};
+
+export const useRemoveSBOMFromGroupMutation = (
+  onSuccess: (payload: { groupId: string; sbom: SbomHead }) => void,
+  onError: (err: AxiosError) => void,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { groupId: string; sbom: SbomHead }) => {
+      const { sbom, groupId } = payload;
+      const response = await patchSbomGroupAssignments({
+        client,
+        body: {
+          sbom_ids: [sbom.id],
+          remove: [groupId],
+        },
+      });
+      return response.data;
+    },
+    onSuccess: async (_response, payload) => {
+      await queryClient.invalidateQueries({
+        queryKey: [SBOMsQueryKey, payload.groupId],
+      });
+      onSuccess(payload);
+    },
+    onError: onError,
+  });
 };

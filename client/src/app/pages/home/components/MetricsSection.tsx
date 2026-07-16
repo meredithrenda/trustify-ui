@@ -11,7 +11,7 @@ import {
   Title,
 } from "@patternfly/react-core";
 
-import { LoadingWrapper } from "@app/components/LoadingWrapper";
+import { LoadingWrapper } from "@tsd-ui/core";
 import { useFetchSBOMs } from "@app/queries/sboms";
 import { useFetchVulnerabilities } from "@app/queries/vulnerabilities";
 
@@ -26,7 +26,7 @@ export const MetricsSection: React.FC = () => {
     result: { data: sboms = [], total: totalSboms },
     isFetching: isFetchingSboms,
     fetchError: fetchErrorSboms,
-  } = useFetchSBOMs(undefined, {
+  } = useFetchSBOMs(null, {
     page: { pageNumber: 1, itemsPerPage: 50 },
     sort: { field: "ingested", direction: "desc" },
   });

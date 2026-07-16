@@ -30,7 +30,7 @@ interface ISbomSearchContext {
     | "labels"
     | "vulnerabilities",
     "name" | "published",
-    "name" | "published" | "labels" | "license",
+    "" | "published" | "labels" | "license" | "policyRun",
     string
   >;
 
@@ -53,6 +53,7 @@ interface ISbomSearchContext {
   totalItemCount: number;
   isFetching: boolean;
   fetchError: AxiosError | null;
+  policyRunFilter?: string;
 }
 
 const contextDefaultValue = {} as ISbomSearchContext;

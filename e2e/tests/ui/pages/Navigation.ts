@@ -17,7 +17,6 @@ export class Navigation {
   async goToSidebar(
     menu:
       | "Dashboard"
-      | "Search"
       | "All SBOMs"
       | "Groups"
       | "Vulnerabilities"

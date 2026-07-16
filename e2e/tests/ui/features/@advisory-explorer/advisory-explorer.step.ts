@@ -5,7 +5,6 @@ import { test } from "../../fixtures";
 import { expect } from "../../assertions";
 
 import { ToolbarTable } from "../../helpers/ToolbarTable";
-import { SearchPage } from "../../helpers/SearchPage";
 
 import { AdvisoryDetailsPage } from "../../pages/advisory-details/AdvisoryDetailsPage";
 import { AdvisoryListPage } from "../../pages/advisory-list/AdvisoryListPage";
@@ -39,14 +38,6 @@ Given(
 );
 
 // Advisory Search
-When(
-  "User searches for an advisory named {string} in the general search bar",
-  async ({ page }, item) => {
-    const searchPage = new SearchPage(page, "Dashboard");
-    await searchPage.generalSearch("Advisories", item);
-  },
-);
-
 When(
   "User searches for {string} in the dedicated search bar",
   async ({ page }, advisoryID) => {
