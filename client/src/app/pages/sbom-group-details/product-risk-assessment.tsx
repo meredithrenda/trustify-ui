@@ -292,13 +292,19 @@ export const ProductRiskAssessment: React.FC = () => {
               </Button>
             </FlexItem>
             <FlexItem>
-              <Button
-                variant={view === "overall" ? "primary" : "secondary"}
-                isDisabled={overall.completedCount === 0}
-                onClick={() => setView("overall")}
-              >
-                View overall score
-              </Button>
+              {view === "overall" ? (
+                <Button variant="primary" onClick={() => setView("document")}>
+                  Continue assessments
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  isDisabled={overall.completedCount === 0}
+                  onClick={() => setView("overall")}
+                >
+                  View overall score
+                </Button>
+              )}
             </FlexItem>
           </Flex>
         </FlexItem>
@@ -309,8 +315,19 @@ export const ProductRiskAssessment: React.FC = () => {
           <Card className="pra__risk-card">
             <CardTitle>Product Risk Assessment Score</CardTitle>
             <CardBody>
-              <div className="pra__risk-score pra__risk-score--overall">
-                {overall.score}/100
+              <div className="pra__risk-score">
+                <span
+                  className={`pra__risk-score-value ${
+                    overall.score <= 33
+                      ? "pra__risk-score-value--low"
+                      : overall.score <= 66
+                        ? "pra__risk-score-value--medium"
+                        : "pra__risk-score-value--high"
+                  }`}
+                >
+                  {overall.score}
+                </span>
+                <span className="pra__risk-score-total">/100</span>
               </div>
               <Content component="small">
                 {overall.isPartial

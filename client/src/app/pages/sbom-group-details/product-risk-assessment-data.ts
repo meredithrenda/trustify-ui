@@ -86,101 +86,101 @@ export const ALL_PRA_DOCUMENT_IDS: PraDocumentId[] = PRA_DOCUMENTS.map(
   (doc) => doc.id,
 );
 
-/** Mock SAR criteria matching the NIST PRA Figma design. */
+/** Mock SAR criteria — low overall risk example for demos. */
 export const MOCK_SAR_CRITERIA: PraCriterion[] = [
   {
     id: "scope",
     name: "System scope and boundaries",
     completeness: "Partial",
-    riskLevel: "Moderate",
-    score: 5.5,
+    riskLevel: "Low",
+    score: 3,
   },
   {
     id: "components",
     name: "System components and architecture",
     completeness: "Partial",
-    riskLevel: "Very high",
-    score: 7,
+    riskLevel: "Moderate",
+    score: 4.5,
   },
   {
     id: "data-flows",
     name: "Data flows and information movement",
     completeness: "Partial",
-    riskLevel: "Moderate",
-    score: 6.5,
+    riskLevel: "Low",
+    score: 3.5,
   },
   {
     id: "assets",
     name: "Asset identification and classification",
-    completeness: "Missing",
-    riskLevel: "Very high",
-    score: 8,
+    completeness: "Partial",
+    riskLevel: "Moderate",
+    score: 4,
   },
   {
     id: "sensitivity",
     name: "Information sensitivity and classification",
-    completeness: "Missing",
-    riskLevel: "Very high",
-    score: 8.5,
+    completeness: "Partial",
+    riskLevel: "Low",
+    score: 3,
   },
   {
     id: "purpose",
     name: "System purpose, business context, and mission criticality",
     completeness: "Partial",
-    riskLevel: "Moderate",
-    score: 6,
+    riskLevel: "Low",
+    score: 2.5,
   },
   {
     id: "interfaces",
     name: "System interfaces and external connections",
     completeness: "Partial",
-    riskLevel: "Very high",
-    score: 7.5,
+    riskLevel: "Moderate",
+    score: 4,
   },
   {
     id: "controls",
     name: "Security controls and protections",
     completeness: "Partial",
-    riskLevel: "Very high",
-    score: 7,
+    riskLevel: "Low",
+    score: 3,
   },
   {
     id: "compliance",
     name: "Security and compliance requirements",
     completeness: "Partial",
-    riskLevel: "Very high",
-    score: 7.5,
+    riskLevel: "Low",
+    score: 2.5,
   },
   {
     id: "environment",
     name: "System environment and operational context",
     completeness: "Partial",
     riskLevel: "Low",
-    score: 4,
+    score: 2,
   },
   {
     id: "known-issues",
     name: "Known issues, vulnerabilities and weaknesses",
     completeness: "Partial",
     riskLevel: "Moderate",
-    score: 6,
+    score: 4,
   },
   {
     id: "documentation",
     name: "Documentation quality and completeness",
-    completeness: "Missing",
-    riskLevel: "Moderate",
-    score: 6,
+    completeness: "Partial",
+    riskLevel: "Low",
+    score: 3,
   },
 ];
 
 const MOCK_DOC_SCORES: Partial<Record<PraDocumentId, number>> = {
-  "threat-model": 15,
-  sar: 37.5,
+  "threat-model": 12,
+  sar: 22,
   pentesting: 8,
-  sast: 12,
-  dast: 25,
-  vex: 18,
+  sast: 15,
+  dast: 18,
+  vex: 10,
 };
 
 export const createMockAssessment = (
@@ -207,7 +207,7 @@ export const createMockAssessment = (
 
   if (documentId === "sar") {
     return {
-      riskScorePercent: MOCK_DOC_SCORES.sar ?? 37.5,
+      riskScorePercent: MOCK_DOC_SCORES.sar ?? 22,
       submittedAt: submitted,
       lastSavedAt: lastSaved,
       criteria: MOCK_SAR_CRITERIA,

@@ -126,10 +126,23 @@
   font-weight: var(--pf-t--global--font--weight--body--default);
   line-height: 1.2;
   margin-block: 0 var(--pf-t--global--spacer--sm);
+  color: var(--pf-t--global--text--color--regular);
 }
 
-.pra__risk-score--overall {
+.pra__risk-score-value--low {
   color: var(--pf-t--global--text--color--status--success--default);
+}
+
+.pra__risk-score-value--medium {
+  color: var(--pf-t--global--text--color--status--warning--default);
+}
+
+.pra__risk-score-value--high {
+  color: var(--pf-t--global--text--color--status--danger--default);
+}
+
+.pra__risk-score-total {
+  color: var(--pf-t--global--text--color--regular);
 }
 
 .pra__risk-actions {
@@ -163,6 +176,11 @@
   padding-block: var(--pf-t--global--spacer--md);
   border-block-end: var(--pf-t--global--border--width--divider--default) solid
     var(--pf-t--global--border--color--default);
+  color: var(--pf-t--global--text--color--regular);
+  font-family: var(--pf-t--global--font--family--body);
+  font-size: var(--pf-t--global--font--size--body--default);
+  font-weight: var(--pf-t--global--font--weight--body--default);
+  line-height: var(--pf-t--global--font--line-height--body);
 }
 
 .pra__overall-row:last-child {
@@ -180,7 +198,7 @@
 .pra__overall-link {
   border: 0;
   background: transparent;
-  color: var(--pf-t--global--text--color--link--default);
+  color: var(--pf-t--global--text--color--regular);
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
@@ -200,7 +218,11 @@
 
 .pra__overall-score {
   flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--pf-t--global--font--family--body);
+  font-size: var(--pf-t--global--font--size--body--default);
+  font-weight: var(--pf-t--global--font--weight--body--default);
+  line-height: var(--pf-t--global--font--line-height--body);
+  color: var(--pf-t--global--text--color--regular);
 }
 
 .pra__customize-list {
