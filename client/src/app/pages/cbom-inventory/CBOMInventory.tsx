@@ -32,7 +32,7 @@ import {
   CBOM_FIXTURE_SCANNER_LABEL,
   CBOM_SPEC_LABEL,
   CbomInventoryProvider,
-  CryptographyPolicySection,
+  CryptographicAlgorithmPolicies,
   CryptoAssetsTable,
   CryptoDetailContent,
   type CryptographicAsset,
@@ -309,7 +309,7 @@ const CBOMInventoryPage: React.FC = () => {
       <PageSection variant="light" style={{ paddingTop: 0 }}>
         <Stack hasGutter>
           <StackItem>
-            <CryptographyPolicySection />
+            <CryptographicAlgorithmPolicies assets={assets} />
           </StackItem>
           <StackItem>
             <Toolbar clearAllFilters={() => setFilterValues({})}>

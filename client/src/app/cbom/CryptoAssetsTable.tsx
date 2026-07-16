@@ -14,12 +14,14 @@ import {
   getAssetTypeColor,
   getAssetTypeLabel,
 } from "./display";
+import { CryptoAssetPolicyTableCell } from "./CryptoAssetPolicyChips";
 import type { CryptographicAsset } from "./types";
 
 interface CryptoAssetsTableProps {
   assets: CryptographicAsset[];
   onSelectAsset: (asset: CryptographicAsset) => void;
   showSbomColumn?: boolean;
+  showPolicyColumn?: boolean;
   renderSbomCell?: (asset: CryptographicAsset) => React.ReactNode;
 }
 
@@ -32,36 +34,74 @@ interface TableColumnConfig {
   modifier?: TableColumnModifier;
 }
 
-const getColumns = (showSbomColumn: boolean): TableColumnConfig[] => {
+const getColumns = (
+  showSbomColumn: boolean,
+  showPolicyColumn: boolean,
+): TableColumnConfig[] => {
   if (showSbomColumn) {
     return [
-      { key: "name", title: "Name", width: 22, modifier: "truncate" },
+      { key: "name", title: "Name", width: 20, modifier: "truncate" },
       {
         key: "assetType",
         title: "Asset type",
-        width: 10,
-        modifier: "fitContent",
+        width: 12,
+        modifier: "truncate",
       },
-      { key: "primitive", title: "Primitive", width: 12, modifier: "truncate" },
-      { key: "occurrences", title: "Occurrences", width: 10, modifier: "fitContent" },
-      { key: "usage", title: "Usage", width: 12, modifier: "nowrap" },
-      { key: "sboms", title: "SBOMs", width: 14, modifier: "truncate" },
+      { key: "primitive", title: "Primitive", width: 10, modifier: "truncate" },
+      {
+        key: "occurrences",
+        title: "Occurrences",
+        width: 10,
+        modifier: "nowrap",
+      },
+      ...(showPolicyColumn
+        ? [
+            {
+              key: "policy",
+              title: "Policy",
+              width: 16,
+              modifier: "truncate" as const,
+            },
+          ]
+        : []),
+      { key: "usage", title: "Usage", width: 14, modifier: "truncate" },
+      { key: "sboms", title: "SBOMs", width: 18, modifier: "truncate" },
     ];
   }
 
   return [
-    { key: "name", title: "Name", width: 28, modifier: "truncate" },
+    { key: "name", title: "Name", width: 24, modifier: "truncate" },
     {
       key: "assetType",
       title: "Asset type",
-      width: 8,
-      modifier: "fitContent",
+      width: 14,
+      modifier: "truncate",
     },
-    { key: "primitive", title: "Primitive", width: 16, modifier: "truncate" },
-    { key: "occurrences", title: "Occurrences", width: 8, modifier: "fitContent" },
-    { key: "usage", title: "Usage", width: 18, modifier: "nowrap" },
+    { key: "primitive", title: "Primitive", width: 12, modifier: "truncate" },
+    {
+      key: "occurrences",
+      title: "Occurrences",
+      width: 12,
+      modifier: "nowrap",
+    },
+    ...(showPolicyColumn
+      ? [
+          {
+            key: "policy",
+            title: "Policy",
+            width: 18,
+            modifier: "truncate" as const,
+          },
+        ]
+      : []),
+    { key: "usage", title: "Usage", width: 20, modifier: "truncate" },
   ];
 };
+
+const columnConfigByKey = (
+  columns: TableColumnConfig[],
+): Record<string, TableColumnConfig> =>
+  Object.fromEntries(columns.map((column) => [column.key, column]));
 
 const emptyCell = (
   <Content
@@ -72,22 +112,32 @@ const emptyCell = (
   </Content>
 );
 
-const columnWidthByKey = (
-  columns: TableColumnConfig[],
-): Record<string, number> =>
-  Object.fromEntries(columns.map((column) => [column.key, column.width]));
+const getTdProps = (
+  columnKey: string,
+  columnByKey: Record<string, TableColumnConfig>,
+) => {
+  const column = columnByKey[columnKey];
+
+  return {
+    dataLabel: column.title,
+    modifier: column.modifier,
+    width: column.width,
+  };
+};
 
 export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
   assets,
   onSelectAsset,
   showSbomColumn = false,
+  showPolicyColumn = true,
   renderSbomCell,
 }) => {
-  const columns = getColumns(showSbomColumn);
-  const widthByKey = columnWidthByKey(columns);
+  const columns = getColumns(showSbomColumn, showPolicyColumn);
+  const columnByKey = columnConfigByKey(columns);
+  const td = (columnKey: string) => getTdProps(columnKey, columnByKey);
 
   return (
-    <Table aria-label="Cryptographic assets table" variant="compact">
+    <Table aria-label="Cryptographic assets table">
       <Thead>
         <Tr>
           {columns.map((column) => (
@@ -107,11 +157,7 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
 
           return (
             <Tr key={asset.id} isHoverable>
-              <Td
-                dataLabel="Name"
-                modifier="truncate"
-                width={widthByKey.name}
-              >
+              <Td {...td("name")}>
                 <Stack>
                   <StackItem>
                     <Button
@@ -136,46 +182,27 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
                   ) : null}
                 </Stack>
               </Td>
-              <Td
-                dataLabel="Asset type"
-                modifier="fitContent"
-                width={widthByKey.assetType}
-              >
+              <Td {...td("assetType")}>
                 <Label color={getAssetTypeColor(asset.assetType)} isCompact>
                   {getAssetTypeLabel(asset.assetType)}
                 </Label>
               </Td>
-              <Td
-                dataLabel="Primitive"
-                modifier="truncate"
-                width={widthByKey.primitive}
-              >
+              <Td {...td("primitive")}>
                 {primitiveCell ? (
                   <Content component="span">{primitiveCell.label}</Content>
                 ) : (
                   emptyCell
                 )}
               </Td>
-              <Td
-                dataLabel="Occurrences"
-                modifier="fitContent"
-                width={widthByKey.occurrences}
-              >
-                {asset.occurrenceCount}
-              </Td>
-              <Td
-                dataLabel="Usage"
-                modifier="nowrap"
-                width={widthByKey.usage}
-              >
-                {asset.usageType}
-              </Td>
+              <Td {...td("occurrences")}>{asset.occurrenceCount}</Td>
+              {showPolicyColumn ? (
+                <Td {...td("policy")}>
+                  <CryptoAssetPolicyTableCell asset={asset} />
+                </Td>
+              ) : null}
+              <Td {...td("usage")}>{asset.usageType}</Td>
               {showSbomColumn ? (
-                <Td
-                  dataLabel="SBOMs"
-                  modifier="truncate"
-                  width={widthByKey.sboms}
-                >
+                <Td {...td("sboms")}>
                   {renderSbomCell ? renderSbomCell(asset) : emptyCell}
                 </Td>
               ) : null}

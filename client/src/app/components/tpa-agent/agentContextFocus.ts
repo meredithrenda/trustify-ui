@@ -18,7 +18,7 @@ const describeExploitIntelligence = (
   }
 
   if (state.kind === "request_failed") {
-    return `Exploit intelligence request failed: ${state.error.summary}`;
+    return `Exploit intelligence was not submitted: ${state.error.summary}`;
   }
 
   switch (state.finding.variant) {

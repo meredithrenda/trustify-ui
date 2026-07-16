@@ -5,6 +5,7 @@ import { Content, Stack, StackItem, Title } from "@patternfly/react-core";
 import {
   CBOM_FIXTURE_SCANNER_LABEL,
   CBOM_SPEC_LABEL,
+  CryptographicAlgorithmPolicies,
   CryptoAssetsTable,
   type CryptographicAsset,
   getCryptographicAssetsForSbom,
@@ -31,6 +32,9 @@ export const Cryptography: React.FC<CryptographyProps> = ({
 
   return (
     <Stack hasGutter>
+      <StackItem>
+        <CryptographicAlgorithmPolicies assets={assets} />
+      </StackItem>
       <StackItem>
         <Title headingLevel="h3" size="lg">
           Cryptographic assets

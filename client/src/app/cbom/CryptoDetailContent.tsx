@@ -25,6 +25,12 @@ import {
 import { CBOM_ROUTE_PATHS } from "./paths";
 
 import {
+  cryptoAlgorithmPolicyStatusLabel,
+  cryptoAssetPolicyVerdictLabel,
+  getCryptoAssetPolicyResults,
+  getCryptoAssetPolicyVerdict,
+} from "./cryptoAlgorithmPolicies";
+import {
   formatPrimitiveCell,
   getAssetTypeColor,
   getAssetTypeLabel,
@@ -33,8 +39,6 @@ import {
 import type { CryptographicAsset } from "./types";
 
 const EVIDENCE_PAGE_SIZE = 10;
-
-const defaultPolicyPlaceholders = ["PQ / PQC signal", "Unwanted library"];
 
 export type CryptoDetailViewContext = "inventory" | "sbom";
 
@@ -50,7 +54,9 @@ export const CryptoDetailContent: React.FC<{
       ? "Not linked to another SBOM in this workspace."
       : "Not linked to an SBOM in this workspace.";
 
-  const policyChips = defaultPolicyPlaceholders;
+  const policyResults = getCryptoAssetPolicyResults(asset);
+  const policyVerdict = getCryptoAssetPolicyVerdict(asset);
+  const verdictLabel = cryptoAssetPolicyVerdictLabel[policyVerdict];
 
   const visibleEvidence = asset.evidence?.slice(0, evidenceVisibleCount) ?? [];
   const hasMoreEvidence = (asset.evidence?.length ?? 0) > evidenceVisibleCount;
@@ -352,37 +358,76 @@ export const CryptoDetailContent: React.FC<{
 
       <StackItem>
         <Card>
-          <CardTitle>Policy signals</CardTitle>
+          <CardTitle>Algorithm policy</CardTitle>
           <CardBody>
-            <Stack hasGutter>
-              <StackItem>
-                <Content
-                  component="p"
-                  style={{
-                    color: "var(--pf-t--global--text--color--subtle)",
-                    marginBottom: 0,
-                  }}
-                >
-                  Non-enforced examples for roadmap demos. Future policy would
-                  evaluate findings against organizational rules.
-                </Content>
-              </StackItem>
-              <StackItem>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "var(--pf-t--global--spacer--xs)",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {policyChips.map((label) => (
-                    <Label key={label} color="grey" isCompact>
-                      {label}
+            {policyResults.length > 0 ? (
+              <DescriptionList isCompact>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>Verdict</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Label color={verdictLabel.color} isCompact>
+                      {verdictLabel.text}
                     </Label>
-                  ))}
-                </div>
-              </StackItem>
-            </Stack>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                {policyResults.map((result) => {
+                  const status =
+                    cryptoAlgorithmPolicyStatusLabel[result.status];
+
+                  return (
+                    <DescriptionListGroup key={result.id}>
+                      <DescriptionListTerm>{result.name}</DescriptionListTerm>
+                      <DescriptionListDescription>
+                        <Stack gap={{ default: "gapXs" }}>
+                          <StackItem>
+                            <Label color={status.color} isCompact>
+                              {status.text}
+                            </Label>
+                          </StackItem>
+                          <StackItem>
+                            <Content
+                              component="small"
+                              style={{
+                                color:
+                                  "var(--pf-t--global--text--color--subtle)",
+                                marginBottom: 0,
+                              }}
+                            >
+                              {result.summary}
+                            </Content>
+                          </StackItem>
+                        </Stack>
+                      </DescriptionListDescription>
+                    </DescriptionListGroup>
+                  );
+                })}
+              </DescriptionList>
+            ) : (
+              <DescriptionList isCompact>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>Verdict</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Label color={verdictLabel.color} isCompact>
+                      {verdictLabel.text}
+                    </Label>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+                <DescriptionListGroup>
+                  <DescriptionListTerm>Policies</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <Content
+                      component="p"
+                      style={{
+                        color: "var(--pf-t--global--text--color--subtle)",
+                        marginBottom: 0,
+                      }}
+                    >
+                      No algorithm policies apply to this asset type.
+                    </Content>
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              </DescriptionList>
+            )}
           </CardBody>
         </Card>
       </StackItem>
