@@ -33,10 +33,15 @@ import {
   Tr,
 } from "@patternfly/react-table";
 
-import { type VulnerabilityStatus } from "@app/api/models";
+import {
+  type ExtendedSeverity,
+  type VulnerabilityStatus,
+} from "@app/api/models";
 import type {
+  AdvisoryHead,
   PurlSummary,
   SbomStatus,
+  ScoredVector,
 } from "@app/client";
 import {
   buildExploitIntelligenceErrorBanner,
@@ -177,6 +182,11 @@ interface TableData {
     | { isOrphan: true; parentName: string }
     | { isOrphan: false; purlSummary: PurlSummary }
   >;
+  opinionatedAdvisory: {
+    advisory: AdvisoryHead | null;
+    score: ScoredVector | null;
+    extendedSeverity: ExtendedSeverity;
+  };
   /** When the API returns exploit-intelligence state for this row, it is passed through here */
   exploitIntelligence?: ExploitIntelligenceCellState;
 }
@@ -264,6 +274,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
         vulnerability: item.vulnerability,
         vulnerabilityStatus: item.vulnerabilityStatus,
         purls: item.purls,
+        opinionatedAdvisory: item.opinionatedAdvisory,
         exploitIntelligence,
       };
 

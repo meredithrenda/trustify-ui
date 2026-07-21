@@ -124,6 +124,11 @@ export const githubPages = (ghBasePath: string): RsbuildPlugin => ({
       if (fs.existsSync(indexPath)) {
         let html = fs.readFileSync(indexPath, "utf-8");
         html = html.replace('<base href="/"/>', `<base href="${ghBasePath}"/>`);
+        // Drop any leftover Vite-style entry tag so production only loads hashed bundles.
+        html = html.replace(
+          /<script\s+type="module"\s+src="[^"]*\/src\/index\.tsx"><\/script>\s*/g,
+          "",
+        );
         fs.writeFileSync(indexPath, html);
         fs.copyFileSync(indexPath, path.join(distDir, "404.html"));
       }
