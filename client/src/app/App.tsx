@@ -9,6 +9,7 @@ import { useLocalStorage } from "@app/hooks/useStorage";
 import { NotificationsProvider } from "./components/NotificationsContext";
 import { ReadOnlyProvider } from "./components/ReadOnlyContext";
 import { DefaultLayout } from "./layout";
+import { FeltThemeProvider } from "./layout/felt-theme";
 
 import "@patternfly/patternfly/patternfly.css";
 import "@patternfly/patternfly/patternfly-addons.css";
@@ -26,13 +27,15 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider mode={mode} setMode={setMode}>
-      <ReadOnlyProvider>
-        <NotificationsProvider>
-          <DefaultLayout>
-            <Outlet />
-          </DefaultLayout>
-        </NotificationsProvider>
-      </ReadOnlyProvider>
+      <FeltThemeProvider>
+        <ReadOnlyProvider>
+          <NotificationsProvider>
+            <DefaultLayout>
+              <Outlet />
+            </DefaultLayout>
+          </NotificationsProvider>
+        </ReadOnlyProvider>
+      </FeltThemeProvider>
     </ThemeProvider>
   );
 };

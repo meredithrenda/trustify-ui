@@ -34,14 +34,13 @@ import HelpIcon from "@patternfly/react-icons/dist/esm/icons/help-icon";
 import BarsIcon from "@patternfly/react-icons/dist/esm/icons/bars-icon";
 import ExternalLinkAltIcon from "@patternfly/react-icons/dist/esm/icons/external-link-alt-icon";
 
-import { ThemeSelector } from "@tsd-ui/core";
-
 import { isAuthRequired } from "@app/Constants";
 import getBranding from "@app/hooks/useBranding";
 import { oidcSignoutArgs } from "@app/oidc";
 
 import imgAvatar from "../images/avatar.svg";
 import { AboutApp } from "./about";
+import { AppearanceSelector } from "./felt-theme";
 
 export const HeaderApp: React.FC = () => {
   return isAuthRequired ? <HeaderWithAuth /> : <HeaderWithoutAuth />;
@@ -199,7 +198,7 @@ const HeaderAppInner: React.FC<IHeaderAppInnerProps> = ({ auth }) => {
                   </Dropdown>
                 </ToolbarItem>
                 <ToolbarItem>
-                  <ThemeSelector />
+                  <AppearanceSelector />
                 </ToolbarItem>
               </ToolbarGroup>
 
@@ -211,7 +210,7 @@ const HeaderAppInner: React.FC<IHeaderAppInnerProps> = ({ auth }) => {
                 visibility={{ lg: "hidden" }}
               >
                 <ToolbarItem>
-                  <ThemeSelector />
+                  <AppearanceSelector />
                 </ToolbarItem>
                 <ToolbarItem>
                   <Dropdown
