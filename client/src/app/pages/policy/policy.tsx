@@ -432,7 +432,14 @@ export const Policy: React.FC = () => {
                 </Thead>
                 <Tbody>
                   {filteredEvaluationRuns.map((row) => (
-                    <Tr key={row.runId}>
+                    <Tr
+                      key={row.runId}
+                      {...(row.status === "in_progress"
+                        ? {
+                            "data-tour": "policy-evaluation.see-run",
+                          }
+                        : {})}
+                    >
                       <Td dataLabel="Started">
                         {formatShortDate(row.started)}
                       </Td>

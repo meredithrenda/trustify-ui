@@ -6,6 +6,13 @@ import { ReadOnlyContext } from "@app/components/ReadOnlyContext";
 
 import { DefaultLayout } from "./default-layout";
 
+vi.mock("@app/components/workflow-tours", () => ({
+  isWorkflowToursEnabled: () => false,
+  WorkflowToursChrome: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
+
 vi.mock("./header", () => ({
   HeaderApp: () => <div data-testid="header" />,
 }));

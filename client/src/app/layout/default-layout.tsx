@@ -13,6 +13,10 @@ import { Notifications } from "@app/components/Notifications";
 import { PageContentWithDrawerProvider } from "@app/components/PageDrawerContext";
 import { ReadOnlyContext } from "@app/components/ReadOnlyContext";
 import { TpaAgentLauncher, TpaAgentProvider } from "@app/components/tpa-agent";
+import {
+  isWorkflowToursEnabled,
+  WorkflowToursChrome,
+} from "@app/components/workflow-tours";
 
 import { HeaderApp } from "./header";
 import { SidebarApp } from "./sidebar";
@@ -28,7 +32,7 @@ export const DefaultLayout: React.FC<DefaultLayoutProps> = ({ children }) => {
     <SkipToContent href={`#${pageId}`}>Skip to content</SkipToContent>
   );
 
-  return (
+  const page = (
     <Page
       masthead={<HeaderApp />}
       sidebar={<SidebarApp />}
@@ -66,4 +70,10 @@ export const DefaultLayout: React.FC<DefaultLayoutProps> = ({ children }) => {
       </TpaAgentProvider>
     </Page>
   );
+
+  if (!isWorkflowToursEnabled()) {
+    return page;
+  }
+
+  return <WorkflowToursChrome>{page}</WorkflowToursChrome>;
 };

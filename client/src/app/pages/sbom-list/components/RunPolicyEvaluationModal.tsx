@@ -68,6 +68,7 @@ export const RunPolicyEvaluationModal: React.FC<
       isOpen={isOpen}
       onClose={onClose}
       variant="small"
+      data-tour="policy-evaluation.choose-policy"
     >
       <ModalHeader title="Run policy evaluation" />
       <ModalBody>

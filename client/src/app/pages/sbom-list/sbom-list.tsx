@@ -19,7 +19,7 @@ export const SbomList: React.FC = () => {
       </PageSection>
       <PageSection hasBodyWrapper={false}>
         <div>
-          <SbomSearchProvider isBulkSelectionEnabled>
+          <SbomSearchProvider isBulkSelectionEnabled={true}>
             <SbomToolbar showFilters showActions />
             <SbomTable />
           </SbomSearchProvider>

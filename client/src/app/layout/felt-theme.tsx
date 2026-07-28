@@ -24,6 +24,8 @@ import OutlinedMoonIcon from "@patternfly/react-icons/dist/esm/icons/outlined-mo
 import OutlinedSunIcon from "@patternfly/react-icons/dist/esm/icons/outlined-sun-icon";
 import PaletteIcon from "@patternfly/react-icons/dist/esm/icons/palette-icon";
 
+import { notifyTourAction } from "@app/components/workflow-tours/notify-tour-action";
+import { useWorkflowToursOptional } from "@app/components/workflow-tours/WorkflowToursProvider";
 import { useLocalStorage } from "@app/hooks/useStorage";
 
 const FELT_THEME_CLASS = "pf-v6-theme-felt";
@@ -201,14 +203,59 @@ const contrastMetadata: Record<
  * Masthead appearance menu matching PatternFly.org / Project Felt demos:
  * Color scheme + Contrast (Glass / Default / High contrast).
  * Built with PatternFly Select — same pattern as the PF theme switcher.
+ *
+ * During the “Switch contrast modes” workflow tour, the menu stays open after
+ * the gear is opened so reviewers can walk Glass → Dark → Light → High contrast.
  */
 export const AppearanceSelector: React.FC = () => {
   const { mode, setMode } = React.useContext(ThemeContext);
   const { setContrastMode, effectiveContrastMode } = useFeltTheme();
+  const workflowTours = useWorkflowToursOptional();
   const [isOpen, setIsOpen] = React.useState(false);
+  const heldOpenForContrastTour = React.useRef(false);
+  const lastTourNotify = React.useRef({ tourAttr: "", at: 0 });
 
   const safeMode: ThemeMode = isThemeModeValid(mode) ? mode : "system";
   const selectedContrast = effectiveContrastMode;
+
+  const isContrastTour =
+    workflowTours?.activeTour?.id === "switch-contrast-modes";
+  const keepMenuOpenForContrastTour =
+    Boolean(isContrastTour) && (workflowTours?.stepIndex ?? 0) > 0;
+
+  const notifyContrastTourAction = (tourAttr: string) => {
+    const now = Date.now();
+    if (
+      lastTourNotify.current.tourAttr === tourAttr &&
+      now - lastTourNotify.current.at < 400
+    ) {
+      return;
+    }
+    lastTourNotify.current = { tourAttr, at: now };
+    notifyTourAction(tourAttr);
+  };
+
+  React.useEffect(() => {
+    if (keepMenuOpenForContrastTour) {
+      heldOpenForContrastTour.current = true;
+      return;
+    }
+    if (heldOpenForContrastTour.current) {
+      heldOpenForContrastTour.current = false;
+      setIsOpen(false);
+    }
+  }, [keepMenuOpenForContrastTour]);
+
+  const setAppearanceOpen = (open: boolean) => {
+    if (!open && keepMenuOpenForContrastTour) {
+      setIsOpen(true);
+      return;
+    }
+    setIsOpen(open);
+    if (open) {
+      notifyContrastTourAction("switch-contrast-modes.open-settings");
+    }
+  };
 
   const handleSelect = (
     _event: unknown,
@@ -219,12 +266,26 @@ export const AppearanceSelector: React.FC = () => {
     }
     if (isContrastMode(value)) {
       setContrastMode(value);
-      setIsOpen(false);
+      if (value === "glass") {
+        notifyContrastTourAction("switch-contrast-modes.choose-glass");
+      } else if (value === "high-contrast") {
+        notifyContrastTourAction("switch-contrast-modes.choose-high-contrast");
+      }
+      if (!keepMenuOpenForContrastTour) {
+        setIsOpen(false);
+      }
       return;
     }
     if (isThemeModeValid(value)) {
       setMode(value);
-      setIsOpen(false);
+      if (value === "dark") {
+        notifyContrastTourAction("switch-contrast-modes.choose-dark");
+      } else if (value === "light") {
+        notifyContrastTourAction("switch-contrast-modes.choose-light");
+      }
+      if (!keepMenuOpenForContrastTour) {
+        setIsOpen(false);
+      }
     }
   };
 
@@ -233,13 +294,14 @@ export const AppearanceSelector: React.FC = () => {
       isOpen={isOpen}
       selected={[safeMode, selectedContrast]}
       onSelect={handleSelect}
-      onOpenChange={(open) => setIsOpen(open)}
+      onOpenChange={setAppearanceOpen}
       toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
         <MenuToggle
           ref={toggleRef}
           variant="plain"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setAppearanceOpen(!isOpen)}
           isExpanded={isOpen}
+          data-tour="switch-contrast-modes.open-settings"
           icon={
             <Icon size="lg">
               <CogIcon />
@@ -248,7 +310,7 @@ export const AppearanceSelector: React.FC = () => {
           aria-label={`Display settings. Color scheme: ${colorSchemeMetadata[safeMode].displayText}. Contrast: ${contrastMetadata[selectedContrast].displayText}.`}
         />
       )}
-      shouldFocusToggleOnSelect
+      shouldFocusToggleOnSelect={!keepMenuOpenForContrastTour}
       onOpenChangeKeys={["Escape"]}
       popperProps={{
         position: "right",
@@ -270,13 +332,33 @@ export const AppearanceSelector: React.FC = () => {
           {(Object.keys(colorSchemeMetadata) as ThemeMode[]).map(
             (themeName) => {
               const item = colorSchemeMetadata[themeName];
+              const tourAttr =
+                item.value === "dark"
+                  ? "switch-contrast-modes.choose-dark"
+                  : item.value === "light"
+                    ? "switch-contrast-modes.choose-light"
+                    : undefined;
               return (
                 <SelectOption
                   key={themeName}
                   value={item.value}
                   icon={item.icon}
+                  onClick={() => {
+                    // Already-selected options may not re-fire onSelect.
+                    if (item.value === "dark" && safeMode === "dark") {
+                      notifyContrastTourAction(
+                        "switch-contrast-modes.choose-dark",
+                      );
+                    } else if (item.value === "light" && safeMode === "light") {
+                      notifyContrastTourAction(
+                        "switch-contrast-modes.choose-light",
+                      );
+                    }
+                  }}
                 >
-                  {item.displayText}
+                  <span {...(tourAttr ? { "data-tour": tourAttr } : {})}>
+                    {item.displayText}
+                  </span>
                 </SelectOption>
               );
             },
@@ -297,9 +379,35 @@ export const AppearanceSelector: React.FC = () => {
         <SelectList aria-labelledby="appearance-contrast-title">
           {(Object.keys(contrastMetadata) as ContrastMode[]).map((key) => {
             const item = contrastMetadata[key];
+            const tourAttr =
+              item.value === "glass"
+                ? "switch-contrast-modes.choose-glass"
+                : item.value === "high-contrast"
+                  ? "switch-contrast-modes.choose-high-contrast"
+                  : undefined;
             return (
-              <SelectOption key={key} value={item.value} icon={item.icon}>
-                {item.displayText}
+              <SelectOption
+                key={key}
+                value={item.value}
+                icon={item.icon}
+                onClick={() => {
+                  if (item.value === "glass" && selectedContrast === "glass") {
+                    notifyContrastTourAction(
+                      "switch-contrast-modes.choose-glass",
+                    );
+                  } else if (
+                    item.value === "high-contrast" &&
+                    selectedContrast === "high-contrast"
+                  ) {
+                    notifyContrastTourAction(
+                      "switch-contrast-modes.choose-high-contrast",
+                    );
+                  }
+                }}
+              >
+                <span {...(tourAttr ? { "data-tour": tourAttr } : {})}>
+                  {item.displayText}
+                </span>
               </SelectOption>
             );
           })}

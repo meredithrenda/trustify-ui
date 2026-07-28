@@ -17,6 +17,7 @@ import {
 import { FilterToolbar } from "@app/components/FilterToolbar";
 import { SimplePagination } from "@app/components/SimplePagination";
 import { ToolbarBulkSelector } from "@app/components/ToolbarBulkSelector";
+import { notifyTourAction } from "@app/components/workflow-tours/notify-tour-action";
 import {
   mockConfiguredPolicies,
   type PendingPolicyEvaluationRequest,
@@ -66,6 +67,19 @@ export const SbomToolbar: React.FC<SbomToolbarProps> = ({
 
   const hasSelectedSboms = selectedItems.length > 0;
 
+  React.useEffect(() => {
+    if (selectedItems.length >= 2) {
+      notifyTourAction("policy-evaluation.select-sboms");
+    }
+  }, [selectedItems.length]);
+
+  const setActionsOpen = (open: boolean) => {
+    setIsActionsOpen(open);
+    if (open) {
+      notifyTourAction("policy-evaluation.open-actions");
+    }
+  };
+
   const handleRunPolicyEvaluation = () => {
     if (!selectedPolicyId) {
       return;
@@ -79,10 +93,14 @@ export const SbomToolbar: React.FC<SbomToolbarProps> = ({
 
     setIsRunPolicyModalOpen(false);
     navigate(Paths.policy, { state: { pendingPolicyEvaluation } });
+    // Advance the tour after navigation carries pending-run state (do not
+    // navigate again from the tour — that would drop the in-progress row).
+    notifyTourAction("policy-evaluation.choose-policy");
   };
 
   const openRunPolicyModal = () => {
     setSelectedPolicyId(mockConfiguredPolicies[0]?.id ?? "");
+    notifyTourAction("policy-evaluation.run-policy");
     setIsRunPolicyModalOpen(true);
   };
 
@@ -101,15 +119,16 @@ export const SbomToolbar: React.FC<SbomToolbarProps> = ({
               <ToolbarItem>
                 <Dropdown
                   isOpen={isActionsOpen}
-                  onSelect={() => setIsActionsOpen(false)}
-                  onOpenChange={setIsActionsOpen}
+                  onSelect={() => setActionsOpen(false)}
+                  onOpenChange={setActionsOpen}
                   popperProps={{ position: "right" }}
                   shouldFocusToggleOnSelect
                   toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
                     <MenuToggle
                       ref={toggleRef}
                       isExpanded={isActionsOpen}
-                      onClick={() => setIsActionsOpen(!isActionsOpen)}
+                      onClick={() => setActionsOpen(!isActionsOpen)}
+                      data-tour="policy-evaluation.open-actions"
                     >
                       Actions
                     </MenuToggle>
@@ -163,7 +182,9 @@ export const SbomToolbar: React.FC<SbomToolbarProps> = ({
                             openRunPolicyModal();
                           }}
                         >
-                          Run policy evaluation
+                          <span data-tour="policy-evaluation.run-policy">
+                            Run policy evaluation
+                          </span>
                         </DropdownItem>
                       </>
                     )}

@@ -141,7 +141,8 @@ export const SbomTable: React.FC = () => {
 
   return (
     <>
-      <Table {...tableProps} aria-label="sbom-table">
+      <div data-tour="policy-evaluation.select-sboms">
+        <Table {...tableProps} aria-label="sbom-table">
         <Thead>
           <Tr>
             <TableHeaderContentWithControls {...tableControls}>
@@ -307,6 +308,7 @@ export const SbomTable: React.FC = () => {
           })}
         </ConditionalTableBody>
       </Table>
+      </div>
       <SimplePagination
         idPrefix="sbom-table"
         isTop={false}
