@@ -10,7 +10,7 @@ export type WorkflowTourStep = {
    */
   annotation?: string;
   advanceOn: TourAdvanceOn;
-  /** Matches data-tour="<tour-id>.<step-id>" in the UI */
+  /** Matches data-tour="<tour-id>.<step-id>" in the UI. Omit for no spotlight ring. */
   tourAttr?: string;
 };
 
@@ -28,6 +28,9 @@ export type WorkflowTour = {
 
 const GLASS_MODE_ANNOTATION =
   "Glass mode is designed to work across light and dark color schemes in both our Default and Project Felt themes. To enable glass, add the class .pf-v6-theme-glass to your application’s <html> tag. When implementing glass, it’s important to ensure that it does not harm the overall accessibility or usability of your product.";
+
+const HIGH_CONTRAST_ANNOTATION =
+  "High contrast mode is designed to work with both our standard light and dark themes, and it's available with PatternFly by default. To enable high contrast mode, add the class .pf-v6-theme-high-contrast to your application’s <html> tag. This class can be added dynamically to toggle high contrast mode on and off in your application.";
 
 /** Visual mock tours — Policy evaluation is the first designed example. */
 export const WORKFLOW_TOURS: WorkflowTour[] = [
@@ -80,7 +83,7 @@ export const WORKFLOW_TOURS: WorkflowTour[] = [
     id: "switch-contrast-modes",
     label: "Switch contrast modes",
     summary:
-      "Open display settings and try Glass, Dark, Light, and High contrast.",
+      "Turn on Glass, see it in Dark, then Light with High contrast.",
     steps: [
       {
         id: "open-settings",
@@ -93,30 +96,46 @@ export const WORKFLOW_TOURS: WorkflowTour[] = [
         id: "choose-glass",
         title: "Choose Glass",
         body: "Choose “Glass”.",
-        annotation: GLASS_MODE_ANNOTATION,
         advanceOn: "action",
         tourAttr: "switch-contrast-modes.choose-glass",
       },
       {
+        id: "review-glass",
+        title: "Glass is applied",
+        body: "Glass is now on — notice the translucent surfaces across the page chrome.",
+        annotation: GLASS_MODE_ANNOTATION,
+        advanceOn: "next",
+        // No tourAttr / spotlight — the dimmed ring would hide the glass effect.
+      },
+      {
         id: "choose-dark",
-        title: "Choose Dark",
-        body: "Choose “Dark” (glass stays on).",
+        title: "Glass with Dark",
+        body: "Choose “Dark” to see glass with the dark color scheme.",
         advanceOn: "action",
         tourAttr: "switch-contrast-modes.choose-dark",
       },
       {
-        id: "choose-light",
-        title: "Choose Light",
-        body: "Choose “Light”.",
-        advanceOn: "action",
-        tourAttr: "switch-contrast-modes.choose-light",
+        id: "review-glass-dark",
+        title: "Glass with Dark is applied",
+        body: "Glass is on with the dark color scheme — look around the page to see how translucent surfaces read in dark.",
+        advanceOn: "next",
+        // No tourAttr / spotlight — the dimmed ring would hide the effect.
       },
       {
-        id: "choose-high-contrast",
-        title: "Choose High contrast",
-        body: "Choose “High contrast”.",
+        id: "see-light-then-high-contrast",
+        title: "Light, then High contrast",
+        body: "Choose “Light”, then “High contrast”.",
         advanceOn: "action",
-        tourAttr: "switch-contrast-modes.choose-high-contrast",
+        // Whole appearance menu — both picks happen in this step.
+        tourAttr: "switch-contrast-modes.appearance-menu",
+      },
+      {
+        id: "review-high-contrast",
+        title: "High contrast is applied",
+        body: "High contrast is now on — look around the page for stronger borders and contrast.",
+        annotation: HIGH_CONTRAST_ANNOTATION,
+        advanceOn: "next",
+        // No tourAttr / spotlight — the dimmed ring would hide the effect.
       },
     ],
   },

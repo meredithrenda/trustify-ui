@@ -1,5 +1,12 @@
 /** Prefer the interactive control (menu row / button) over an inner label span. */
 const preferHighlightNode = (el: HTMLElement): HTMLElement => {
+  // Full menus should stay full-size (multi-action steps).
+  if (
+    el.classList.contains("pf-v6-c-menu") ||
+    el.getAttribute("data-tour")?.endsWith(".appearance-menu")
+  ) {
+    return el;
+  }
   const option = el.closest<HTMLElement>('[role="option"], [role="menuitem"]');
   if (option) {
     return option;
@@ -28,8 +35,31 @@ const findVisibleOptionByLabel = (label: string): HTMLElement | null => {
   return null;
 };
 
+const findVisibleAppearanceMenu = (): HTMLElement | null => {
+  const menus = document.querySelectorAll<HTMLElement>(".pf-v6-c-menu");
+  for (const menu of menus) {
+    const text = menu.textContent ?? "";
+    if (
+      isVisible(menu) &&
+      text.includes("Light") &&
+      text.includes("High contrast")
+    ) {
+      return menu;
+    }
+  }
+  return null;
+};
+
 /** Find the visible DOM node for a tour step highlight. */
 export const findTourTarget = (tourAttr: string): HTMLElement | null => {
+  if (tourAttr === "switch-contrast-modes.appearance-menu") {
+    const menu = findVisibleAppearanceMenu();
+    if (menu) {
+      menu.setAttribute("data-tour", tourAttr);
+      return menu;
+    }
+  }
+
   const attributed = [
     ...document.querySelectorAll<HTMLElement>(`[data-tour="${tourAttr}"]`),
   ];
@@ -46,8 +76,6 @@ export const findTourTarget = (tourAttr: string): HTMLElement | null => {
   const contrastTourLabels: Record<string, string> = {
     "switch-contrast-modes.choose-glass": "Glass",
     "switch-contrast-modes.choose-dark": "Dark",
-    "switch-contrast-modes.choose-light": "Light",
-    "switch-contrast-modes.choose-high-contrast": "High contrast",
   };
   const label = contrastTourLabels[tourAttr];
   if (label) {

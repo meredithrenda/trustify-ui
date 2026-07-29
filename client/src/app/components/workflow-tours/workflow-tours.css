@@ -77,11 +77,10 @@
  * Step card must stay opaque in glass mode — glass remaps surface tokens to
  * translucent values, which makes instructions unreadable over the page.
  * Use solid fills (not global surface tokens) so glass cannot wash them out.
+ * Position defaults to bottom-right; reviewers can drag when it blocks content.
  */
 .workflow-tour-spotlight {
   position: fixed;
-  right: var(--pf-t--global--spacer--lg);
-  bottom: var(--pf-t--global--spacer--lg);
   z-index: 10060;
   width: min(22rem, calc(100vw - 2rem));
   padding: var(--pf-t--global--spacer--md);
@@ -92,6 +91,35 @@
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   isolation: isolate;
+}
+
+.workflow-tour-spotlight--dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.workflow-tour-spotlight__drag-handle {
+  display: flex;
+  gap: var(--pf-t--global--spacer--sm);
+  align-items: center;
+  justify-content: space-between;
+  margin: calc(-1 * var(--pf-t--global--spacer--md))
+    calc(-1 * var(--pf-t--global--spacer--md)) var(--pf-t--global--spacer--sm);
+  padding-block: var(--pf-t--global--spacer--xs);
+  padding-inline: var(--pf-t--global--spacer--sm)
+    var(--pf-t--global--spacer--xs);
+  border-block-end: 1px solid var(--pf-t--global--border--color--default);
+  color: var(--pf-t--global--icon--color--subtle);
+  cursor: grab;
+  touch-action: none;
+}
+
+.workflow-tour-spotlight--dragging .workflow-tour-spotlight__drag-handle {
+  cursor: grabbing;
+}
+
+.workflow-tour-spotlight__drag-icon {
+  margin-inline-start: var(--pf-t--global--spacer--xs);
 }
 
 html.pf-v6-theme-dark .workflow-tour-spotlight {

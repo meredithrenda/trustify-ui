@@ -199,13 +199,21 @@ const contrastMetadata: Record<
   },
 };
 
+/** Appearance-menu steps for the Switch contrast modes tour (not review beats). */
+const CONTRAST_TOUR_MENU_STEP_IDS = new Set([
+  "choose-glass",
+  "choose-dark",
+  "see-light-then-high-contrast",
+]);
+
 /**
  * Masthead appearance menu matching PatternFly.org / Project Felt demos:
  * Color scheme + Contrast (Glass / Default / High contrast).
  * Built with PatternFly Select — same pattern as the PF theme switcher.
  *
- * During the “Switch contrast modes” workflow tour, the menu stays open after
- * the gear is opened so reviewers can walk Glass → Dark → Light → High contrast.
+ * During the “Switch contrast modes” workflow tour, the appearance menu stays
+ * open on choose-* steps. It closes on review beats so applied chrome is
+ * visible, then reopens for Dark and Light → High contrast.
  */
 export const AppearanceSelector: React.FC = () => {
   const { mode, setMode } = React.useContext(ThemeContext);
@@ -214,14 +222,49 @@ export const AppearanceSelector: React.FC = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const heldOpenForContrastTour = React.useRef(false);
   const lastTourNotify = React.useRef({ tourAttr: "", at: 0 });
+  const menuToggleElRef = React.useRef<MenuToggleElement | null>(null);
 
   const safeMode: ThemeMode = isThemeModeValid(mode) ? mode : "system";
   const selectedContrast = effectiveContrastMode;
 
   const isContrastTour =
     workflowTours?.activeTour?.id === "switch-contrast-modes";
+  const contrastStepId = isContrastTour
+    ? workflowTours?.activeTour?.steps[workflowTours.stepIndex]?.id
+    : undefined;
   const keepMenuOpenForContrastTour =
-    Boolean(isContrastTour) && (workflowTours?.stepIndex ?? 0) > 0;
+    Boolean(isContrastTour) &&
+    Boolean(contrastStepId) &&
+    CONTRAST_TOUR_MENU_STEP_IDS.has(contrastStepId!);
+
+  const isToggleVisible = React.useCallback(() => {
+    const el = menuToggleElRef.current;
+    if (!el) {
+      return false;
+    }
+    const rect = el.getBoundingClientRect();
+    return rect.width > 1 && rect.height > 1;
+  }, []);
+
+  // Desktop + mobile each mount an AppearanceSelector. Only open the instance
+  // whose toggle is actually laid out — otherwise the hidden one portals a
+  // second menu to the top-left.
+  React.useEffect(() => {
+    if (!keepMenuOpenForContrastTour) {
+      return;
+    }
+    const syncOpenToVisibleToggle = () => {
+      setIsOpen(isToggleVisible());
+    };
+    syncOpenToVisibleToggle();
+    // Layout may settle a frame after the review → menu step transition.
+    const rafId = window.requestAnimationFrame(syncOpenToVisibleToggle);
+    window.addEventListener("resize", syncOpenToVisibleToggle);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", syncOpenToVisibleToggle);
+    };
+  }, [keepMenuOpenForContrastTour, contrastStepId, isToggleVisible]);
 
   const notifyContrastTourAction = (tourAttr: string) => {
     const now = Date.now();
@@ -247,7 +290,7 @@ export const AppearanceSelector: React.FC = () => {
   }, [keepMenuOpenForContrastTour]);
 
   const setAppearanceOpen = (open: boolean) => {
-    if (!open && keepMenuOpenForContrastTour) {
+    if (!open && keepMenuOpenForContrastTour && isToggleVisible()) {
       setIsOpen(true);
       return;
     }
@@ -269,7 +312,7 @@ export const AppearanceSelector: React.FC = () => {
       if (value === "glass") {
         notifyContrastTourAction("switch-contrast-modes.choose-glass");
       } else if (value === "high-contrast") {
-        notifyContrastTourAction("switch-contrast-modes.choose-high-contrast");
+        notifyContrastTourAction("switch-contrast-modes.appearance-menu");
       }
       if (!keepMenuOpenForContrastTour) {
         setIsOpen(false);
@@ -280,13 +323,25 @@ export const AppearanceSelector: React.FC = () => {
       setMode(value);
       if (value === "dark") {
         notifyContrastTourAction("switch-contrast-modes.choose-dark");
-      } else if (value === "light") {
-        notifyContrastTourAction("switch-contrast-modes.choose-light");
       }
+      // Light is an in-step action on the final beat; only High contrast advances.
       if (!keepMenuOpenForContrastTour) {
         setIsOpen(false);
       }
     }
+  };
+
+  const setToggleRef = (toggleRef: React.Ref<MenuToggleElement>) => {
+    return (node: MenuToggleElement | null) => {
+      menuToggleElRef.current = node;
+      if (typeof toggleRef === "function") {
+        toggleRef(node);
+      } else if (toggleRef && "current" in toggleRef) {
+        (
+          toggleRef as React.MutableRefObject<MenuToggleElement | null>
+        ).current = node;
+      }
+    };
   };
 
   return (
@@ -297,7 +352,7 @@ export const AppearanceSelector: React.FC = () => {
       onOpenChange={setAppearanceOpen}
       toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
         <MenuToggle
-          ref={toggleRef}
+          ref={setToggleRef(toggleRef)}
           variant="plain"
           onClick={() => setAppearanceOpen(!isOpen)}
           isExpanded={isOpen}
@@ -335,9 +390,7 @@ export const AppearanceSelector: React.FC = () => {
               const tourAttr =
                 item.value === "dark"
                   ? "switch-contrast-modes.choose-dark"
-                  : item.value === "light"
-                    ? "switch-contrast-modes.choose-light"
-                    : undefined;
+                  : undefined;
               return (
                 <SelectOption
                   key={themeName}
@@ -348,10 +401,6 @@ export const AppearanceSelector: React.FC = () => {
                     if (item.value === "dark" && safeMode === "dark") {
                       notifyContrastTourAction(
                         "switch-contrast-modes.choose-dark",
-                      );
-                    } else if (item.value === "light" && safeMode === "light") {
-                      notifyContrastTourAction(
-                        "switch-contrast-modes.choose-light",
                       );
                     }
                   }}
@@ -382,9 +431,7 @@ export const AppearanceSelector: React.FC = () => {
             const tourAttr =
               item.value === "glass"
                 ? "switch-contrast-modes.choose-glass"
-                : item.value === "high-contrast"
-                  ? "switch-contrast-modes.choose-high-contrast"
-                  : undefined;
+                : undefined;
             return (
               <SelectOption
                 key={key}
@@ -400,7 +447,7 @@ export const AppearanceSelector: React.FC = () => {
                     selectedContrast === "high-contrast"
                   ) {
                     notifyContrastTourAction(
-                      "switch-contrast-modes.choose-high-contrast",
+                      "switch-contrast-modes.appearance-menu",
                     );
                   }
                 }}
