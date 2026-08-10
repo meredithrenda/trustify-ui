@@ -26,6 +26,7 @@ import { useTabControls } from "@app/hooks/tab-controls";
 import { useFetchPackageById } from "@app/queries/packages";
 import { decomposePurl } from "@app/utils/utils";
 
+import { DependenciesByPackage } from "./dependencies-by-package";
 import { SbomsByPackage } from "./sboms-by-package";
 import { VulnerabilitiesByPackage } from "./vulnerabilities-by-package";
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
@@ -44,13 +45,15 @@ export const PackageDetails: React.FC = () => {
   } = useTabControls({
     persistenceKeyPrefix: "pd", // pd="package details"
     persistTo: "urlParams",
-    tabKeys: ["vulnerabilities", "sboms"],
+    tabKeys: ["vulnerabilities", "sboms", "dependencies"],
   });
 
   const vulnerabilitiesTabRef = React.useRef<HTMLElement>(null);
   const sbomsTabRef = React.useRef<HTMLElement>(null);
+  const dependenciesTabRef = React.useRef<HTMLElement>(null);
 
   const sbomsPopupRef = React.useRef<HTMLElement>(null);
+  const dependenciesPopupRef = React.useRef<HTMLElement>(null);
 
   return (
     <>
@@ -90,7 +93,7 @@ export const PackageDetails: React.FC = () => {
         <Tabs
           mountOnEnter
           {...getTabsProps()}
-          aria-label="Tabs that contain the SBOM information"
+          aria-label="Package details tabs"
           role="region"
         >
           <Tab
@@ -114,6 +117,27 @@ export const PackageDetails: React.FC = () => {
             }
             tabContentRef={sbomsTabRef}
           />
+          <Tab
+            {...getTabProps("dependencies")}
+            title={<TabTitleText>Dependencies</TabTitleText>}
+            actions={
+              <>
+                <TabAction ref={dependenciesPopupRef}>
+                  <HelpIcon />
+                </TabAction>
+                <Popover
+                  bodyContent={
+                    <div>
+                      Ancestor and descendant relationships for this package,
+                      similar to the CSAF relationship tree on advisories.
+                    </div>
+                  }
+                  triggerRef={dependenciesPopupRef}
+                />
+              </>
+            }
+            tabContentRef={dependenciesTabRef}
+          />
         </Tabs>
       </PageSection>
       <PageSection>
@@ -132,6 +156,18 @@ export const PackageDetails: React.FC = () => {
           <LoadingWrapper isFetching={isFetching} fetchError={fetchError}>
             {pkg?.purl && <SbomsByPackage purl={pkg.purl} />}
           </LoadingWrapper>
+        </TabContent>
+        <TabContent
+          {...getTabContentProps("dependencies")}
+          ref={dependenciesTabRef}
+          aria-label="Package dependencies"
+        >
+          {packageId && (
+            <DependenciesByPackage
+              packageId={packageId}
+              packageName={decomposedPurl?.name ?? packageId}
+            />
+          )}
         </TabContent>
       </PageSection>
     </>
