@@ -13,10 +13,10 @@ import {
 import SearchIcon from "@patternfly/react-icons/dist/esm/icons/search-icon";
 
 import { DocumentMetadata } from "@app/components/DocumentMetadata";
+import { SimplePagination } from "@app/components/SimplePagination";
 
 import type { PackageSearchType, PackageTypeOption } from "./constants";
 import { AdvancedFiltersModal } from "./AdvancedFiltersModal";
-import { BulkPurlModal } from "./BulkPurlModal";
 import {
   buildPackagesCurlCommand,
   filterNewProposalPackages,
@@ -24,6 +24,12 @@ import {
 } from "./filter-mock-packages";
 import { NewProposalPackageTable } from "./NewProposalPackageTable";
 import { NewProposalToolbar } from "./NewProposalToolbar";
+import {
+  createNewProposalOnSort,
+  paginateNewProposalPackages,
+  sortNewProposalPackages,
+  type NewProposalSortBy,
+} from "./new-proposal-table-controls";
 
 import "./new-proposal-packages.css";
 
@@ -40,12 +46,17 @@ export const NewProposalPackageList: React.FC = () => {
   >([]);
   const [mustMatchRegex, setMustMatchRegex] = React.useState("");
   const [mustNotMatchRegex, setMustNotMatchRegex] = React.useState("");
-  const [isBulkModalOpen, setIsBulkModalOpen] = React.useState(false);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] =
     React.useState(false);
   const [bulkPurls, setBulkPurls] = React.useState("");
   const [appliedBulkPurls, setAppliedBulkPurls] = React.useState("");
   const [curlCopied, setCurlCopied] = React.useState(false);
+  const [pageNumber, setPageNumber] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const [sortBy, setSortBy] = React.useState<NewProposalSortBy>({
+    index: 0,
+    direction: "asc",
+  });
 
   const filterState = {
     searchType,
@@ -74,6 +85,50 @@ export const NewProposalPackageList: React.FC = () => {
     ],
   );
 
+  const sortedPackages = React.useMemo(
+    () => sortNewProposalPackages(filteredPackages, sortBy),
+    [filteredPackages, sortBy],
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedPackages.length / itemsPerPage),
+  );
+  const safePage = Math.min(pageNumber, totalPages);
+
+  const pagePackages = React.useMemo(
+    () => paginateNewProposalPackages(sortedPackages, safePage, itemsPerPage),
+    [sortedPackages, safePage, itemsPerPage],
+  );
+
+  const paginationProps = {
+    itemCount: sortedPackages.length,
+    perPage: itemsPerPage,
+    page: safePage,
+    onSetPage: (_event: React.MouseEvent | null, page: number) => {
+      setPageNumber(page);
+    },
+    onPerPageSelect: (_event: React.MouseEvent | null, perPage: number) => {
+      setPageNumber(1);
+      setItemsPerPage(perPage);
+    },
+  };
+
+  const onSort = createNewProposalOnSort(setSortBy, setPageNumber);
+
+  React.useEffect(() => {
+    setPageNumber(1);
+  }, [
+    searchType,
+    searchValue,
+    isExactMatch,
+    isLatestOnly,
+    selectedPackageTypes,
+    mustMatchRegex,
+    mustNotMatchRegex,
+    appliedBulkPurls,
+  ]);
+
   const clearAllFilters = () => {
     setSearchValue("");
     setIsExactMatch(false);
@@ -94,6 +149,21 @@ export const NewProposalPackageList: React.FC = () => {
     } catch {
       setCurlCopied(false);
     }
+  };
+
+  const openAdvancedFilters = () => {
+    setBulkPurls(appliedBulkPurls);
+    setIsAdvancedFiltersOpen(true);
+  };
+
+  const closeAdvancedFilters = () => {
+    setBulkPurls(appliedBulkPurls);
+    setIsAdvancedFiltersOpen(false);
+  };
+
+  const applyAdvancedFilters = () => {
+    setAppliedBulkPurls(bulkPurls);
+    setIsAdvancedFiltersOpen(false);
   };
 
   return (
@@ -118,8 +188,9 @@ export const NewProposalPackageList: React.FC = () => {
           mustMatchRegex={mustMatchRegex}
           mustNotMatchRegex={mustNotMatchRegex}
           appliedBulkPurls={appliedBulkPurls}
-          resultCount={filteredPackages.length}
+          resultCount={sortedPackages.length}
           curlCopied={curlCopied}
+          paginationProps={paginationProps}
           onSearchTypeChange={setSearchType}
           onSearchValueChange={setSearchValue}
           onExactMatchChange={setIsExactMatch}
@@ -132,13 +203,12 @@ export const NewProposalPackageList: React.FC = () => {
             setAppliedBulkPurls("");
           }}
           onClearAllFilters={clearAllFilters}
-          onOpenBulkModal={() => setIsBulkModalOpen(true)}
-          onOpenAdvancedFilters={() => setIsAdvancedFiltersOpen(true)}
+          onOpenAdvancedFilters={openAdvancedFilters}
           onCopyCurl={() => {
             void copyCurlToClipboard();
           }}
         />
-        {filteredPackages.length === 0 ? (
+        {sortedPackages.length === 0 ? (
           <EmptyState
             titleText="No packages match your filters"
             headingLevel="h2"
@@ -160,27 +230,29 @@ export const NewProposalPackageList: React.FC = () => {
           </EmptyState>
         ) : (
           <div className="new-proposal-packages__table-wrap">
-            <NewProposalPackageTable packages={filteredPackages} />
+            <NewProposalPackageTable
+              packages={pagePackages}
+              sortBy={sortBy}
+              onSort={onSort}
+            />
+            <SimplePagination
+              idPrefix="new-proposal-package-table"
+              isTop={false}
+              paginationProps={paginationProps}
+            />
           </div>
         )}
       </PageSection>
-      <BulkPurlModal
-        isOpen={isBulkModalOpen}
-        bulkPurls={bulkPurls}
-        onBulkPurlsChange={setBulkPurls}
-        onClose={() => setIsBulkModalOpen(false)}
-        onAnalyze={() => {
-          setAppliedBulkPurls(bulkPurls);
-          setIsBulkModalOpen(false);
-        }}
-      />
       <AdvancedFiltersModal
         isOpen={isAdvancedFiltersOpen}
         mustMatchRegex={mustMatchRegex}
         mustNotMatchRegex={mustNotMatchRegex}
+        bulkPurls={bulkPurls}
         onMustMatchRegexChange={setMustMatchRegex}
         onMustNotMatchRegexChange={setMustNotMatchRegex}
-        onClose={() => setIsAdvancedFiltersOpen(false)}
+        onBulkPurlsChange={setBulkPurls}
+        onClose={closeAdvancedFilters}
+        onDone={applyAdvancedFilters}
       />
     </>
   );

@@ -29,6 +29,11 @@ import {
 } from "@patternfly/react-icons";
 
 import {
+  SimplePagination,
+  type PaginationStateProps,
+} from "@app/components/SimplePagination";
+
+import {
   PACKAGE_SEARCH_TYPE_OPTIONS,
   PACKAGE_TYPE_OPTIONS,
   type PackageSearchType,
@@ -55,9 +60,9 @@ interface NewProposalToolbarProps {
   onMustNotMatchRegexChange: (value: string) => void;
   onClearBulkPurls: () => void;
   onClearAllFilters: () => void;
-  onOpenBulkModal: () => void;
   onOpenAdvancedFilters: () => void;
   onCopyCurl: () => void;
+  paginationProps: PaginationStateProps;
 }
 
 export const NewProposalToolbar: React.FC<NewProposalToolbarProps> = ({
@@ -80,9 +85,9 @@ export const NewProposalToolbar: React.FC<NewProposalToolbarProps> = ({
   onMustNotMatchRegexChange,
   onClearBulkPurls,
   onClearAllFilters,
-  onOpenBulkModal,
   onOpenAdvancedFilters,
   onCopyCurl,
+  paginationProps,
 }) => {
   const [isSearchTypeOpen, setIsSearchTypeOpen] = React.useState(false);
   const [isPackageTypeOpen, setIsPackageTypeOpen] = React.useState(false);
@@ -99,7 +104,9 @@ export const NewProposalToolbar: React.FC<NewProposalToolbarProps> = ({
     .filter(Boolean).length;
 
   const advancedFilterCount =
-    (mustMatchRegex.trim() ? 1 : 0) + (mustNotMatchRegex.trim() ? 1 : 0);
+    (mustMatchRegex.trim() ? 1 : 0) +
+    (mustNotMatchRegex.trim() ? 1 : 0) +
+    (bulkLineCount > 0 ? 1 : 0);
 
   const hasSearchValue = Boolean(searchValue.trim());
 
@@ -167,7 +174,11 @@ export const NewProposalToolbar: React.FC<NewProposalToolbarProps> = ({
       collapseListedFiltersBreakpoint="xl"
     >
       <ToolbarContent>
-        <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
+        <ToolbarToggleGroup
+          toggleIcon={<FilterIcon />}
+          breakpoint="xl"
+          variant="filter-group"
+        >
           <ToolbarGroup variant="filter-group">
             <ToolbarItem>
               <Select
@@ -333,12 +344,7 @@ export const NewProposalToolbar: React.FC<NewProposalToolbarProps> = ({
           </ToolbarGroup>
         </ToolbarToggleGroup>
 
-        <ToolbarGroup align={{ default: "alignEnd" }} variant="action-group">
-          <ToolbarItem>
-            <Button variant="secondary" onClick={onOpenBulkModal}>
-              Bulk PURL search
-            </Button>
-          </ToolbarItem>
+        <ToolbarGroup variant="action-group-plain">
           <ToolbarItem>
             <Dropdown
               isOpen={isActionsOpen}
@@ -360,6 +366,14 @@ export const NewProposalToolbar: React.FC<NewProposalToolbarProps> = ({
             </Dropdown>
           </ToolbarItem>
         </ToolbarGroup>
+
+        <ToolbarItem variant="pagination" align={{ default: "alignEnd" }}>
+          <SimplePagination
+            idPrefix="new-proposal-package-table"
+            isTop
+            paginationProps={paginationProps}
+          />
+        </ToolbarItem>
       </ToolbarContent>
 
       {(hasActiveFilters ||

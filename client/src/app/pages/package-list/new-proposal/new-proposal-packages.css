@@ -7,7 +7,7 @@
 }
 
 .new-proposal-packages__exact-match-item {
-  margin-inline-start: var(--pf-t--global--spacer--md);
+  margin-inline: var(--pf-t--global--spacer--md) var(--pf-t--global--spacer--lg);
 }
 
 .new-proposal-packages__exact-match {
@@ -31,6 +31,10 @@
 
 .new-proposal-packages__table-wrap {
   margin-block-start: var(--pf-t--global--spacer--sm);
+}
+
+.new-proposal-packages__table-wrap .pf-v6-c-pagination {
+  margin-block-start: var(--pf-t--global--spacer--md);
 }
 
 .new-proposal-packages__empty {

@@ -2,33 +2,47 @@ import React from "react";
 import { generatePath, NavLink } from "react-router-dom";
 
 import { Label } from "@patternfly/react-core";
+import type { OnSort } from "@patternfly/react-table";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 
 import { PackageQualifiers } from "@app/components/PackageQualifiers";
 import { Paths } from "@app/Routes";
 
 import type { NewProposalPackageRow } from "./filter-mock-packages";
+import type { NewProposalSortBy } from "./new-proposal-table-controls";
 
 interface NewProposalPackageTableProps {
   packages: NewProposalPackageRow[];
+  sortBy: NewProposalSortBy;
+  onSort: OnSort;
 }
 
 /** List-only table. Dependency exploration lives on package details → Dependencies. */
 export const NewProposalPackageTable: React.FC<
   NewProposalPackageTableProps
-> = ({ packages }) => {
+> = ({ packages, sortBy, onSort }) => {
+  const thSort = (columnIndex: number) => ({
+    columnIndex,
+    onSort,
+    sortBy: {
+      index: sortBy.index,
+      direction: sortBy.direction,
+      defaultDirection: "asc" as const,
+    },
+  });
+
   return (
     <Table aria-label="Packages table">
       <Thead>
         <Tr>
-          <Th>Name</Th>
-          <Th>Namespace</Th>
-          <Th>Version</Th>
-          <Th>Type</Th>
-          <Th>CPE</Th>
-          <Th>Licenses</Th>
-          <Th>Qualifiers</Th>
-          <Th>Vulnerabilities</Th>
+          <Th sort={thSort(0)}>Name</Th>
+          <Th sort={thSort(1)}>Namespace</Th>
+          <Th sort={thSort(2)}>Version</Th>
+          <Th sort={thSort(3)}>Type</Th>
+          <Th sort={thSort(4)}>CPE</Th>
+          <Th sort={thSort(5)}>Licenses</Th>
+          <Th sort={thSort(6)}>Qualifiers</Th>
+          <Th sort={thSort(7)}>Vulnerabilities</Th>
         </Tr>
       </Thead>
       <Tbody>
