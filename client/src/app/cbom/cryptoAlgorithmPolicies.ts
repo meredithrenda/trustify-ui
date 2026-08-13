@@ -5,14 +5,15 @@ export type CryptoAlgorithmPolicyStatus =
   | "warning"
   | "non_compliant";
 
-export type CryptoAssetPolicyVerdict = "allowed" | "review" | "not_allowed";
+export type CryptoAssetPolicyVerdict = "compliant" | "warning" | "non_compliant";
 
 export interface CryptoAlgorithmPolicyPosture {
   id: string;
   name: string;
   status: CryptoAlgorithmPolicyStatus;
-  metric: number;
-  /** Single caption under the metric. */
+  /** Whole-number percentage shown on the readiness summary card (0–100). */
+  percent: number;
+  /** Single caption under the percentage. */
   summary: string;
 }
 
@@ -20,8 +21,8 @@ export interface CryptoAssetPolicyResult {
   id: string;
   name: string;
   status: CryptoAlgorithmPolicyStatus;
-  /** Short label for table chips. */
-  chipLabel: string;
+  /** Short finding label shown under Reason in the drawer (e.g. Deprecated). */
+  reasonLabel: string;
   summary: string;
   applies: boolean;
 }
@@ -44,6 +45,57 @@ const PQC_ALGORITHM_HINTS = [
   "falcon",
 ];
 
+/** Families referenced by the suggested readiness policy (Allison / NIST PQC). */
+const PQC_READINESS_FAMILIES = [
+  { label: "ML-KEM", hints: ["ml-kem", "kyber"] },
+  { label: "ML-DSA", hints: ["ml-dsa", "dilithium"] },
+  { label: "SLH-DSA", hints: ["slh-dsa", "sphincs"] },
+] as const;
+
+const toPercent = (part: number, total: number): number => {
+  if (total === 0) {
+    return 0;
+  }
+  return Math.round((part / total) * 100);
+};
+
+const getAlgorithmAssets = (assets: CryptographicAsset[]): CryptographicAsset[] =>
+  assets.filter((asset) => asset.assetType === "algorithm");
+
+const assetHaystack = (asset: CryptographicAsset): string =>
+  [asset.name, asset.algorithm, asset.primitive, asset.description]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+const assetMatchesHints = (
+  asset: CryptographicAsset,
+  hints: readonly string[],
+): boolean => {
+  const haystack = assetHaystack(asset);
+  return hints.some((hint) => haystack.includes(hint));
+};
+
+const readinessPercentStatus = (percent: number): CryptoAlgorithmPolicyStatus => {
+  if (percent >= 80) {
+    return "compliant";
+  }
+  if (percent >= 40) {
+    return "warning";
+  }
+  return "non_compliant";
+};
+
+const classicalShareStatus = (percent: number): CryptoAlgorithmPolicyStatus => {
+  if (percent === 0) {
+    return "compliant";
+  }
+  if (percent <= 40) {
+    return "warning";
+  }
+  return "non_compliant";
+};
+
 const APPROVED_ALGORITHM_NAMES = new Set([
   "AES",
   "AES-128",
@@ -59,6 +111,15 @@ const APPROVED_ALGORITHM_NAMES = new Set([
   "Poly1305",
   "bcrypt",
   "CSPRNG",
+  "ML-KEM-768",
+  "ML-KEM-512",
+  "ML-KEM-1024",
+  "ML-DSA-65",
+  "ML-DSA-44",
+  "ML-DSA-87",
+  "SLH-DSA-SHA2-128s",
+  "SLH-DSA-SHA2-128f",
+  "SLH-DSA-SHA2-256f",
 ]);
 
 function assetMatchesNameSet(
@@ -95,6 +156,24 @@ function isDeprecatedAsset(asset: CryptographicAsset): boolean {
   return assetMatchesNameSet(asset, DEPRECATED_ALGORITHM_NAMES);
 }
 
+/** Matches the “Algorithms meeting PQC policy” inventory metric. */
+function passesSuggestedPqcReadinessPolicy(
+  asset: CryptographicAsset,
+): boolean {
+  if (asset.assetType !== "algorithm" || isDeprecatedAsset(asset)) {
+    return false;
+  }
+  return isPqcAsset(asset);
+}
+
+const sbomPassesReadinessPolicy = (sbomAssets: CryptographicAsset[]): boolean => {
+  const algorithms = getAlgorithmAssets(sbomAssets);
+  if (algorithms.length === 0) {
+    return false;
+  }
+  return algorithms.every((asset) => passesSuggestedPqcReadinessPolicy(asset));
+};
+
 function isUnlistedAlgorithm(asset: CryptographicAsset): boolean {
   return (
     asset.assetType === "algorithm" &&
@@ -112,7 +191,7 @@ function evaluateDeprecatedPolicy(
   return {
     id: "deprecated-algorithms",
     name: "Deprecated algorithms",
-    chipLabel: "Deprecated",
+    reasonLabel: "Deprecated",
     applies,
     status: flagged ? "non_compliant" : "compliant",
     summary: flagged
@@ -130,7 +209,7 @@ function evaluateKeyStrengthPolicy(
   return {
     id: "minimum-key-strength",
     name: "Minimum key strength",
-    chipLabel: "Key strength",
+    reasonLabel: "Key strength",
     applies,
     status: flagged ? "warning" : "compliant",
     summary: flagged
@@ -148,7 +227,7 @@ function evaluatePostQuantumPolicy(
   return {
     id: "post-quantum-readiness",
     name: "Post-quantum readiness",
-    chipLabel: "Classical only",
+    reasonLabel: "Classical only",
     applies,
     status: flagged ? "warning" : "compliant",
     summary: flagged
@@ -166,7 +245,7 @@ function evaluateCatalogPolicy(
   return {
     id: "approved-algorithm-catalog",
     name: "Approved algorithm catalog",
-    chipLabel: "Unlisted",
+    reasonLabel: "Unlisted",
     applies,
     status: flagged ? "warning" : "compliant",
     summary: flagged
@@ -191,110 +270,158 @@ export function getCryptoAssetPolicyResults(
   return evaluateAssetPolicies(asset).filter((result) => result.applies);
 }
 
-/** Non-compliant or warning policy results — used for table chips and drawer detail. */
-export function getCryptoAssetPolicyIssues(
-  asset: CryptographicAsset,
-  options: { forTable?: boolean } = {},
-): CryptoAssetPolicyResult[] {
-  return getCryptoAssetPolicyResults(asset).filter(
-    (result) =>
-      result.status !== "compliant" &&
-      (!options.forTable || result.id !== "post-quantum-readiness"),
-  );
-}
-
-/** Whether this asset is allowed, needs review, or is not allowed. */
+/** Whether this asset is compliant, has warnings, or is non-compliant. */
 export function getCryptoAssetPolicyVerdict(
   asset: CryptographicAsset,
 ): CryptoAssetPolicyVerdict {
-  const results = getCryptoAssetPolicyResults(asset);
-
-  if (results.some((result) => result.status === "non_compliant")) {
-    return "not_allowed";
+  if (asset.assetType === "related-crypto-material") {
+    return evaluateKeyStrengthPolicy(asset).status === "warning"
+      ? "warning"
+      : "compliant";
   }
 
-  if (results.some((result) => result.status === "warning")) {
-    return "review";
+  if (asset.assetType === "algorithm") {
+    if (isDeprecatedAsset(asset)) {
+      return "non_compliant";
+    }
+    if (passesSuggestedPqcReadinessPolicy(asset)) {
+      return "compliant";
+    }
+    return "warning";
   }
 
-  return "allowed";
+  return "compliant";
+}
+
+/** Drawer reasons: findings that explain the overall verdict (not secondary advisories). */
+export function getCryptoAssetPolicyReasons(
+  asset: CryptographicAsset,
+): CryptoAssetPolicyResult[] {
+  const verdict = getCryptoAssetPolicyVerdict(asset);
+  const findings = getCryptoAssetPolicyResults(asset).filter(
+    (result) => result.status !== "compliant",
+  );
+
+  if (verdict === "non_compliant") {
+    return findings.filter((result) => result.status === "non_compliant");
+  }
+
+  if (verdict === "warning") {
+    return findings.filter((result) => result.status === "warning");
+  }
+
+  return [];
 }
 
 export const cryptoAssetPolicyVerdictLabel: Record<
   CryptoAssetPolicyVerdict,
   { text: string; color: "green" | "orange" | "red" }
 > = {
-  allowed: { text: "Allowed", color: "green" },
-  review: { text: "Review required", color: "orange" },
-  not_allowed: { text: "Not allowed", color: "red" },
+  compliant: { text: "Compliant", color: "green" },
+  warning: { text: "Warning", color: "orange" },
+  non_compliant: { text: "Non-compliant", color: "red" },
 };
 
-/** Prototype posture for organizational cryptographic algorithm policies. */
+/** Prototype PQC readiness summary for the Cryptography inventory page. */
 export function getCryptographicAlgorithmPolicyPosture(
   assets: CryptographicAsset[],
+  options?: { includeSbomsMeetingPolicy?: boolean },
 ): CryptoAlgorithmPolicyPosture[] {
-  const deprecatedAssets = assets.filter(
-    (asset) => evaluateDeprecatedPolicy(asset).status === "non_compliant",
-  );
-  const deprecatedNames = [
-    ...new Set(deprecatedAssets.map((asset) => asset.name)),
-  ].sort();
+  const includeSbomsMeetingPolicy = options?.includeSbomsMeetingPolicy ?? true;
+  const algorithmAssets = getAlgorithmAssets(assets);
+  const algorithmTotal = algorithmAssets.length;
 
-  const weakKeyAssets = assets.filter(
-    (asset) => evaluateKeyStrengthPolicy(asset).status === "warning",
-  );
-  const pqcAssets = assets.filter((asset) => {
-    const result = evaluatePostQuantumPolicy(asset);
-    return result.applies && result.status === "compliant";
-  });
-
-  const unapprovedAssets = assets.filter(
-    (asset) => evaluateCatalogPolicy(asset).status === "warning",
+  const algorithmsMeetingPolicy = algorithmAssets.filter((asset) =>
+    passesSuggestedPqcReadinessPolicy(asset),
+  ).length;
+  const algorithmsMeetingPolicyPercent = toPercent(
+    algorithmsMeetingPolicy,
+    algorithmTotal,
   );
 
-  return [
+  const sbomAssetMap = new Map<string, CryptographicAsset[]>();
+  if (includeSbomsMeetingPolicy) {
+    for (const asset of assets) {
+      for (const sbom of asset.sboms ?? []) {
+        const existing = sbomAssetMap.get(sbom.id) ?? [];
+        existing.push(asset);
+        sbomAssetMap.set(sbom.id, existing);
+      }
+    }
+  }
+  const sbomIds = [...sbomAssetMap.keys()];
+  const sbomTotal = sbomIds.length;
+  const sbomsMeetingPolicy = sbomIds.filter((sbomId) =>
+    sbomPassesReadinessPolicy(sbomAssetMap.get(sbomId) ?? []),
+  ).length;
+  const sbomsMeetingPolicyPercent = toPercent(sbomsMeetingPolicy, sbomTotal);
+
+  const classicalAlgorithms = algorithmAssets.filter(
+    (asset) =>
+      !isDeprecatedAsset(asset) && !passesSuggestedPqcReadinessPolicy(asset),
+  ).length;
+  const classicalAlgorithmPercent = toPercent(
+    classicalAlgorithms,
+    algorithmTotal,
+  );
+
+  const detectedFamilies = PQC_READINESS_FAMILIES.filter((family) =>
+    algorithmAssets.some((asset) => assetMatchesHints(asset, family.hints)),
+  );
+  const recommendedFamiliesPercent = toPercent(
+    detectedFamilies.length,
+    PQC_READINESS_FAMILIES.length,
+  );
+  const detectedFamilyLabels = detectedFamilies.map((family) => family.label);
+
+  const postures: CryptoAlgorithmPolicyPosture[] = [
     {
-      id: "deprecated-algorithms",
-      name: "Deprecated algorithms",
-      status:
-        deprecatedAssets.length > 0 ? "non_compliant" : "compliant",
-      metric: deprecatedAssets.length,
+      id: "algorithms-meeting-readiness-policy",
+      name: "Algorithms meeting PQC policy",
+      status: readinessPercentStatus(algorithmsMeetingPolicyPercent),
+      percent: algorithmsMeetingPolicyPercent,
       summary:
-        deprecatedAssets.length > 0
-          ? `Assets using ${deprecatedNames.join(", ")}`
-          : "No weak or deprecated primitives",
+        algorithmTotal > 0
+          ? `${algorithmsMeetingPolicy} of ${algorithmTotal} inventoried algorithms are compliant with the suggested PQC policy`
+          : "No algorithm assets in inventory",
+    },
+    ...(includeSbomsMeetingPolicy
+      ? [
+          {
+            id: "sboms-meeting-readiness-policy",
+            name: "SBOMs meeting PQC policy",
+            status: readinessPercentStatus(sbomsMeetingPolicyPercent),
+            percent: sbomsMeetingPolicyPercent,
+            summary:
+              sbomTotal > 0
+                ? `${sbomsMeetingPolicy} of ${sbomTotal} SBOMs with cryptographic assets are compliant with the suggested PQC policy`
+                : "No SBOMs linked to cryptographic assets",
+          },
+        ]
+      : []),
+    {
+      id: "classical-algorithm-share",
+      name: "Classical algorithm share",
+      status: classicalShareStatus(classicalAlgorithmPercent),
+      percent: classicalAlgorithmPercent,
+      summary:
+        algorithmTotal > 0
+          ? `${classicalAlgorithms} of ${algorithmTotal} algorithms use classical primitives only`
+          : "No algorithm assets in inventory",
     },
     {
-      id: "minimum-key-strength",
-      name: "Minimum key strength",
-      status: weakKeyAssets.length > 0 ? "warning" : "compliant",
-      metric: weakKeyAssets.length,
+      id: "recommended-pqc-families",
+      name: "Recommended PQC families detected",
+      status: readinessPercentStatus(recommendedFamiliesPercent),
+      percent: recommendedFamiliesPercent,
       summary:
-        weakKeyAssets.length > 0
-          ? "Private key below minimum strength"
-          : "All key material meets minimums",
-    },
-    {
-      id: "post-quantum-readiness",
-      name: "Post-quantum readiness",
-      status: pqcAssets.length > 0 ? "compliant" : "warning",
-      metric: pqcAssets.length,
-      summary:
-        pqcAssets.length > 0
-          ? "Post-quantum algorithms inventoried"
-          : "Classical crypto only; no PQC in scope",
-    },
-    {
-      id: "approved-algorithm-catalog",
-      name: "Approved algorithm catalog",
-      status: unapprovedAssets.length > 0 ? "warning" : "compliant",
-      metric: unapprovedAssets.length,
-      summary:
-        unapprovedAssets.length > 0
-          ? "Assets outside the approved catalog"
-          : "All algorithms on approved list",
+        detectedFamilyLabels.length > 0
+          ? `Detected: ${detectedFamilyLabels.join(", ")} (of ML-KEM, ML-DSA, SLH-DSA)`
+          : "None of ML-KEM, ML-DSA, or SLH-DSA detected in inventory",
     },
   ];
+
+  return postures;
 }
 
 export const cryptoAlgorithmPolicyStatusLabel: Record<

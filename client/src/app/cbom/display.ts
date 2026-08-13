@@ -26,7 +26,7 @@ export const getAssetTypeLabel = (assetType: string): string => {
     case "algorithm":
       return "Algorithm";
     case "related-crypto-material":
-      return "Related material";
+      return "Keys";
     default:
       return assetType;
   }

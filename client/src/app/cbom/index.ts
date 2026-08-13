@@ -3,6 +3,7 @@ export type {
   CryptoDetectionRule,
   CryptoEvidenceEntry,
   CryptographicAsset,
+  CryptographicAssetPackageLink,
   CryptographicAssetSbomLink,
   CryptoUsageType,
   ParsedCbomDocument,
@@ -21,15 +22,12 @@ export {
 
 export { CryptographicAlgorithmPolicies } from "./CryptographicAlgorithmPolicies";
 export { CryptographyPolicySection } from "./CryptographicAlgorithmPolicies";
-export {
-  CryptoAssetPolicyChips,
-  CryptoAssetPolicyTableCell,
-} from "./CryptoAssetPolicyChips";
+export { CryptoAssetPolicyTableCell } from "./CryptoAssetPolicyChips";
 export {
   cryptoAlgorithmPolicyStatusLabel,
   cryptoAssetPolicyVerdictLabel,
-  getCryptoAssetPolicyIssues,
   getCryptoAssetPolicyResults,
+  getCryptoAssetPolicyReasons,
   getCryptoAssetPolicyVerdict,
   getCryptographicAlgorithmPolicyPosture,
 } from "./cryptoAlgorithmPolicies";
@@ -42,10 +40,15 @@ export type {
 export { CryptoDetailContent } from "./CryptoDetailContent";
 export type { CryptoDetailViewContext } from "./CryptoDetailContent";
 export { CryptoAssetsTable } from "./CryptoAssetsTable";
+export { CryptoInventoryTabs } from "./CryptoInventoryTabs";
+export { CryptographyInventoryTabs } from "./CryptographyInventoryTabs";
+export { CryptoRelatedMaterialTable } from "./CryptoRelatedMaterialTable";
 export {
-  CbomInventoryProvider,
-  useCbomInventory,
-} from "./CbomInventoryContext";
+  getAlgorithmCryptoAssets,
+  getRelatedCryptoMaterialAssets,
+  isAlgorithmCryptoAsset,
+  isRelatedCryptoMaterialAsset,
+} from "./cryptoAssetGroups";
 export {
   parseCycloneDxCbom,
   parseCycloneDxCbomJson,

@@ -27,6 +27,7 @@ import { CBOM_ROUTE_PATHS } from "./paths";
 import {
   cryptoAlgorithmPolicyStatusLabel,
   cryptoAssetPolicyVerdictLabel,
+  getCryptoAssetPolicyReasons,
   getCryptoAssetPolicyResults,
   getCryptoAssetPolicyVerdict,
 } from "./cryptoAlgorithmPolicies";
@@ -55,6 +56,7 @@ export const CryptoDetailContent: React.FC<{
       : "Not linked to an SBOM in this workspace.";
 
   const policyResults = getCryptoAssetPolicyResults(asset);
+  const policyReasons = getCryptoAssetPolicyReasons(asset);
   const policyVerdict = getCryptoAssetPolicyVerdict(asset);
   const verdictLabel = cryptoAssetPolicyVerdictLabel[policyVerdict];
 
@@ -358,54 +360,75 @@ export const CryptoDetailContent: React.FC<{
 
       <StackItem>
         <Card>
-          <CardTitle>Algorithm policy</CardTitle>
+          <CardTitle>Policy compliance</CardTitle>
           <CardBody>
             {policyResults.length > 0 ? (
               <DescriptionList isCompact>
                 <DescriptionListGroup>
-                  <DescriptionListTerm>Verdict</DescriptionListTerm>
+                  <DescriptionListTerm>Overall</DescriptionListTerm>
                   <DescriptionListDescription>
                     <Label color={verdictLabel.color} isCompact>
                       {verdictLabel.text}
                     </Label>
                   </DescriptionListDescription>
                 </DescriptionListGroup>
-                {policyResults.map((result) => {
-                  const status =
-                    cryptoAlgorithmPolicyStatusLabel[result.status];
+                {policyReasons.length > 0 ? (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Reason</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Stack gap={{ default: "gapMd" }}>
+                        {policyReasons.map((result) => {
+                          const status =
+                            cryptoAlgorithmPolicyStatusLabel[result.status];
 
-                  return (
-                    <DescriptionListGroup key={result.id}>
-                      <DescriptionListTerm>{result.name}</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        <Stack gap={{ default: "gapXs" }}>
-                          <StackItem>
-                            <Label color={status.color} isCompact>
-                              {status.text}
-                            </Label>
-                          </StackItem>
-                          <StackItem>
-                            <Content
-                              component="small"
-                              style={{
-                                color:
-                                  "var(--pf-t--global--text--color--subtle)",
-                                marginBottom: 0,
-                              }}
-                            >
-                              {result.summary}
-                            </Content>
-                          </StackItem>
-                        </Stack>
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  );
-                })}
+                          return (
+                            <StackItem key={result.id}>
+                              <Stack gap={{ default: "gapXs" }}>
+                                <StackItem>
+                                  <Label color={status.color} isCompact>
+                                    {result.reasonLabel}
+                                  </Label>
+                                </StackItem>
+                                <StackItem>
+                                  <Content
+                                    component="small"
+                                    style={{
+                                      color:
+                                        "var(--pf-t--global--text--color--subtle)",
+                                      marginBottom: 0,
+                                    }}
+                                  >
+                                    {result.summary}
+                                  </Content>
+                                </StackItem>
+                              </Stack>
+                            </StackItem>
+                          );
+                        })}
+                      </Stack>
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                ) : (
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Findings</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <Content
+                        component="small"
+                        style={{
+                          color: "var(--pf-t--global--text--color--subtle)",
+                          marginBottom: 0,
+                        }}
+                      >
+                        All evaluated rules are compliant.
+                      </Content>
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                )}
               </DescriptionList>
             ) : (
               <DescriptionList isCompact>
                 <DescriptionListGroup>
-                  <DescriptionListTerm>Verdict</DescriptionListTerm>
+                  <DescriptionListTerm>Overall</DescriptionListTerm>
                   <DescriptionListDescription>
                     <Label color={verdictLabel.color} isCompact>
                       {verdictLabel.text}

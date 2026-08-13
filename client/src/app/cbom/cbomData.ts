@@ -1,7 +1,13 @@
 import openshiftInstallerCbom from "./fixtures/openshift-installer.json";
 import rsaSignerCbom from "./fixtures/rsa-signer-c.json";
+import { getPackageLinksForAlgorithm } from "./cryptoAlgorithmPackages";
 import { parseCycloneDxCbom } from "./parseCycloneDxCbom";
-import type { CryptographicAsset, CryptographicAssetSbomLink } from "./types";
+import { createPrototypePqcReadinessAssets } from "./prototypePqcReadinessAssets";
+import type {
+  CryptographicAsset,
+  CryptographicAssetPackageLink,
+  CryptographicAssetSbomLink,
+} from "./types";
 
 /** SBOM that carries the openshift-installer CBOM (OpenShift product line). */
 export const CBOM_SBOM_OPENSHIFT_INSTALLER_ID =
@@ -32,7 +38,21 @@ function withSbomLink(
   return assets.map((asset) => ({
     ...asset,
     sboms: [sbom],
+    packages: getPackageLinksForAlgorithm(asset.name),
   }));
+}
+
+function mergePackageLinks(
+  existing: CryptographicAssetPackageLink[],
+  incoming: CryptographicAssetPackageLink[],
+): CryptographicAssetPackageLink[] {
+  const merged = [...existing];
+  for (const pkg of incoming) {
+    if (!merged.some((link) => link.id === pkg.id)) {
+      merged.push(pkg);
+    }
+  }
+  return merged;
 }
 
 const openshiftParsed = parseCycloneDxCbom(openshiftInstallerCbom);
@@ -53,31 +73,83 @@ const rsaSignerAssets = withSbomLink(
   RSA_SIGNER_SBOM_LINK,
 );
 
-/** Fixture-backed workspace inventory (both sample CBOMs). */
-export const FIXTURE_CRYPTOGRAPHIC_ASSETS: CryptographicAsset[] = [
+const prototypePqcReadinessAssets = createPrototypePqcReadinessAssets(
+  OPENSHIFT_SBOM_LINK,
+  RSA_SIGNER_SBOM_LINK,
+);
+
+const openshiftInventoryAssets = [
   ...openshiftAssets,
-  ...rsaSignerAssets,
+  ...prototypePqcReadinessAssets.filter((asset) =>
+    asset.sboms?.some((sbom) => sbom.id === CBOM_SBOM_OPENSHIFT_INSTALLER_ID),
+  ),
 ];
+
+const rsaSignerInventoryAssets = [
+  ...rsaSignerAssets,
+  ...prototypePqcReadinessAssets.filter((asset) =>
+    asset.sboms?.some((sbom) => sbom.id === CBOM_SBOM_RSA_SIGNER_ID),
+  ),
+];
+
+function mergeAlgorithmInventoryRows(
+  assets: CryptographicAsset[],
+): CryptographicAsset[] {
+  const nonAlgorithms = assets.filter(
+    (asset) => asset.assetType !== "algorithm",
+  );
+  const merged = new Map<string, CryptographicAsset>();
+
+  for (const asset of assets) {
+    if (asset.assetType !== "algorithm") {
+      continue;
+    }
+    const existing = merged.get(asset.name);
+    if (!existing) {
+      merged.set(asset.name, {
+        ...asset,
+        sboms: [...(asset.sboms ?? [])],
+        packages: [...(asset.packages ?? [])],
+      });
+      continue;
+    }
+    const sboms = [...(existing.sboms ?? [])];
+    for (const sbom of asset.sboms ?? []) {
+      if (!sboms.some((link) => link.id === sbom.id)) {
+        sboms.push(sbom);
+      }
+    }
+    existing.sboms = sboms;
+    existing.packages = mergePackageLinks(
+      existing.packages ?? [],
+      asset.packages ?? [],
+    );
+    existing.occurrenceCount =
+      (existing.occurrenceCount ?? 0) + (asset.occurrenceCount ?? 0);
+  }
+
+  return [...merged.values(), ...nonAlgorithms];
+}
+
+/** Fixture-backed workspace inventory (both sample CBOMs). */
+export const FIXTURE_CRYPTOGRAPHIC_ASSETS: CryptographicAsset[] =
+  mergeAlgorithmInventoryRows([
+    ...openshiftInventoryAssets,
+    ...rsaSignerInventoryAssets,
+  ]);
 
 export function getCryptographicAssetsForSbom(
   sbomId: string,
 ): CryptographicAsset[] {
   if (sbomId === CBOM_SBOM_OPENSHIFT_INSTALLER_ID) {
-    return openshiftAssets;
+    return openshiftInventoryAssets;
   }
   if (sbomId === CBOM_SBOM_RSA_SIGNER_ID) {
-    return rsaSignerAssets;
+    return rsaSignerInventoryAssets;
   }
   return [];
 }
 
 export function shouldShowCryptographyTab(sbomId: string | undefined): boolean {
   return !!sbomId && SBOM_IDS_WITH_CBOM.has(sbomId);
-}
-
-export function mergeInventoryAssets(
-  fixtureAssets: CryptographicAsset[],
-  uploaded: CryptographicAsset[],
-): CryptographicAsset[] {
-  return [...uploaded, ...fixtureAssets];
 }

@@ -1,28 +1,27 @@
-import type React from "react";
+import React from "react";
 
 import {
   Button,
   Content,
-  Label,
   Stack,
   StackItem,
 } from "@patternfly/react-core";
+import type { ISortBy, OnSort } from "@patternfly/react-table";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 
-import {
-  formatPrimitiveCell,
-  getAssetTypeColor,
-  getAssetTypeLabel,
-} from "./display";
+import { formatPrimitiveCell } from "./display";
+import { sortCryptoAssets } from "./cryptoAssetsTableSort";
 import { CryptoAssetPolicyTableCell } from "./CryptoAssetPolicyChips";
 import type { CryptographicAsset } from "./types";
 
 interface CryptoAssetsTableProps {
   assets: CryptographicAsset[];
   onSelectAsset: (asset: CryptographicAsset) => void;
+  showPackagesColumn?: boolean;
   showSbomColumn?: boolean;
   showPolicyColumn?: boolean;
   renderSbomCell?: (asset: CryptographicAsset) => React.ReactNode;
+  renderPackagesCell?: (asset: CryptographicAsset) => React.ReactNode;
 }
 
 type TableColumnModifier = "truncate" | "fitContent" | "nowrap";
@@ -35,19 +34,16 @@ interface TableColumnConfig {
 }
 
 const getColumns = (
+  showPackagesColumn: boolean,
   showSbomColumn: boolean,
   showPolicyColumn: boolean,
 ): TableColumnConfig[] => {
-  if (showSbomColumn) {
-    return [
-      { key: "name", title: "Name", width: 20, modifier: "truncate" },
-      {
-        key: "assetType",
-        title: "Asset type",
-        width: 12,
-        modifier: "truncate",
-      },
-      { key: "primitive", title: "Primitive", width: 10, modifier: "truncate" },
+  const useInventoryLayout = showPackagesColumn || showSbomColumn;
+
+  if (useInventoryLayout) {
+    const columns: TableColumnConfig[] = [
+      { key: "name", title: "Algorithm name", width: 22, modifier: "truncate" },
+      { key: "primitive", title: "Primitive", width: 12, modifier: "truncate" },
       {
         key: "occurrences",
         title: "Occurrences",
@@ -64,20 +60,33 @@ const getColumns = (
             },
           ]
         : []),
-      { key: "usage", title: "Usage", width: 14, modifier: "truncate" },
-      { key: "sboms", title: "SBOMs", width: 18, modifier: "truncate" },
+      { key: "usage", title: "Usage", width: 12, modifier: "truncate" },
     ];
+
+    if (showPackagesColumn) {
+      columns.push({
+        key: "packages",
+        title: "Packages",
+        width: 14,
+        modifier: "truncate",
+      });
+    }
+
+    if (showSbomColumn) {
+      columns.push({
+        key: "sboms",
+        title: "SBOMs",
+        width: 14,
+        modifier: "truncate",
+      });
+    }
+
+    return columns;
   }
 
   return [
-    { key: "name", title: "Name", width: 24, modifier: "truncate" },
-    {
-      key: "assetType",
-      title: "Asset type",
-      width: 14,
-      modifier: "truncate",
-    },
-    { key: "primitive", title: "Primitive", width: 12, modifier: "truncate" },
+    { key: "name", title: "Algorithm name", width: 26, modifier: "truncate" },
+    { key: "primitive", title: "Primitive", width: 14, modifier: "truncate" },
     {
       key: "occurrences",
       title: "Occurrences",
@@ -128,22 +137,60 @@ const getTdProps = (
 export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
   assets,
   onSelectAsset,
+  showPackagesColumn = false,
   showSbomColumn = false,
   showPolicyColumn = true,
   renderSbomCell,
+  renderPackagesCell,
 }) => {
-  const columns = getColumns(showSbomColumn, showPolicyColumn);
+  const columns = getColumns(
+    showPackagesColumn,
+    showSbomColumn,
+    showPolicyColumn,
+  );
   const columnByKey = columnConfigByKey(columns);
   const td = (columnKey: string) => getTdProps(columnKey, columnByKey);
 
+  const [sortBy, setSortBy] = React.useState<ISortBy>({
+    index: 0,
+    direction: "asc",
+  });
+
+  const onSort: OnSort = (_event, columnIndex, direction) => {
+    setSortBy({ index: columnIndex, direction });
+  };
+
+  const thSort = (columnIndex: number) => ({
+    columnIndex,
+    onSort,
+    sortBy: {
+      index: sortBy.index,
+      direction: sortBy.direction,
+      defaultDirection: "asc" as const,
+    },
+  });
+
+  const sortedAssets = React.useMemo(() => {
+    const column = columns[sortBy.index];
+    if (!column) {
+      return assets;
+    }
+    return sortCryptoAssets(
+      assets,
+      column.key,
+      sortBy.direction ?? "asc",
+    );
+  }, [assets, columns, sortBy.index, sortBy.direction]);
+
   return (
-    <Table aria-label="Cryptographic assets table">
+    <Table aria-label="Cryptographic algorithms table">
       <Thead>
         <Tr>
-          {columns.map((column) => (
+          {columns.map((column, columnIndex) => (
             <Th
               key={column.key}
               modifier={column.modifier}
+              sort={thSort(columnIndex)}
               width={column.width}
             >
               {column.title}
@@ -152,7 +199,7 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
         </Tr>
       </Thead>
       <Tbody>
-        {assets.map((asset) => {
+        {sortedAssets.map((asset) => {
           const primitiveCell = formatPrimitiveCell(asset);
 
           return (
@@ -182,11 +229,6 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
                   ) : null}
                 </Stack>
               </Td>
-              <Td {...td("assetType")}>
-                <Label color={getAssetTypeColor(asset.assetType)} isCompact>
-                  {getAssetTypeLabel(asset.assetType)}
-                </Label>
-              </Td>
               <Td {...td("primitive")}>
                 {primitiveCell ? (
                   <Content component="span">{primitiveCell.label}</Content>
@@ -201,6 +243,11 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
                 </Td>
               ) : null}
               <Td {...td("usage")}>{asset.usageType}</Td>
+              {showPackagesColumn ? (
+                <Td {...td("packages")}>
+                  {renderPackagesCell ? renderPackagesCell(asset) : emptyCell}
+                </Td>
+              ) : null}
               {showSbomColumn ? (
                 <Td {...td("sboms")}>
                   {renderSbomCell ? renderSbomCell(asset) : emptyCell}

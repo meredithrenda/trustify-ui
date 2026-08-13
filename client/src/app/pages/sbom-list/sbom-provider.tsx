@@ -11,6 +11,8 @@ import {
   splitStringAsKeyValue,
 } from "@app/api/model-utils";
 import { FilterType } from "@app/components/FilterToolbar";
+import { getPrototypeAlgorithmFilterOptions } from "@app/cbom/cryptoAlgorithmPackages";
+import { getSbomIdsForAlgorithms } from "@app/cbom/cryptoAlgorithmSboms";
 import { getPolicyRunSbomIds } from "@app/mocks/policy-evaluations";
 import { useBulkSelection } from "@app/hooks/selection";
 import {
@@ -113,6 +115,14 @@ export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
         onInputValueChange: setInputValueLicense,
       },
       {
+        categoryKey: "algorithm",
+        title: "Algorithm",
+        type: FilterType.multiselect,
+        placeholderText: "Filter by cryptographic algorithm",
+        selectOptions: getPrototypeAlgorithmFilterOptions(),
+        excludeFromHubRequest: true,
+      },
+      {
         categoryKey: "policyRun",
         title: "Policy evaluation run",
         type: FilterType.search,
@@ -147,20 +157,32 @@ export const SbomSearchProvider: React.FunctionComponent<ISbomProvider> = ({
 
   const policyRunFilter =
     tableControlState.filterState.filterValues.policyRun?.[0];
+  const algorithmFilter = tableControlState.filterState.filterValues.algorithm;
 
   const visibleSboms = React.useMemo(() => {
-    if (!__MOCK_DATA__ || !policyRunFilter) {
-      return sboms;
-    }
-    const allowedIds = getPolicyRunSbomIds(policyRunFilter);
-    if (allowedIds.size === 0) {
-      return sboms;
-    }
-    return sboms.filter((sbom) => allowedIds.has(sbom.id));
-  }, [sboms, policyRunFilter]);
+    let result = sboms;
 
-  const visibleTotal =
-    policyRunFilter && __MOCK_DATA__ ? visibleSboms.length : totalItemCount;
+    if (__MOCK_DATA__ && policyRunFilter) {
+      const allowedIds = getPolicyRunSbomIds(policyRunFilter);
+      if (allowedIds.size > 0) {
+        result = result.filter((sbom) => allowedIds.has(sbom.id));
+      }
+    }
+
+    if (__MOCK_DATA__ && algorithmFilter?.length) {
+      const allowedIds = getSbomIdsForAlgorithms(algorithmFilter);
+      result = result.filter((sbom) => allowedIds.has(sbom.id));
+    }
+
+    return result;
+  }, [sboms, policyRunFilter, algorithmFilter]);
+
+  const hasMockClientFilter =
+    __MOCK_DATA__ && (policyRunFilter || algorithmFilter?.length);
+
+  const visibleTotal = hasMockClientFilter
+    ? visibleSboms.length
+    : totalItemCount;
 
   const tableControls = useTableControlProps({
     ...tableControlState,

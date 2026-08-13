@@ -21,6 +21,12 @@ export interface CryptographicAssetSbomLink {
   name: string;
 }
 
+export interface CryptographicAssetPackageLink {
+  id: string;
+  purl: string;
+  name: string;
+}
+
 export interface CryptographicAsset {
   id: string;
   /** CycloneDX component name (e.g. SHA-256, private-key). */
@@ -44,6 +50,7 @@ export interface CryptographicAsset {
   evidence?: CryptoEvidenceEntry[];
   detectionRules?: CryptoDetectionRule[];
   sboms?: CryptographicAssetSbomLink[];
+  packages?: CryptographicAssetPackageLink[];
 }
 
 export interface CbomScannerInfo {

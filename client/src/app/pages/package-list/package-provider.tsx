@@ -12,6 +12,7 @@ import {
   useTableControlProps,
   useTableControlState,
 } from "@app/hooks/table-controls";
+import { getPrototypeAlgorithmFilterOptions } from "@app/cbom/cryptoAlgorithmPackages";
 import { useFetchLicenses } from "@app/queries/licenses";
 import { useFetchPackages } from "@app/queries/packages";
 import { decomposePurl, parseBooleanIfPossible } from "@app/utils/utils";
@@ -108,6 +109,14 @@ export const PackageSearchProvider: React.FunctionComponent<
         onInputValueChange: setInputValueLicense,
       },
       {
+        categoryKey: "algorithm",
+        title: "Algorithm",
+        type: FilterType.multiselect,
+        placeholderText: "Filter by cryptographic algorithm",
+        selectOptions: getPrototypeAlgorithmFilterOptions(),
+        excludeFromHubRequest: true,
+      },
+      {
         categoryKey: "has_vulnerabilities",
         title: "Vulnerabilities",
         type: FilterType.toggle,
@@ -124,6 +133,7 @@ export const PackageSearchProvider: React.FunctionComponent<
   const hasVulnerabilities = parseBooleanIfPossible(
     tableControlState.filterState.filterValues.has_vulnerabilities?.[0],
   );
+  const algorithmFilter = tableControlState.filterState.filterValues.algorithm;
 
   const {
     result: { data: packages, total: totalItemCount },
@@ -138,7 +148,10 @@ export const PackageSearchProvider: React.FunctionComponent<
         version: "version",
       },
     }),
-    { hasVulnerabilities },
+    {
+      hasVulnerabilities,
+      algorithms: algorithmFilter?.length ? algorithmFilter : undefined,
+    },
   );
 
   const enrichedPackages = React.useMemo(() => {

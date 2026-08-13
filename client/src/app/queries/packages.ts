@@ -6,6 +6,7 @@ import type { HubRequestParams } from "@app/api/models";
 import { client } from "../axios-config/apiInit";
 import { getPurl, listPackages, listPurl } from "../client";
 import { requestParamsQuery } from "../hooks/table-controls";
+import { getPackageUuidsForAlgorithms } from "@app/cbom/cryptoAlgorithmPackages";
 import {
   getMockSbomPackages,
   mockPackageUuidsWithVulnerabilities,
@@ -23,6 +24,8 @@ export type UseFetchPackagesOptions = {
    * query param). Mock data filters the same way for UX development.
    */
   hasVulnerabilities?: boolean;
+  /** Prototype: restrict results to packages linked to these algorithms (mock mode). */
+  algorithms?: string[];
 };
 
 const normalizeFetchPackagesOptions = (
@@ -41,11 +44,11 @@ export const useFetchPackages = (
   params: HubRequestParams = {},
   opts?: boolean | UseFetchPackagesOptions,
 ) => {
-  const { disableQuery = false, hasVulnerabilities = false } =
+  const { disableQuery = false, hasVulnerabilities = false, algorithms } =
     normalizeFetchPackagesOptions(opts);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [PackagesQueryKey, params, hasVulnerabilities],
+    queryKey: [PackagesQueryKey, params, hasVulnerabilities, algorithms],
     queryFn: () => {
       const baseQuery = requestParamsQuery(params);
       const query = {
@@ -59,6 +62,10 @@ export const useFetchPackages = (
           items = items.filter((p) =>
             mockPackageUuidsWithVulnerabilities.has(p.uuid),
           );
+        }
+        if (algorithms && algorithms.length > 0) {
+          const allowedUuids = getPackageUuidsForAlgorithms(algorithms);
+          items = items.filter((p) => allowedUuids.has(p.uuid));
         }
         return Promise.resolve({
           data: { items, total: items.length },

@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 
 import { Flex, FlexItem } from "@patternfly/react-core";
 
@@ -9,14 +10,37 @@ import {
   PACKAGE_PAGE_VERSIONS,
   type PackagePageVersion,
   readStoredPackagePageVersion,
+  resolvePackagePageVersionFromSearch,
   writeStoredPackagePageVersion,
 } from "./package-versions";
 
 import "./components/package-version-switcher.css";
 
+const readInitialPackagePageVersion = (): PackagePageVersion => {
+  if (typeof window !== "undefined") {
+    const fromUrl = resolvePackagePageVersionFromSearch(window.location.search);
+    if (fromUrl) {
+      writeStoredPackagePageVersion(fromUrl);
+      return fromUrl;
+    }
+  }
+
+  return readStoredPackagePageVersion();
+};
+
 export const PackageList: React.FC = () => {
+  const location = useLocation();
   const [packagePageVersion, setPackagePageVersion] =
-    React.useState<PackagePageVersion>(readStoredPackagePageVersion);
+    React.useState<PackagePageVersion>(readInitialPackagePageVersion);
+
+  React.useEffect(() => {
+    const fromUrl = resolvePackagePageVersionFromSearch(location.search);
+    if (!fromUrl) {
+      return;
+    }
+    setPackagePageVersion(fromUrl);
+    writeStoredPackagePageVersion(fromUrl);
+  }, [location.search]);
 
   const handlePackagePageVersionChange = (version: PackagePageVersion) => {
     setPackagePageVersion(version);

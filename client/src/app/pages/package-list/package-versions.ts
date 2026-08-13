@@ -22,6 +22,19 @@ export const PACKAGE_PAGE_VERSION_SHORT_LABELS: Record<
 export const PACKAGE_PAGE_VERSION_STORAGE_KEY =
   "trustify-package-page-version";
 
+/** URL query param to deep-link a specific packages page variant. */
+export const PACKAGE_PAGE_VERSION_URL_PARAM = "packageView";
+
+export const resolvePackagePageVersionFromSearch = (
+  search: string,
+): PackagePageVersion | undefined => {
+  const value = new URLSearchParams(search).get(PACKAGE_PAGE_VERSION_URL_PARAM);
+  if (value && isPackagePageVersion(value)) {
+    return value;
+  }
+  return undefined;
+};
+
 export const isPackagePageVersion = (
   value: string,
 ): value is PackagePageVersion =>

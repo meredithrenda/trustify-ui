@@ -1,12 +1,9 @@
 import type React from "react";
 
-import { Content, Stack, StackItem, Title } from "@patternfly/react-core";
+import { Stack, StackItem } from "@patternfly/react-core";
 
 import {
-  CBOM_FIXTURE_SCANNER_LABEL,
-  CBOM_SPEC_LABEL,
-  CryptographicAlgorithmPolicies,
-  CryptoAssetsTable,
+  CryptographyInventoryTabs,
   type CryptographicAsset,
   getCryptographicAssetsForSbom,
 } from "@app/cbom";
@@ -33,20 +30,7 @@ export const Cryptography: React.FC<CryptographyProps> = ({
   return (
     <Stack hasGutter>
       <StackItem>
-        <CryptographicAlgorithmPolicies assets={assets} />
-      </StackItem>
-      <StackItem>
-        <Title headingLevel="h3" size="lg">
-          Cryptographic assets
-        </Title>
-        <Content component="p">
-          Assets from a CycloneDX cryptographic BOM attached to this SBOM.
-          Discovered by {CBOM_FIXTURE_SCANNER_LABEL} ({CBOM_SPEC_LABEL}). Click
-          a row to view evidence and detection rules.
-        </Content>
-      </StackItem>
-      <StackItem>
-        <CryptoAssetsTable
+        <CryptographyInventoryTabs
           assets={assets}
           onSelectAsset={(asset) => onSelectAsset(asset)}
         />
