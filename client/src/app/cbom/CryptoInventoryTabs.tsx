@@ -12,6 +12,7 @@ import {
 
 import { CryptoAssetsTable } from "./CryptoAssetsTable";
 import { CryptoRelatedMaterialTable } from "./CryptoRelatedMaterialTable";
+import type { CryptoRecommendationGuidanceSource } from "./cryptoAlgorithmRecommendations";
 import type { CryptographicAsset } from "./types";
 
 const ALGORITHMS_TAB = 0;
@@ -25,6 +26,8 @@ interface CryptoInventoryTabsProps {
   relatedMaterialTabCount?: number;
   showPackagesColumn?: boolean;
   showSbomColumn?: boolean;
+  showRecommendationColumn?: boolean;
+  recommendationGuidanceSource?: CryptoRecommendationGuidanceSource;
   renderSbomCell?: (asset: CryptographicAsset) => React.ReactNode;
   renderPackagesCell?: (asset: CryptographicAsset) => React.ReactNode;
   algorithmsToolbar?: React.ReactNode;
@@ -40,6 +43,8 @@ export const CryptoInventoryTabs: React.FC<CryptoInventoryTabsProps> = ({
   relatedMaterialTabCount,
   showPackagesColumn,
   showSbomColumn,
+  showRecommendationColumn,
+  recommendationGuidanceSource,
   renderSbomCell,
   renderPackagesCell,
   algorithmsToolbar,
@@ -92,6 +97,8 @@ export const CryptoInventoryTabs: React.FC<CryptoInventoryTabsProps> = ({
                   onSelectAsset={onSelectAsset}
                   showPackagesColumn={showPackagesColumn}
                   showSbomColumn={showSbomColumn}
+                  showRecommendationColumn={showRecommendationColumn}
+                  recommendationGuidanceSource={recommendationGuidanceSource}
                   renderSbomCell={renderSbomCell}
                   renderPackagesCell={renderPackagesCell}
                 />

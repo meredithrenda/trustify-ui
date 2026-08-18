@@ -27,7 +27,7 @@ const emptyCell = (
     component="span"
     style={{ color: "var(--pf-t--global--text--color--subtle)" }}
   >
-    —
+    --
   </Content>
 );
 

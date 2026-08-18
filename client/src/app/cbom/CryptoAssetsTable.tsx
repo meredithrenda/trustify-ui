@@ -6,12 +6,18 @@ import {
   Stack,
   StackItem,
 } from "@patternfly/react-core";
-import type { ISortBy, OnSort } from "@patternfly/react-table";
+import type { ISortBy, OnSort, ThProps } from "@patternfly/react-table";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 
+import {
+  DEFAULT_CRYPTO_RECOMMENDATION_GUIDANCE_SOURCE,
+  getCryptoRecommendationHeaderHelp,
+} from "./cryptoAlgorithmRecommendations";
 import { formatPrimitiveCell } from "./display";
 import { sortCryptoAssets } from "./cryptoAssetsTableSort";
 import { CryptoAssetPolicyTableCell } from "./CryptoAssetPolicyChips";
+import { CryptoRecommendationTableCell } from "./CryptoRecommendationTableCell";
+import type { CryptoRecommendationGuidanceSource } from "./cryptoAlgorithmRecommendations";
 import type { CryptographicAsset } from "./types";
 
 interface CryptoAssetsTableProps {
@@ -20,6 +26,8 @@ interface CryptoAssetsTableProps {
   showPackagesColumn?: boolean;
   showSbomColumn?: boolean;
   showPolicyColumn?: boolean;
+  showRecommendationColumn?: boolean;
+  recommendationGuidanceSource?: CryptoRecommendationGuidanceSource;
   renderSbomCell?: (asset: CryptographicAsset) => React.ReactNode;
   renderPackagesCell?: (asset: CryptographicAsset) => React.ReactNode;
 }
@@ -29,45 +37,72 @@ type TableColumnModifier = "truncate" | "fitContent" | "nowrap";
 interface TableColumnConfig {
   key: string;
   title: string;
+  headerInfo?: ThProps["info"];
   width: number;
   modifier?: TableColumnModifier;
 }
+
+const getRecommendationHeaderInfo = (
+  guidanceSource: CryptoRecommendationGuidanceSource,
+): ThProps["info"] => ({
+  popover: getCryptoRecommendationHeaderHelp(guidanceSource),
+  ariaLabel: "Recommendation guidance help",
+  popoverProps: {
+    headerContent: "Recommendation",
+  },
+});
 
 const getColumns = (
   showPackagesColumn: boolean,
   showSbomColumn: boolean,
   showPolicyColumn: boolean,
+  showRecommendationColumn: boolean,
+  recommendationGuidanceSource?: CryptoRecommendationGuidanceSource,
 ): TableColumnConfig[] => {
   const useInventoryLayout = showPackagesColumn || showSbomColumn;
 
   if (useInventoryLayout) {
     const columns: TableColumnConfig[] = [
-      { key: "name", title: "Algorithm name", width: 22, modifier: "truncate" },
+      { key: "name", title: "Algorithm name", width: 26, modifier: "truncate" },
       { key: "primitive", title: "Primitive", width: 12, modifier: "truncate" },
       {
         key: "occurrences",
         title: "Occurrences",
-        width: 10,
-        modifier: "nowrap",
+        width: 5,
+        modifier: "fitContent",
       },
       ...(showPolicyColumn
         ? [
             {
               key: "policy",
               title: "Policy",
-              width: 16,
+              width: 12,
               modifier: "truncate" as const,
             },
           ]
         : []),
-      { key: "usage", title: "Usage", width: 12, modifier: "truncate" },
+      ...(showRecommendationColumn
+        ? [
+            {
+              key: "recommendation",
+              title: "Recommendation",
+              headerInfo: getRecommendationHeaderInfo(
+                recommendationGuidanceSource ??
+                  DEFAULT_CRYPTO_RECOMMENDATION_GUIDANCE_SOURCE,
+              ),
+              width: 5,
+              modifier: "fitContent" as const,
+            },
+          ]
+        : []),
+      { key: "usage", title: "Usage", width: 15, modifier: "truncate" },
     ];
 
     if (showPackagesColumn) {
       columns.push({
         key: "packages",
         title: "Packages",
-        width: 14,
+        width: 13,
         modifier: "truncate",
       });
     }
@@ -76,7 +111,7 @@ const getColumns = (
       columns.push({
         key: "sboms",
         title: "SBOMs",
-        width: 14,
+        width: 13,
         modifier: "truncate",
       });
     }
@@ -85,25 +120,39 @@ const getColumns = (
   }
 
   return [
-    { key: "name", title: "Algorithm name", width: 26, modifier: "truncate" },
-    { key: "primitive", title: "Primitive", width: 14, modifier: "truncate" },
+    { key: "name", title: "Algorithm name", width: 28, modifier: "truncate" },
+    { key: "primitive", title: "Primitive", width: 13, modifier: "truncate" },
     {
       key: "occurrences",
       title: "Occurrences",
-      width: 12,
-      modifier: "nowrap",
+      width: 5,
+      modifier: "fitContent",
     },
     ...(showPolicyColumn
       ? [
           {
             key: "policy",
             title: "Policy",
-            width: 18,
+            width: 12,
             modifier: "truncate" as const,
           },
         ]
       : []),
-    { key: "usage", title: "Usage", width: 20, modifier: "truncate" },
+    ...(showRecommendationColumn
+      ? [
+          {
+            key: "recommendation",
+            title: "Recommendation",
+            headerInfo: getRecommendationHeaderInfo(
+              recommendationGuidanceSource ??
+                DEFAULT_CRYPTO_RECOMMENDATION_GUIDANCE_SOURCE,
+            ),
+            width: 5,
+            modifier: "fitContent" as const,
+          },
+        ]
+      : []),
+    { key: "usage", title: "Usage", width: 17, modifier: "truncate" },
   ];
 };
 
@@ -117,7 +166,7 @@ const emptyCell = (
     component="span"
     style={{ color: "var(--pf-t--global--text--color--subtle)" }}
   >
-    —
+    --
   </Content>
 );
 
@@ -140,6 +189,8 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
   showPackagesColumn = false,
   showSbomColumn = false,
   showPolicyColumn = true,
+  showRecommendationColumn = false,
+  recommendationGuidanceSource,
   renderSbomCell,
   renderPackagesCell,
 }) => {
@@ -147,6 +198,8 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
     showPackagesColumn,
     showSbomColumn,
     showPolicyColumn,
+    showRecommendationColumn,
+    recommendationGuidanceSource,
   );
   const columnByKey = columnConfigByKey(columns);
   const td = (columnKey: string) => getTdProps(columnKey, columnByKey);
@@ -179,8 +232,17 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
       assets,
       column.key,
       sortBy.direction ?? "asc",
+      recommendationGuidanceSource
+        ? { recommendationGuidanceSource }
+        : undefined,
     );
-  }, [assets, columns, sortBy.index, sortBy.direction]);
+  }, [
+    assets,
+    columns,
+    sortBy.index,
+    sortBy.direction,
+    recommendationGuidanceSource,
+  ]);
 
   return (
     <Table aria-label="Cryptographic algorithms table">
@@ -192,6 +254,7 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
               modifier={column.modifier}
               sort={thSort(columnIndex)}
               width={column.width}
+              info={column.headerInfo}
             >
               {column.title}
             </Th>
@@ -240,6 +303,14 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
               {showPolicyColumn ? (
                 <Td {...td("policy")}>
                   <CryptoAssetPolicyTableCell asset={asset} />
+                </Td>
+              ) : null}
+              {showRecommendationColumn && recommendationGuidanceSource ? (
+                <Td {...td("recommendation")}>
+                  <CryptoRecommendationTableCell
+                    asset={asset}
+                    guidanceSource={recommendationGuidanceSource}
+                  />
                 </Td>
               ) : null}
               <Td {...td("usage")}>{asset.usageType}</Td>

@@ -4,9 +4,21 @@ import {
   type IFilterValues,
 } from "@app/components/FilterToolbar";
 
+import {
+  CRYPTO_COMPLIANCE_ISSUE_FILTER_OPTIONS,
+  CRYPTO_POLICY_VERDICT_FILTER_OPTIONS,
+  getCryptoAssetPolicyReasons,
+  getCryptoAssetPolicyVerdict,
+  type CryptoAssetPolicyVerdict,
+} from "./cryptoAlgorithmPolicies";
 import type { CryptographicAsset } from "./types";
 
-export type CryptoAlgorithmFilterKey = "search" | "primitive" | "usageType";
+export type CryptoAlgorithmFilterKey =
+  | "search"
+  | "primitive"
+  | "usageType"
+  | "policy"
+  | "complianceIssue";
 
 export const CRYPTO_ALGORITHM_USAGE_OPTIONS = [
   { value: "Usage in source", label: "Usage in source" },
@@ -49,7 +61,51 @@ export const buildCryptoAlgorithmFilterCategories = (
       type: FilterType.select,
       selectOptions: CRYPTO_ALGORITHM_USAGE_OPTIONS,
     },
+    {
+      categoryKey: "policy",
+      title: "Policy",
+      type: FilterType.multiselect,
+      placeholderText: "Filter by policy verdict",
+      selectOptions: CRYPTO_POLICY_VERDICT_FILTER_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+      })),
+    },
+    {
+      categoryKey: "complianceIssue",
+      title: "Compliance issue",
+      type: FilterType.multiselect,
+      placeholderText: "Filter by compliance issue",
+      selectOptions: CRYPTO_COMPLIANCE_ISSUE_FILTER_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+      })),
+    },
   ];
+};
+
+const matchesPolicyFilter = (
+  asset: CryptographicAsset,
+  policyFilters: CryptoAssetPolicyVerdict[],
+): boolean => {
+  if (policyFilters.length === 0) {
+    return true;
+  }
+  return policyFilters.includes(getCryptoAssetPolicyVerdict(asset));
+};
+
+const matchesComplianceIssueFilter = (
+  asset: CryptographicAsset,
+  complianceIssueFilters: string[],
+): boolean => {
+  if (complianceIssueFilters.length === 0) {
+    return true;
+  }
+  const selectedIssues = new Set(complianceIssueFilters);
+  const assetIssues = getCryptoAssetPolicyReasons(asset).map(
+    (result) => result.reasonLabel,
+  );
+  return assetIssues.some((issue) => selectedIssues.has(issue));
 };
 
 export const filterCryptoAlgorithmAssets = (
@@ -70,6 +126,19 @@ export const filterCryptoAlgorithmAssets = (
     }
     const usage = filterValues.usageType;
     if (usage?.[0] && asset.usageType !== usage[0]) {
+      return false;
+    }
+    const policyFilters = (filterValues.policy ?? []).filter(
+      (value): value is CryptoAssetPolicyVerdict =>
+        value === "compliant" ||
+        value === "warning" ||
+        value === "non_compliant",
+    );
+    if (!matchesPolicyFilter(asset, policyFilters)) {
+      return false;
+    }
+    const complianceIssueFilters = filterValues.complianceIssue ?? [];
+    if (!matchesComplianceIssueFilter(asset, complianceIssueFilters)) {
       return false;
     }
     return true;

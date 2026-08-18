@@ -45,13 +45,6 @@ const PQC_ALGORITHM_HINTS = [
   "falcon",
 ];
 
-/** Families referenced by the suggested readiness policy (Allison / NIST PQC). */
-const PQC_READINESS_FAMILIES = [
-  { label: "ML-KEM", hints: ["ml-kem", "kyber"] },
-  { label: "ML-DSA", hints: ["ml-dsa", "dilithium"] },
-  { label: "SLH-DSA", hints: ["slh-dsa", "sphincs"] },
-] as const;
-
 const toPercent = (part: number, total: number): number => {
   if (total === 0) {
     return 0;
@@ -61,20 +54,6 @@ const toPercent = (part: number, total: number): number => {
 
 const getAlgorithmAssets = (assets: CryptographicAsset[]): CryptographicAsset[] =>
   assets.filter((asset) => asset.assetType === "algorithm");
-
-const assetHaystack = (asset: CryptographicAsset): string =>
-  [asset.name, asset.algorithm, asset.primitive, asset.description]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-const assetMatchesHints = (
-  asset: CryptographicAsset,
-  hints: readonly string[],
-): boolean => {
-  const haystack = assetHaystack(asset);
-  return hints.some((hint) => haystack.includes(hint));
-};
 
 const readinessPercentStatus = (percent: number): CryptoAlgorithmPolicyStatus => {
   if (percent >= 80) {
@@ -166,12 +145,22 @@ function passesSuggestedPqcReadinessPolicy(
   return isPqcAsset(asset);
 }
 
-const sbomPassesReadinessPolicy = (sbomAssets: CryptographicAsset[]): boolean => {
+const sbomAlgorithmReadinessPercent = (
+  sbomAssets: CryptographicAsset[],
+): number => {
   const algorithms = getAlgorithmAssets(sbomAssets);
   if (algorithms.length === 0) {
-    return false;
+    return 0;
   }
-  return algorithms.every((asset) => passesSuggestedPqcReadinessPolicy(asset));
+  const meeting = algorithms.filter((asset) =>
+    passesSuggestedPqcReadinessPolicy(asset),
+  ).length;
+  return toPercent(meeting, algorithms.length);
+};
+
+/** SBOM meets suggested policy when a meaningful share of its algorithms are PQC-ready. */
+const sbomPassesReadinessPolicy = (sbomAssets: CryptographicAsset[]): boolean => {
+  return sbomAlgorithmReadinessPercent(sbomAssets) >= 40;
 };
 
 function isUnlistedAlgorithm(asset: CryptographicAsset): boolean {
@@ -365,19 +354,10 @@ export function getCryptographicAlgorithmPolicyPosture(
     algorithmTotal,
   );
 
-  const detectedFamilies = PQC_READINESS_FAMILIES.filter((family) =>
-    algorithmAssets.some((asset) => assetMatchesHints(asset, family.hints)),
-  );
-  const recommendedFamiliesPercent = toPercent(
-    detectedFamilies.length,
-    PQC_READINESS_FAMILIES.length,
-  );
-  const detectedFamilyLabels = detectedFamilies.map((family) => family.label);
-
   const postures: CryptoAlgorithmPolicyPosture[] = [
     {
       id: "algorithms-meeting-readiness-policy",
-      name: "Algorithms meeting PQC policy",
+      name: "Algorithms meeting PQC",
       status: readinessPercentStatus(algorithmsMeetingPolicyPercent),
       percent: algorithmsMeetingPolicyPercent,
       summary:
@@ -385,20 +365,6 @@ export function getCryptographicAlgorithmPolicyPosture(
           ? `${algorithmsMeetingPolicy} of ${algorithmTotal} inventoried algorithms are compliant with the suggested PQC policy`
           : "No algorithm assets in inventory",
     },
-    ...(includeSbomsMeetingPolicy
-      ? [
-          {
-            id: "sboms-meeting-readiness-policy",
-            name: "SBOMs meeting PQC policy",
-            status: readinessPercentStatus(sbomsMeetingPolicyPercent),
-            percent: sbomsMeetingPolicyPercent,
-            summary:
-              sbomTotal > 0
-                ? `${sbomsMeetingPolicy} of ${sbomTotal} SBOMs with cryptographic assets are compliant with the suggested PQC policy`
-                : "No SBOMs linked to cryptographic assets",
-          },
-        ]
-      : []),
     {
       id: "classical-algorithm-share",
       name: "Classical algorithm share",
@@ -409,20 +375,42 @@ export function getCryptographicAlgorithmPolicyPosture(
           ? `${classicalAlgorithms} of ${algorithmTotal} algorithms use classical primitives only`
           : "No algorithm assets in inventory",
     },
-    {
-      id: "recommended-pqc-families",
-      name: "Recommended PQC families detected",
-      status: readinessPercentStatus(recommendedFamiliesPercent),
-      percent: recommendedFamiliesPercent,
-      summary:
-        detectedFamilyLabels.length > 0
-          ? `Detected: ${detectedFamilyLabels.join(", ")} (of ML-KEM, ML-DSA, SLH-DSA)`
-          : "None of ML-KEM, ML-DSA, or SLH-DSA detected in inventory",
-    },
+    ...(includeSbomsMeetingPolicy
+      ? [
+          {
+            id: "sboms-meeting-readiness-policy",
+            name: "SBOMs meeting PQC",
+            status: readinessPercentStatus(sbomsMeetingPolicyPercent),
+            percent: sbomsMeetingPolicyPercent,
+            summary:
+              sbomTotal > 0
+                ? `${sbomsMeetingPolicy} of ${sbomTotal} SBOMs with cryptographic assets are compliant with the suggested PQC policy`
+                : "No SBOMs linked to cryptographic assets",
+          },
+        ]
+      : []),
   ];
 
   return postures;
 }
+
+export const CRYPTO_POLICY_VERDICT_FILTER_OPTIONS: Array<{
+  value: CryptoAssetPolicyVerdict;
+  label: string;
+}> = [
+  { value: "compliant", label: "Compliant" },
+  { value: "warning", label: "Warning" },
+  { value: "non_compliant", label: "Non-compliant" },
+];
+
+export const CRYPTO_COMPLIANCE_ISSUE_FILTER_OPTIONS = [
+  { value: "Deprecated", label: "Deprecated" },
+  { value: "Classical only", label: "Classical only" },
+] as const;
+
+export type CryptoComplianceIssueFilter = (
+  typeof CRYPTO_COMPLIANCE_ISSUE_FILTER_OPTIONS
+)[number]["value"];
 
 export const cryptoAlgorithmPolicyStatusLabel: Record<
   CryptoAlgorithmPolicyStatus,

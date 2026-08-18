@@ -24,6 +24,7 @@ import {
   renderCryptoPackagesCell,
   renderCryptoSbomsCell,
 } from "./cryptoInventoryTableCells";
+import { useCryptoRecommendationGuidanceSource } from "./useCryptoRecommendationGuidanceSource";
 import type { CryptographicAsset } from "./types";
 
 interface CryptographyInventoryTabsProps {
@@ -35,6 +36,7 @@ interface CryptographyInventoryTabsProps {
 export const CryptographyInventoryTabs: React.FC<
   CryptographyInventoryTabsProps
 > = ({ assets, onSelectAsset, showSbomColumn = false }) => {
+  const guidanceSource = useCryptoRecommendationGuidanceSource();
   const [filterValues, setFilterValues] = React.useState<
     IFilterValues<CryptoAlgorithmFilterKey>
   >({});
@@ -74,6 +76,8 @@ export const CryptographyInventoryTabs: React.FC<
           onSelectAsset={onSelectAsset}
           showPackagesColumn
           showSbomColumn={showSbomColumn}
+          showRecommendationColumn
+          recommendationGuidanceSource={guidanceSource}
           renderPackagesCell={renderCryptoPackagesCell}
           renderSbomCell={showSbomColumn ? renderCryptoSbomsCell : undefined}
           algorithmsToolbar={

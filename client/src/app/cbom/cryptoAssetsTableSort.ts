@@ -4,6 +4,10 @@ import {
   getCryptoAssetPolicyVerdict,
   type CryptoAssetPolicyVerdict,
 } from "./cryptoAlgorithmPolicies";
+import {
+  formatCryptoAlgorithmRecommendation,
+  type CryptoRecommendationGuidanceSource,
+} from "./cryptoAlgorithmRecommendations";
 
 const POLICY_VERDICT_SORT_ORDER: Record<CryptoAssetPolicyVerdict, number> = {
   compliant: 0,
@@ -16,7 +20,9 @@ export const compareCryptoAssetsForSort = (
   right: CryptographicAsset,
   columnKey: string,
   direction: "asc" | "desc",
+  options?: { recommendationGuidanceSource?: CryptoRecommendationGuidanceSource },
 ): number => {
+  const recommendationGuidanceSource = options?.recommendationGuidanceSource;
   const multiplier = direction === "desc" ? -1 : 1;
 
   const compareStrings = (a: string, b: string) => a.localeCompare(b) * multiplier;
@@ -40,6 +46,26 @@ export const compareCryptoAssetsForSort = (
         POLICY_VERDICT_SORT_ORDER[getCryptoAssetPolicyVerdict(left)],
         POLICY_VERDICT_SORT_ORDER[getCryptoAssetPolicyVerdict(right)],
       );
+    case "recommendation": {
+      const leftRecommendation =
+        recommendationGuidanceSource
+          ? formatCryptoAlgorithmRecommendation(
+              left,
+              recommendationGuidanceSource,
+            ) ?? ""
+          : "";
+      const rightRecommendation =
+        recommendationGuidanceSource
+          ? formatCryptoAlgorithmRecommendation(
+              right,
+              recommendationGuidanceSource,
+            ) ?? ""
+          : "";
+      return compareStrings(
+        leftRecommendation.toLowerCase(),
+        rightRecommendation.toLowerCase(),
+      );
+    }
     case "usage":
       return compareStrings(
         left.usageType.toLowerCase(),
@@ -66,7 +92,8 @@ export const sortCryptoAssets = (
   assets: CryptographicAsset[],
   columnKey: string,
   direction: "asc" | "desc",
+  options?: { recommendationGuidanceSource?: CryptoRecommendationGuidanceSource },
 ): CryptographicAsset[] =>
   [...assets].sort((left, right) =>
-    compareCryptoAssetsForSort(left, right, columnKey, direction),
+    compareCryptoAssetsForSort(left, right, columnKey, direction, options),
   );

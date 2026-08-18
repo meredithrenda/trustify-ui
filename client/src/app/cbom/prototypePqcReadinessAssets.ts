@@ -1,11 +1,8 @@
 import { getPackageLinksForAlgorithm } from "./cryptoAlgorithmPackages";
-import type { CryptographicAsset, CryptographicAssetSbomLink } from "./types";
+import type { CryptographicAsset } from "./types";
 
 /** Illustrative PQC algorithm rows for Cryptography inventory mockups. */
-export function createPrototypePqcReadinessAssets(
-  openshiftSbom: CryptographicAssetSbomLink,
-  rsaSignerSbom: CryptographicAssetSbomLink,
-): CryptographicAsset[] {
+export function createPrototypePqcReadinessAssets(): CryptographicAsset[] {
   const base = {
     assetType: "algorithm",
     usageType: "Declared capability" as const,
@@ -18,7 +15,6 @@ export function createPrototypePqcReadinessAssets(
     id: string,
     name: string,
     primitive: string,
-    sboms: CryptographicAssetSbomLink[],
     description: string,
   ): CryptographicAsset => ({
     ...base,
@@ -27,72 +23,62 @@ export function createPrototypePqcReadinessAssets(
     algorithm: name,
     primitive,
     description,
-    sboms,
     packages: getPackageLinksForAlgorithm(name),
   });
 
   return [
     algorithmRow(
-      "prototype-pqc-ml-kem-openshift",
+      "prototype-pqc-ml-kem-768",
       "ML-KEM-768",
       "pke",
-      [openshiftSbom],
       "NIST ML-KEM (prototype inventory sample)",
     ),
     algorithmRow(
-      "prototype-pqc-ml-dsa-openshift",
+      "prototype-pqc-ml-dsa-65",
       "ML-DSA-65",
       "signature",
-      [openshiftSbom],
       "NIST ML-DSA (prototype inventory sample)",
     ),
     algorithmRow(
-      "prototype-pqc-slh-dsa-openshift",
+      "prototype-pqc-slh-dsa-128s",
       "SLH-DSA-SHA2-128s",
       "signature",
-      [openshiftSbom],
       "NIST SLH-DSA (prototype inventory sample)",
     ),
     algorithmRow(
-      "prototype-pqc-ml-kem-rsa",
+      "prototype-pqc-ml-kem-512",
       "ML-KEM-512",
       "pke",
-      [rsaSignerSbom],
       "NIST ML-KEM (prototype inventory sample)",
     ),
     algorithmRow(
-      "prototype-pqc-ml-dsa-rsa",
+      "prototype-pqc-ml-dsa-44",
       "ML-DSA-44",
       "signature",
-      [rsaSignerSbom],
       "NIST ML-DSA (prototype inventory sample)",
     ),
     algorithmRow(
-      "prototype-pqc-ml-kem-1024-openshift",
+      "prototype-pqc-ml-kem-1024",
       "ML-KEM-1024",
       "pke",
-      [openshiftSbom],
       "NIST ML-KEM (prototype inventory sample)",
     ),
     algorithmRow(
-      "prototype-pqc-ml-dsa-87-openshift",
+      "prototype-pqc-ml-dsa-87",
       "ML-DSA-87",
       "signature",
-      [openshiftSbom],
       "NIST ML-DSA (prototype inventory sample)",
     ),
     algorithmRow(
-      "prototype-pqc-slh-dsa-256f-openshift",
+      "prototype-pqc-slh-dsa-256f",
       "SLH-DSA-SHA2-256f",
       "signature",
-      [openshiftSbom],
       "NIST SLH-DSA (prototype inventory sample)",
     ),
     algorithmRow(
-      "prototype-pqc-slh-dsa-128f-rsa",
+      "prototype-pqc-slh-dsa-128f",
       "SLH-DSA-SHA2-128f",
       "signature",
-      [rsaSignerSbom],
       "NIST SLH-DSA (prototype inventory sample)",
     ),
   ];

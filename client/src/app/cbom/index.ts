@@ -26,6 +26,8 @@ export { CryptoAssetPolicyTableCell } from "./CryptoAssetPolicyChips";
 export {
   cryptoAlgorithmPolicyStatusLabel,
   cryptoAssetPolicyVerdictLabel,
+  CRYPTO_COMPLIANCE_ISSUE_FILTER_OPTIONS,
+  CRYPTO_POLICY_VERDICT_FILTER_OPTIONS,
   getCryptoAssetPolicyResults,
   getCryptoAssetPolicyReasons,
   getCryptoAssetPolicyVerdict,
@@ -39,6 +41,18 @@ export type {
 } from "./cryptoAlgorithmPolicies";
 export { CryptoDetailContent } from "./CryptoDetailContent";
 export type { CryptoDetailViewContext } from "./CryptoDetailContent";
+export { CryptoRecommendationTableCell } from "./CryptoRecommendationTableCell";
+export {
+  CRYPTO_RECOMMENDATION_GUIDANCE_SOURCES,
+  DEFAULT_CRYPTO_RECOMMENDATION_GUIDANCE_SOURCE,
+  formatCryptoAlgorithmRecommendation,
+  getCryptoAlgorithmRecommendation,
+  getCryptoAlgorithmRecommendationTooltip,
+  getCryptoRecommendationGuidanceLabel,
+  getCryptoRecommendationHeaderHelp,
+} from "./cryptoAlgorithmRecommendations";
+export type { CryptoRecommendationGuidanceSource } from "./cryptoAlgorithmRecommendations";
+export { useCryptoRecommendationGuidanceSource } from "./useCryptoRecommendationGuidanceSource";
 export { CryptoAssetsTable } from "./CryptoAssetsTable";
 export { CryptoInventoryTabs } from "./CryptoInventoryTabs";
 export { CryptographyInventoryTabs } from "./CryptographyInventoryTabs";
