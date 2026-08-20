@@ -7,6 +7,7 @@ import {
   Content,
   Grid,
   GridItem,
+  Skeleton,
   Title,
 } from "@patternfly/react-core";
 
@@ -17,11 +18,16 @@ export interface CryptographicAlgorithmPoliciesProps {
   assets: CryptographicAsset[];
   /** Workspace inventory shows SBOM-level readiness; single-SBOM views omit it. */
   includeSbomsMeetingPolicy?: boolean;
+  isRecalculating?: boolean;
 }
 
 export const CryptographicAlgorithmPolicies: React.FC<
   CryptographicAlgorithmPoliciesProps
-> = ({ assets, includeSbomsMeetingPolicy = true }) => {
+> = ({
+  assets,
+  includeSbomsMeetingPolicy = true,
+  isRecalculating = false,
+}) => {
   const policies = getCryptographicAlgorithmPolicyPosture(assets, {
     includeSbomsMeetingPolicy,
   });
@@ -33,10 +39,19 @@ export const CryptographicAlgorithmPolicies: React.FC<
           <Card isFullHeight>
             <CardTitle>{policy.name}</CardTitle>
             <CardBody>
-              <Title headingLevel="h3" size="2xl">
-                {policy.percent}%
-              </Title>
-              <Content component="small">{policy.summary}</Content>
+              {isRecalculating ? (
+                <>
+                  <Skeleton fontSize="2xl" width="25%" />
+                  <Content component="small">Recalculating…</Content>
+                </>
+              ) : (
+                <>
+                  <Title headingLevel="h3" size="2xl">
+                    {policy.percent}%
+                  </Title>
+                  <Content component="small">{policy.summary}</Content>
+                </>
+              )}
             </CardBody>
           </Card>
         </GridItem>

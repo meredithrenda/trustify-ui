@@ -11,11 +11,23 @@ import type { CryptographicAsset } from "./types";
 interface CryptoRecommendationTableCellProps {
   asset: CryptographicAsset;
   guidanceSource: CryptoRecommendationGuidanceSource;
+  isPending?: boolean;
 }
 
 export const CryptoRecommendationTableCell: React.FC<
   CryptoRecommendationTableCellProps
-> = ({ asset, guidanceSource }) => {
+> = ({ asset, guidanceSource, isPending = false }) => {
+  if (isPending) {
+    return (
+      <Content
+        component="span"
+        style={{ color: "var(--pf-t--global--text--color--subtle)" }}
+      >
+        --
+      </Content>
+    );
+  }
+
   const recommendation = formatCryptoAlgorithmRecommendation(
     asset,
     guidanceSource,

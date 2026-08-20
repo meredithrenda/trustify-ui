@@ -28,6 +28,7 @@ interface CryptoAssetsTableProps {
   showPolicyColumn?: boolean;
   showRecommendationColumn?: boolean;
   recommendationGuidanceSource?: CryptoRecommendationGuidanceSource;
+  isAssetPolicyAssessed?: (asset: CryptographicAsset) => boolean;
   renderSbomCell?: (asset: CryptographicAsset) => React.ReactNode;
   renderPackagesCell?: (asset: CryptographicAsset) => React.ReactNode;
 }
@@ -191,6 +192,7 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
   showPolicyColumn = true,
   showRecommendationColumn = false,
   recommendationGuidanceSource,
+  isAssetPolicyAssessed,
   renderSbomCell,
   renderPackagesCell,
 }) => {
@@ -264,6 +266,9 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
       <Tbody>
         {sortedAssets.map((asset) => {
           const primitiveCell = formatPrimitiveCell(asset);
+          const isPolicyPending = isAssetPolicyAssessed
+            ? !isAssetPolicyAssessed(asset)
+            : false;
 
           return (
             <Tr key={asset.id} isHoverable>
@@ -302,7 +307,10 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
               <Td {...td("occurrences")}>{asset.occurrenceCount}</Td>
               {showPolicyColumn ? (
                 <Td {...td("policy")}>
-                  <CryptoAssetPolicyTableCell asset={asset} />
+                  <CryptoAssetPolicyTableCell
+                    asset={asset}
+                    isPending={isPolicyPending}
+                  />
                 </Td>
               ) : null}
               {showRecommendationColumn && recommendationGuidanceSource ? (
@@ -310,6 +318,7 @@ export const CryptoAssetsTable: React.FC<CryptoAssetsTableProps> = ({
                   <CryptoRecommendationTableCell
                     asset={asset}
                     guidanceSource={recommendationGuidanceSource}
+                    isPending={isPolicyPending}
                   />
                 </Td>
               ) : null}

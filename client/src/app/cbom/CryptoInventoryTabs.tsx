@@ -28,6 +28,7 @@ interface CryptoInventoryTabsProps {
   showSbomColumn?: boolean;
   showRecommendationColumn?: boolean;
   recommendationGuidanceSource?: CryptoRecommendationGuidanceSource;
+  isAssetPolicyAssessed?: (asset: CryptographicAsset) => boolean;
   renderSbomCell?: (asset: CryptographicAsset) => React.ReactNode;
   renderPackagesCell?: (asset: CryptographicAsset) => React.ReactNode;
   algorithmsToolbar?: React.ReactNode;
@@ -45,6 +46,7 @@ export const CryptoInventoryTabs: React.FC<CryptoInventoryTabsProps> = ({
   showSbomColumn,
   showRecommendationColumn,
   recommendationGuidanceSource,
+  isAssetPolicyAssessed,
   renderSbomCell,
   renderPackagesCell,
   algorithmsToolbar,
@@ -99,6 +101,7 @@ export const CryptoInventoryTabs: React.FC<CryptoInventoryTabsProps> = ({
                   showSbomColumn={showSbomColumn}
                   showRecommendationColumn={showRecommendationColumn}
                   recommendationGuidanceSource={recommendationGuidanceSource}
+                  isAssetPolicyAssessed={isAssetPolicyAssessed}
                   renderSbomCell={renderSbomCell}
                   renderPackagesCell={renderPackagesCell}
                 />

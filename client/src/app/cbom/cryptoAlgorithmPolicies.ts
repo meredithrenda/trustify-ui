@@ -311,6 +311,11 @@ export const cryptoAssetPolicyVerdictLabel: Record<
   non_compliant: { text: "Non-compliant", color: "red" },
 };
 
+export const cryptoAssetPolicyPendingLabel = {
+  text: "Pending",
+  color: "grey" as const,
+};
+
 /** Prototype PQC readiness summary for the Cryptography inventory page. */
 export function getCryptographicAlgorithmPolicyPosture(
   assets: CryptographicAsset[],
