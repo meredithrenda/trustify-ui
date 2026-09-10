@@ -20,6 +20,7 @@ type CveFixture = {
   modified: string;
   published: string;
   reserved: string;
+  withdrawn?: string | null;
   rhsa: string;
   rhTitle: string;
   rhPublished: string;
@@ -157,6 +158,40 @@ export const mockCveFixtures: CveFixture[] = [
     score: 3.9,
     severity: "low",
   },
+  {
+    identifier: "CVE-2024-3094",
+    title: "xz: malicious code in liblzma build system",
+    description:
+      "Malicious code was discovered in the upstream tarballs of xz. This CVE was rejected after further analysis.",
+    cwes: ["CWE-506"],
+    discovered: "2024-03-29T00:00:00Z",
+    modified: "2024-04-02T00:00:00Z",
+    published: "2024-03-29T00:00:00Z",
+    reserved: "2024-03-28T00:00:00Z",
+    withdrawn: "2024-04-02T12:00:00Z",
+    rhsa: "RHSA-2024:3094",
+    rhTitle: "Critical: xz security update",
+    rhPublished: "2024-03-30T10:00:00Z",
+    score: 10,
+    severity: "critical",
+  },
+  {
+    identifier: "CVE-2024-1086",
+    title: "kernel: netfilter nf_tables double-free",
+    description:
+      "A use-after-free vulnerability in the Linux kernel netfilter subsystem. This record was withdrawn pending reassignment.",
+    cwes: ["CWE-416"],
+    discovered: "2024-01-15T00:00:00Z",
+    modified: "2024-02-20T00:00:00Z",
+    published: "2024-01-31T00:00:00Z",
+    reserved: "2024-01-10T00:00:00Z",
+    withdrawn: "2024-02-20T09:30:00Z",
+    rhsa: "RHSA-2024:1086",
+    rhTitle: "Important: kernel security update",
+    rhPublished: "2024-02-01T11:00:00Z",
+    score: 7.8,
+    severity: "high",
+  },
 ];
 
 const lowSeverityFixtures = (): CveFixture[] =>
@@ -211,7 +246,7 @@ const mkSbomStatus = (
   published: cve.published,
   reserved: cve.reserved,
   released: null,
-  withdrawn: null,
+  withdrawn: cve.withdrawn ?? null,
   normative: true,
   base_score: {
     score: cve.score,
@@ -302,8 +337,10 @@ export const getMockSbomAdvisories = (sbomId: string): SbomAdvisory[] => {
       "CVE-2024-21626",
       "CVE-2023-44487",
       "CVE-2024-0232",
+      "CVE-2024-3094",
+      "CVE-2024-1086",
     ];
-    const exploitPrototypePkgs = [pkg0, pkg1, pkg2, pkg3, pkg4, pkg5, pkg6];
+    const exploitPrototypePkgs = [pkg0, pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg0, pkg1];
     if (
       exploitPrototypeCveIdentifiers.every((id) =>
         mockCveFixtures.some((f) => f.identifier === id),

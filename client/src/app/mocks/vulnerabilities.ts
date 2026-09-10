@@ -388,6 +388,92 @@ export const mockVulnerabilities: VulnerabilityDetails[] = [
       },
     ],
   },
+  {
+    identifier: "CVE-2024-3094",
+    title: "xz: malicious code in liblzma build system",
+    description:
+      "Malicious code was discovered in the upstream tarballs of xz, starting with version 5.6.0. This CVE was rejected after further analysis determined the scope did not match the original assignment.",
+    cwes: ["CWE-506"],
+    discovered: "2024-03-29T00:00:00Z",
+    modified: "2024-04-02T00:00:00Z",
+    published: "2024-03-29T00:00:00Z",
+    reserved: "2024-03-28T00:00:00Z",
+    released: null,
+    withdrawn: "2024-04-02T12:00:00Z",
+    normative: true,
+    base_score: {
+      score: 10,
+      severity: "critical",
+      type: "3.1",
+    },
+    advisories: [
+      {
+        uuid: "adv-0010-0010-0010-000000000010",
+        identifier: "RHSA-2024:3094",
+        document_id: "RHSA-2024:3094",
+        title: "Critical: xz security update",
+        published: "2024-03-30T10:00:00Z",
+        modified: "2024-04-02T12:00:00Z",
+        labels: { type: "csaf", severity: "critical" },
+        issuer: null,
+        withdrawn: null,
+        scores: [
+          {
+            type: "3.1",
+            value: 10,
+            severity: "critical",
+            vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+          },
+        ],
+        number_of_vulnerabilities: 1,
+        purls: {},
+        sboms: [mockVulnSbomLink(0, 3), mockVulnSbomLink(5, 3)],
+      },
+    ],
+  },
+  {
+    identifier: "CVE-2024-1086",
+    title: "kernel: netfilter nf_tables double-free",
+    description:
+      "A use-after-free vulnerability in the Linux kernel netfilter subsystem. This record was withdrawn pending reassignment.",
+    cwes: ["CWE-416"],
+    discovered: "2024-01-15T00:00:00Z",
+    modified: "2024-02-20T00:00:00Z",
+    published: "2024-01-31T00:00:00Z",
+    reserved: "2024-01-10T00:00:00Z",
+    released: null,
+    withdrawn: "2024-02-20T09:30:00Z",
+    normative: true,
+    base_score: {
+      score: 7.8,
+      severity: "high",
+      type: "3.1",
+    },
+    advisories: [
+      {
+        uuid: "adv-0011-0011-0011-000000000011",
+        identifier: "RHSA-2024:1086",
+        document_id: "RHSA-2024:1086",
+        title: "Important: kernel security update",
+        published: "2024-02-01T11:00:00Z",
+        modified: "2024-02-20T09:30:00Z",
+        labels: { type: "csaf", severity: "important" },
+        issuer: null,
+        withdrawn: null,
+        scores: [
+          {
+            type: "3.1",
+            value: 7.8,
+            severity: "high",
+            vector: "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+          },
+        ],
+        number_of_vulnerabilities: 1,
+        purls: {},
+        sboms: [mockVulnSbomLink(2, 5)],
+      },
+    ],
+  },
 ];
 
 /** Prototype: two items for the home "Highest vulnerabilities" limited scenario. */

@@ -11,6 +11,10 @@ import {
 } from "@app/client";
 import { requestParamsQuery } from "@app/hooks/table-controls";
 import { mockVulnerabilities } from "@app/mocks/vulnerabilities";
+import {
+  getVulnerabilityStatus,
+  type VulnerabilityStatus,
+} from "@app/utils/vulnerabilityStatus";
 
 declare const __MOCK_DATA__: boolean;
 
@@ -27,6 +31,11 @@ export type UseFetchVulnerabilitiesOptions = {
    * (`affects_sboms` query param). Mock data filters the same way for UX development.
    */
   affectsSboms?: boolean;
+  /**
+   * When set, mock data includes only vulnerabilities whose lifecycle status is
+   * in this list. Prototype-only until backend CVE state filtering is wired.
+   */
+  statuses?: VulnerabilityStatus[];
 };
 
 const normalizeVulnerabilitiesOptions = (
@@ -131,11 +140,11 @@ export const useFetchVulnerabilities = (
   params: HubRequestParams = {},
   opts?: boolean | UseFetchVulnerabilitiesOptions,
 ) => {
-  const { disableQuery = false, affectsSboms = false } =
+  const { disableQuery = false, affectsSboms = false, statuses } =
     normalizeVulnerabilitiesOptions(opts);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [VulnerabilitiesQueryKey, params, affectsSboms],
+    queryKey: [VulnerabilitiesQueryKey, params, affectsSboms, statuses],
     queryFn: () => {
       const baseQuery = requestParamsQuery(params);
       const query = {
@@ -145,6 +154,11 @@ export const useFetchVulnerabilities = (
 
       if (__MOCK_DATA__) {
         let items = [...mockVulnerabilities];
+        if (statuses?.length) {
+          items = items.filter((v) =>
+            statuses.includes(getVulnerabilityStatus(v)),
+          );
+        }
         if (affectsSboms) {
           items = items.filter((v) =>
             v.advisories.some((a) => (a.sboms?.length ?? 0) > 0),

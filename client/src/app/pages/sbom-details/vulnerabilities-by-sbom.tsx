@@ -33,6 +33,7 @@ import {
   Tr,
 } from "@patternfly/react-table";
 
+import { severityList } from "@app/api/model-utils";
 import {
   type ExtendedSeverity,
   type VulnerabilityStatus,
@@ -58,6 +59,7 @@ import {
   TPA_INTELLIGENCE_ASSISTANT_SHORT_NAME,
   useTpaAgent,
 } from "@app/components/tpa-agent";
+import { FilterToolbar, FilterType } from "@app/components/FilterToolbar";
 import { PackageQualifiers } from "@app/components/PackageQualifiers";
 import { SbomVulnerabilitiesDonutChart } from "@app/components/SbomVulnerabilitiesDonutChart";
 import { SeverityShieldAndText } from "@app/components/SeverityShieldAndText";
@@ -74,6 +76,11 @@ import { useLocalTableControls } from "@app/hooks/table-controls";
 import { useFetchSBOMById } from "@app/queries/sboms";
 import { Paths } from "@app/Routes";
 import { useWithUiId } from "@app/utils/query-utils";
+import {
+  DEFAULT_VULNERABILITY_STATUS_FILTER,
+  getVulnerabilityStatus,
+  VULNERABILITY_STATUS_FILTER_OPTIONS,
+} from "@app/utils/vulnerabilityStatus";
 import { decomposePurl, formatDate } from "@app/utils/utils";
 
 declare const __MOCK_DATA__: boolean;
@@ -191,6 +198,8 @@ interface TableData {
   exploitIntelligence?: ExploitIntelligenceCellState;
 }
 
+type CveStatusFilterCategoryKey = "cve_status";
+
 interface VulnerabilitiesBySbomProps {
   sbomId: string;
 }
@@ -250,7 +259,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
     fetchError: fetchErrorSbom,
   } = useFetchSBOMById(sbomId);
   const {
-    data: { vulnerabilities, summary: vulnerabilitiesSummary },
+    data: { vulnerabilities },
     isFetching: isFetchingVulnerabilities,
     fetchError: fetchErrorVulnerabilities,
   } = useVulnerabilitiesOfSbom(sbomId);
@@ -287,7 +296,28 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
     (d) => `${d.vulnerability.identifier}-${d.vulnerabilityStatus}`,
   );
 
-  const tableControls = useLocalTableControls({
+  const filterCategories = React.useMemo(
+    () => [
+      {
+        categoryKey: "cve_status" as const,
+        title: "CVE Status",
+        placeholderText: "CVE status",
+        type: FilterType.multiselect,
+        logicOperator: "OR" as const,
+        selectOptions: VULNERABILITY_STATUS_FILTER_OPTIONS,
+        matcher: (filter: string, item: TableData) =>
+          getVulnerabilityStatus(item.vulnerability) === filter,
+      },
+    ],
+    [],
+  );
+
+  const tableControls = useLocalTableControls<
+    (typeof tableDataWithUiId)[number],
+    "id" | "description" | "cvss" | "exploitIntelligence" | "affectedDependencies" | "updated",
+    "id" | "cvss" | "affectedDependencies" | "updated",
+    CveStatusFilterCategoryKey
+  >({
     tableName: "vulnerability-table",
     idProperty: "_ui_unique_id",
     items: tableDataWithUiId,
@@ -318,16 +348,22 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
         : 0,
     }),
     isPaginationEnabled: true,
-    isFilterEnabled: false,
+    isFilterEnabled: true,
+    initialFilterValues: {
+      cve_status: DEFAULT_VULNERABILITY_STATUS_FILTER,
+    },
+    filterCategories,
     isExpansionEnabled: true,
     expandableVariant: "compound",
   });
 
   const {
     currentPageItems,
+    filteredItems,
     numRenderedColumns,
     propHelpers: {
       toolbarProps,
+      filterToolbarProps,
       paginationToolbarItemProps,
       paginationProps,
       tableProps,
@@ -338,6 +374,24 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
     },
     expansionDerivedState: { isCellExpanded },
   } = tableControls;
+
+  const affectedFilteredSummary = React.useMemo(() => {
+    const severities = Object.fromEntries(
+      Object.keys(severityList).map((severity) => [severity, 0]),
+    ) as Record<ExtendedSeverity, number>;
+
+    for (const item of filteredItems ?? []) {
+      const severity = item.opinionatedAdvisory.extendedSeverity;
+      severities[severity] += 1;
+    }
+
+    const total = Object.values(severities).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+
+    return { total, severities };
+  }, [filteredItems]);
 
   return (
     <Stack hasGutter>
@@ -351,9 +405,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
               <Grid hasGutter>
                 <GridItem md={6}>
                   <SbomVulnerabilitiesDonutChart
-                    vulnerabilitiesSummary={
-                      vulnerabilitiesSummary.vulnerabilityStatus.affected
-                    }
+                    vulnerabilitiesSummary={affectedFilteredSummary}
                   />
                 </GridItem>
                 <GridItem md={6}>
@@ -409,8 +461,9 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
             ) : null}
           </Alert>
         ) : null}
-        <Toolbar {...toolbarProps}>
+        <Toolbar {...toolbarProps} aria-label="SBOM vulnerabilities toolbar">
           <ToolbarContent>
+            <FilterToolbar {...filterToolbarProps} />
             <ToolbarItem {...paginationToolbarItemProps}>
               <SimplePagination
                 idPrefix="vulnerability-table"
