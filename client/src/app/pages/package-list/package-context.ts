@@ -1,37 +1,36 @@
-import React from "react";
-
-import type { AxiosError } from "axios";
-
 import type { DecomposedPurl } from "@app/api/models";
 import type { PurlSummary } from "@app/client";
 import type { ITableControls } from "@app/hooks/table-controls";
+import type { AxiosError } from "axios";
+import React from "react";
 
 export interface PackageTableData extends PurlSummary {
-  decomposedPurl?: DecomposedPurl;
+	decomposedPurl?: DecomposedPurl;
 }
 
 export interface IPackageSearchContext {
-  tableControls: ITableControls<
-    PackageTableData,
-    | "name"
-    | "namespace"
-    | "version"
-    | "type"
-    | "licenses"
-    | "path"
-    | "qualifiers"
-    | "vulnerabilities",
-    "name" | "namespace" | "version",
-    "" | "type" | "arch" | "license" | "has_vulnerabilities",
-    string
-  >;
+	tableControls: ITableControls<
+		PackageTableData,
+		| "name"
+		| "namespace"
+		| "version"
+		| "type"
+		| "licenses"
+		| "path"
+		| "qualifiers"
+		| "vulnerabilities"
+		| "remediation",
+		"name" | "namespace" | "version",
+		"" | "type" | "arch" | "license" | "algorithm" | "has_vulnerabilities",
+		string
+	>;
 
-  totalItemCount: number;
-  isFetching: boolean;
-  fetchError: AxiosError | null;
+	totalItemCount: number;
+	isFetching: boolean;
+	fetchError: AxiosError | null;
 }
 
 const contextDefaultValue = {} as IPackageSearchContext;
 
 export const PackageSearchContext =
-  React.createContext<IPackageSearchContext>(contextDefaultValue);
+	React.createContext<IPackageSearchContext>(contextDefaultValue);

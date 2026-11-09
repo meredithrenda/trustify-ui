@@ -1,34 +1,34 @@
 export interface MastheadBrand {
-  src: string;
-  alt: string;
-  height: string;
+	src: string;
+	alt: string;
+	height: string;
 }
 
 export interface MastheadTitle {
-  text: string;
-  heading?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-  size?: "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
+	text: string;
+	heading?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+	size?: "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
 }
 
 export interface BrandingStrings {
-  application: {
-    title: string;
-    name?: string;
-    description?: string;
-  };
+	application: {
+		title: string;
+		name?: string;
+		description?: string;
+	};
 
-  about: {
-    displayName: string;
-    imageSrc?: string;
-    documentationUrl?: string;
-  };
+	about: {
+		displayName: string;
+		imageSrc?: string;
+		documentationUrl?: string;
+	};
 
-  masthead: {
-    leftBrand?: MastheadBrand;
-    leftTitle?: MastheadTitle;
-    rightBrand?: MastheadBrand;
-    supportUrl?: string;
-  };
+	masthead: {
+		leftBrand?: MastheadBrand;
+		leftTitle?: MastheadTitle;
+		rightBrand?: MastheadBrand;
+		supportUrl?: string;
+	};
 }
 
 // Note: Typescript will look at the `paths` definition to resolve this import
@@ -38,4 +38,7 @@ export interface BrandingStrings {
 import * as stringsJson from "@branding/strings.json";
 
 export const brandingStrings =
-  stringsJson.default as unknown as BrandingStrings;
+	stringsJson.default as unknown as BrandingStrings;
+
+/** Display label for the vendor providing remediation recommendations. Productized builds override this to a specific vendor name. */
+export const REMEDIATION_VENDOR_LABEL = "Vendor";

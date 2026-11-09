@@ -117,6 +117,34 @@ export const decomposePurl = (purl: string) => {
   }
 };
 
+/** Compare two PURLs by type, namespace, name, and version, ignoring qualifiers. */
+export const purlBaseEquals = (a: string, b: string): boolean => {
+  try {
+    const pa = PackageURL.fromString(a);
+    const pb = PackageURL.fromString(b);
+    return (
+      pa.type === pb.type &&
+      pa.namespace === pb.namespace &&
+      pa.name === pb.name &&
+      pa.version === pb.version
+    );
+  } catch {
+    return a === b;
+  }
+};
+
+/** Decode a PURL for display. Falls back to the original value if decoding fails. */
+export const decodePurl = (purl: string | null | undefined): string => {
+  if (purl == null) {
+    return "";
+  }
+  try {
+    return decodeURIComponent(purl);
+  } catch {
+    return purl;
+  }
+};
+
 export const getString = (input: string | (() => string)) =>
   typeof input === "function" ? input() : input;
 

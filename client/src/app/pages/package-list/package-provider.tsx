@@ -1,182 +1,180 @@
-import React from "react";
-
-import { useDebounceValue } from "usehooks-ts";
-
 import {
-  FILTER_TEXT_CATEGORY_KEY,
-  TablePersistenceKeyPrefixes,
+	FILTER_TEXT_CATEGORY_KEY,
+	TablePersistenceKeyPrefixes,
 } from "@app/Constants";
+import { getPrototypeAlgorithmFilterOptions } from "@app/cbom/cryptoAlgorithmPackages";
 import { FilterType } from "@app/components/FilterToolbar";
 import {
-  getHubRequestParams,
-  useTableControlProps,
-  useTableControlState,
+	getHubRequestParams,
+	useTableControlProps,
+	useTableControlState,
 } from "@app/hooks/table-controls";
-import { getPrototypeAlgorithmFilterOptions } from "@app/cbom/cryptoAlgorithmPackages";
 import { useFetchLicenses } from "@app/queries/licenses";
 import { useFetchPackages } from "@app/queries/packages";
 import { decomposePurl, parseBooleanIfPossible } from "@app/utils/utils";
+import React from "react";
+import { useDebounceValue } from "usehooks-ts";
 
-import {
-  type PackageTableData,
-  PackageSearchContext,
-} from "./package-context";
+import { PackageSearchContext, type PackageTableData } from "./package-context";
 
 interface IPackageProvider {
-  children: React.ReactNode;
+	children: React.ReactNode;
 }
 
 export const PackageSearchProvider: React.FunctionComponent<
-  IPackageProvider
+	IPackageProvider
 > = ({ children }) => {
-  const [inputValueLicense, setInputValueLicense] = React.useState("");
-  const [debouncedInputValueLicense] = useDebounceValue(inputValueLicense, 400);
-  const {
-    result: { data: licenses },
-  } = useFetchLicenses({
-    filters: [
-      {
-        field: FILTER_TEXT_CATEGORY_KEY,
-        operator: "~",
-        value: debouncedInputValueLicense,
-      },
-    ],
-    sort: { field: "license", direction: "asc" },
-    page: { pageNumber: 1, itemsPerPage: 10 },
-  });
+	const [inputValueLicense, setInputValueLicense] = React.useState("");
+	const [debouncedInputValueLicense] = useDebounceValue(inputValueLicense, 400);
+	const {
+		result: { data: licenses },
+	} = useFetchLicenses({
+		filters: [
+			{
+				field: FILTER_TEXT_CATEGORY_KEY,
+				operator: "~",
+				value: debouncedInputValueLicense,
+			},
+		],
+		sort: { field: "license", direction: "asc" },
+		page: { pageNumber: 1, itemsPerPage: 10 },
+	});
 
-  const tableControlState = useTableControlState({
-    tableName: "package",
-    persistenceKeyPrefix: TablePersistenceKeyPrefixes.packages,
-    persistTo: "urlParams",
-    columnNames: {
-      name: "Name",
-      namespace: "Namespace",
-      version: "Version",
-      type: "Type",
-      path: "Path",
-      qualifiers: "Qualifiers",
-      licenses: "Licenses",
-      vulnerabilities: "Vulnerabilities",
-    },
-    isPaginationEnabled: true,
-    isSortEnabled: true,
-    sortableColumns: ["name", "namespace", "version"],
-    isFilterEnabled: true,
-    filterCategories: [
-      {
-        categoryKey: FILTER_TEXT_CATEGORY_KEY,
-        title: "Filter text",
-        placeholderText: "Search",
-        type: FilterType.search,
-      },
-      {
-        categoryKey: "type",
-        title: "Type",
-        placeholderText: "Type",
-        type: FilterType.multiselect,
-        selectOptions: [
-          { value: "maven", label: "Maven" },
-          { value: "rpm", label: "RPM" },
-          { value: "npm", label: "NPM" },
-          { value: "oci", label: "OCI" },
-        ],
-      },
-      {
-        categoryKey: "arch",
-        title: "Architecture",
-        placeholderText: "Architecture",
-        type: FilterType.multiselect,
-        selectOptions: [
-          { value: "x86_64", label: "AMD 64bit" },
-          { value: "aarch64", label: "ARM 64bit" },
-          { value: "ppc64le", label: "PowerPC" },
-          { value: "s390x", label: "S390" },
-          { value: "noarch", label: "No Arch" },
-        ],
-      },
-      {
-        categoryKey: "license",
-        title: "License",
-        type: FilterType.asyncMultiselect,
-        placeholderText: "Filter results by license",
-        selectOptions: licenses.map((e) => {
-          return {
-            value: e.license,
-            label: e.license,
-          };
-        }),
-        onInputValueChange: setInputValueLicense,
-      },
-      {
-        categoryKey: "algorithm",
-        title: "Algorithm",
-        type: FilterType.multiselect,
-        placeholderText: "Filter by cryptographic algorithm",
-        selectOptions: getPrototypeAlgorithmFilterOptions(),
-        excludeFromHubRequest: true,
-      },
-      {
-        categoryKey: "has_vulnerabilities",
-        title: "Vulnerabilities",
-        type: FilterType.toggle,
-        label: "Show only packages with vulnerabilities",
-        useSwitch: true,
-        showOutsideDropdown: true,
-        excludeFromHubRequest: true,
-      },
-    ],
-    isExpansionEnabled: true,
-    expandableVariant: "compound",
-  });
+	const tableControlState = useTableControlState({
+		tableName: "package",
+		persistenceKeyPrefix: TablePersistenceKeyPrefixes.packages,
+		persistTo: "urlParams",
+		columnNames: {
+			name: "Name",
+			namespace: "Namespace",
+			version: "Version",
+			type: "Type",
+			path: "Path",
+			qualifiers: "Qualifiers",
+			licenses: "Licenses",
+			vulnerabilities: "Vulnerabilities",
+			remediation: "Remediations",
+		},
+		isPaginationEnabled: true,
+		isSortEnabled: true,
+		sortableColumns: ["name", "namespace", "version"],
+		isFilterEnabled: true,
+		filterCategories: [
+			{
+				categoryKey: FILTER_TEXT_CATEGORY_KEY,
+				title: "Filter text",
+				placeholderText: "Search",
+				type: FilterType.search,
+			},
+			{
+				categoryKey: "type",
+				title: "Type",
+				placeholderText: "Type",
+				type: FilterType.multiselect,
+				selectOptions: [
+					{ value: "maven", label: "Maven" },
+					{ value: "rpm", label: "RPM" },
+					{ value: "npm", label: "NPM" },
+					{ value: "oci", label: "OCI" },
+				],
+			},
+			{
+				categoryKey: "arch",
+				title: "Architecture",
+				placeholderText: "Architecture",
+				type: FilterType.multiselect,
+				selectOptions: [
+					{ value: "x86_64", label: "AMD 64bit" },
+					{ value: "aarch64", label: "ARM 64bit" },
+					{ value: "ppc64le", label: "PowerPC" },
+					{ value: "s390x", label: "S390" },
+					{ value: "noarch", label: "No Arch" },
+				],
+			},
+			{
+				categoryKey: "license",
+				title: "License",
+				type: FilterType.asyncMultiselect,
+				placeholderText: "Filter results by license",
+				selectOptions: licenses.map((e) => {
+					return {
+						value: e.license,
+						label: e.license,
+					};
+				}),
+				onInputValueChange: setInputValueLicense,
+			},
+			{
+				categoryKey: "algorithm",
+				title: "Algorithm",
+				type: FilterType.multiselect,
+				placeholderText: "Filter by cryptographic algorithm",
+				selectOptions: getPrototypeAlgorithmFilterOptions(),
+				excludeFromHubRequest: true,
+			},
+			{
+				categoryKey: "has_vulnerabilities",
+				title: "Vulnerabilities",
+				type: FilterType.toggle,
+				label: "Show only packages with vulnerabilities",
+				useSwitch: true,
+				showOutsideDropdown: true,
+				excludeFromHubRequest: true,
+			},
+		],
+		isExpansionEnabled: true,
+		expandableVariant: "compound",
+	});
 
-  const hasVulnerabilities = parseBooleanIfPossible(
-    tableControlState.filterState.filterValues.has_vulnerabilities?.[0],
-  );
-  const algorithmFilter = tableControlState.filterState.filterValues.algorithm;
+	const hasVulnerabilities = parseBooleanIfPossible(
+		tableControlState.filterState.filterValues.has_vulnerabilities?.[0],
+	);
+	const algorithmFilter = tableControlState.filterState.filterValues.algorithm;
 
-  const {
-    result: { data: packages, total: totalItemCount },
-    isFetching,
-    fetchError,
-  } = useFetchPackages(
-    getHubRequestParams({
-      ...tableControlState,
-      hubSortFieldKeys: {
-        name: "name",
-        namespace: "namespace",
-        version: "version",
-      },
-    }),
-    {
-      hasVulnerabilities,
-      algorithms: algorithmFilter?.length ? algorithmFilter : undefined,
-    },
-  );
+	const {
+		result: { data: packages, total: totalItemCount },
+		isFetching,
+		fetchError,
+	} = useFetchPackages(
+		getHubRequestParams({
+			...tableControlState,
+			hubSortFieldKeys: {
+				name: "name",
+				namespace: "namespace",
+				version: "version",
+			},
+		}),
+		{
+			hasVulnerabilities,
+			algorithms: algorithmFilter?.length ? algorithmFilter : undefined,
+		},
+	);
 
-  const enrichedPackages = React.useMemo(() => {
-    return packages.map((item) => {
-      const result: PackageTableData = {
-        ...item,
-        decomposedPurl: decomposePurl(item.purl),
-      };
-      return result;
-    });
-  }, [packages]);
+	const enrichedPackages = React.useMemo(() => {
+		return packages.map((item) => {
+			const result: PackageTableData = {
+				...item,
+				decomposedPurl: decomposePurl(item.purl),
+			};
+			return result;
+		});
+	}, [packages]);
 
-  const tableControls = useTableControlProps({
-    ...tableControlState,
-    idProperty: "uuid",
-    currentPageItems: enrichedPackages,
-    totalItemCount,
-    isLoading: isFetching,
-  });
+	const tableControls = useTableControlProps({
+		...tableControlState,
+		idProperty: "uuid",
+		currentPageItems: enrichedPackages,
+		totalItemCount,
+		isLoading: isFetching,
+		// name, namespace, version, type, path, qualifiers, licenses, vulnerabilities, remediation
+		forceNumRenderedColumns: 9,
+	});
 
-  return (
-    <PackageSearchContext.Provider
-      value={{ totalItemCount, isFetching, fetchError, tableControls }}
-    >
-      {children}
-    </PackageSearchContext.Provider>
-  );
+	return (
+		<PackageSearchContext.Provider
+			value={{ totalItemCount, isFetching, fetchError, tableControls }}
+		>
+			{children}
+		</PackageSearchContext.Provider>
+	);
 };
