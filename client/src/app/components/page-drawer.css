@@ -1,0 +1,22 @@
+/*
+ * Keep tall drawer content scrolling inside the panel, not the page.
+ * Use a viewport max-height on panel-main (the resizable content wrapper)
+ * so overflow-y:auto always has a definite limit and can scroll.
+ */
+.app-page-drawer .pf-v6-c-drawer__panel {
+  --app-page-drawer-panel-max-height: calc(100dvh - 4.375rem);
+  --pf-v6-c-drawer__panel--MaxHeight: var(--app-page-drawer-panel-max-height);
+  max-height: var(--app-page-drawer-panel-max-height);
+}
+
+.app-page-drawer .pf-v6-c-drawer__panel.pf-m-resizable {
+  overflow: hidden;
+}
+
+.app-page-drawer
+  .pf-v6-c-drawer__panel.pf-m-resizable
+  > .pf-v6-c-drawer__panel-main {
+  max-height: var(--app-page-drawer-panel-max-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

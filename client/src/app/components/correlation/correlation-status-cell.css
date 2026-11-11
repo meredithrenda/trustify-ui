@@ -1,0 +1,8 @@
+/* Compound-expand buttons default to overflow:hidden / single-line height,
+   which clips a Conflict label stacked under the verdict. */
+.correlation-status-cell.pf-v6-c-table__compound-expansion-toggle
+  .pf-v6-c-table__button {
+  overflow: visible;
+  height: auto;
+  white-space: normal;
+}

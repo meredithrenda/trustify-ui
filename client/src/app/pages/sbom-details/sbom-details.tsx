@@ -46,24 +46,39 @@ import { useTabControls } from "@app/hooks/tab-controls";
 import { useDeleteSbomMutation, useFetchSBOMById } from "@app/queries/sboms";
 import { mockModels } from "@app/mocks/models";
 
-import { Overview } from "./overview";
-import { PackagesBySbom } from "./packages-by-sbom";
-import { PolicyBySbom } from "./policy-by-sbom";
-import { VulnerabilitiesBySbom } from "./vulnerabilities-by-sbom";
+import {
+  CORRELATION_FRESHNESS_STATES,
+  CorrelationEvidenceDrawer,
+  CorrelationFreshnessBanner,
+  CorrelationFreshnessSwitcher,
+  type CorrelationAssessment,
+  type CorrelationFreshnessState,
+} from "@app/components/correlation";
+import { DocumentMetadata } from "@app/components/DocumentMetadata";
+import { usePrototypeModeOptional } from "@app/components/prototype-mode";
+import { ModelList } from "@app/pages/models/components/ModelList";
+import { ModelDetailDrawer } from "@app/pages/models/components/ModelDetailDrawer";
+import type { AIModel } from "@app/pages/models/types";
+
 import {
   Cryptography,
   CryptoDetailContent,
   type CryptographicAsset,
   shouldShowCryptographyTab,
 } from "./cryptography";
-import { ModelList } from "@app/pages/models/components/ModelList";
-import { ModelDetailDrawer } from "@app/pages/models/components/ModelDetailDrawer";
-import type { AIModel } from "@app/pages/models/types";
-import { DocumentMetadata } from "@app/components/DocumentMetadata";
+import { Overview } from "./overview";
+import { PackagesBySbom } from "./packages-by-sbom";
+import { PolicyBySbom } from "./policy-by-sbom";
+import { VulnerabilitiesBySbom } from "./vulnerabilities-by-sbom";
 
 type DrawerItem =
   | { kind: "crypto"; asset: CryptographicAsset }
-  | { kind: "model"; model: AIModel };
+  | { kind: "model"; model: AIModel }
+  | {
+      kind: "evidence";
+      vulnerabilityId: string;
+      assessment: CorrelationAssessment;
+    };
 
 type SbomDetailsTabKey =
   | "vulnerabilities"
@@ -76,12 +91,17 @@ type SbomDetailsTabKey =
 export const SbomDetails: React.FC = () => {
   const navigate = useNavigate();
   const { pushNotification } = React.useContext(NotificationsContext);
+  const { isCorrelationMode } = usePrototypeModeOptional();
 
   const sbomId = useRouteParams(PathParam.SBOM_ID);
   const { sbom, isFetching, fetchError } = useFetchSBOMById(sbomId);
 
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] =
     React.useState(false);
+  const [freshnessPreview, setFreshnessPreview] =
+    React.useState<CorrelationFreshnessState>(
+      CORRELATION_FRESHNESS_STATES.current,
+    );
 
   const handleActionsDropdownToggle = () => {
     setIsActionsDropdownOpen(!isActionsDropdownOpen);
@@ -171,7 +191,9 @@ export const SbomDetails: React.FC = () => {
     const label =
       drawerItem.kind === "crypto"
         ? drawerItem.asset.algorithm
-        : drawerItem.model.name;
+        : drawerItem.kind === "model"
+          ? drawerItem.model.name
+          : `Evidence · ${drawerItem.vulnerabilityId}`;
     return (
       <Title headingLevel="h2" size="lg">
         {label}
@@ -190,7 +212,15 @@ export const SbomDetails: React.FC = () => {
         />
       );
     }
-    return <ModelDetailDrawer model={drawerItem.model} />;
+    if (drawerItem.kind === "model") {
+      return <ModelDetailDrawer model={drawerItem.model} />;
+    }
+    return (
+      <CorrelationEvidenceDrawer
+        vulnerabilityId={drawerItem.vulnerabilityId}
+        assessment={drawerItem.assessment}
+      />
+    );
   }, [drawerItem]);
 
   const tabsProps = getTabsProps();
@@ -242,61 +272,89 @@ export const SbomDetails: React.FC = () => {
             </Flex>
           </SplitItem>
           <SplitItem>
-            {sbom && (
-              <Dropdown
-                isOpen={isActionsDropdownOpen}
-                onSelect={() => setIsActionsDropdownOpen(false)}
-                onOpenChange={(isOpen) => setIsActionsDropdownOpen(isOpen)}
-                popperProps={{ position: "right" }}
-                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                  <MenuToggle
-                    ref={toggleRef}
-                    onClick={handleActionsDropdownToggle}
-                    isExpanded={isActionsDropdownOpen}
+            <Flex
+              spaceItems={{ default: "spaceItemsMd" }}
+              alignItems={{ default: "alignItemsCenter" }}
+            >
+              {isCorrelationMode && (
+                <FlexItem>
+                  <CorrelationFreshnessSwitcher
+                    state={freshnessPreview}
+                    onChange={setFreshnessPreview}
+                  />
+                </FlexItem>
+              )}
+              {sbom && (
+                <FlexItem>
+                  <Dropdown
+                    isOpen={isActionsDropdownOpen}
+                    onSelect={() => setIsActionsDropdownOpen(false)}
+                    onOpenChange={(isOpen) => setIsActionsDropdownOpen(isOpen)}
+                    popperProps={{ position: "right" }}
+                    toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                      <MenuToggle
+                        ref={toggleRef}
+                        onClick={handleActionsDropdownToggle}
+                        isExpanded={isActionsDropdownOpen}
+                      >
+                        Actions
+                      </MenuToggle>
+                    )}
+                    ouiaId="BasicDropdown"
+                    shouldFocusToggleOnSelect
                   >
-                    Actions
-                  </MenuToggle>
-                )}
-                ouiaId="BasicDropdown"
-                shouldFocusToggleOnSelect
-              >
-                <DropdownList>
-                  <DropdownItem
-                    key="sbom"
-                    onClick={() => {
-                      if (sbomId) {
-                        downloadSBOM(
-                          sbomId,
-                          sbom?.name ? `${sbom?.name}.json` : `${sbomId}.json`,
-                        );
-                      }
-                    }}
-                  >
-                    Download SBOM
-                  </DropdownItem>
-                  <DropdownItem
-                    key="license"
-                    onClick={() => {
-                      if (sbomId) {
-                        downloadSBOMLicenses(sbomId);
-                      }
-                    }}
-                  >
-                    Download License Report
-                  </DropdownItem>
-                  <Divider component="li" key="separator" />
-                  <DropdownItem
-                    key="delete"
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                  >
-                    Delete
-                  </DropdownItem>
-                </DropdownList>
-              </Dropdown>
-            )}
+                    <DropdownList>
+                      <DropdownItem
+                        key="sbom"
+                        onClick={() => {
+                          if (sbomId) {
+                            downloadSBOM(
+                              sbomId,
+                              sbom?.name
+                                ? `${sbom?.name}.json`
+                                : `${sbomId}.json`,
+                            );
+                          }
+                        }}
+                      >
+                        Download SBOM
+                      </DropdownItem>
+                      <DropdownItem
+                        key="license"
+                        onClick={() => {
+                          if (sbomId) {
+                            downloadSBOMLicenses(sbomId);
+                          }
+                        }}
+                      >
+                        Download License Report
+                      </DropdownItem>
+                      <Divider component="li" key="separator" />
+                      <DropdownItem
+                        key="delete"
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                      >
+                        Delete
+                      </DropdownItem>
+                    </DropdownList>
+                  </Dropdown>
+                </FlexItem>
+              )}
+            </Flex>
           </SplitItem>
         </Split>
       </PageSection>
+      {isCorrelationMode &&
+        freshnessPreview !== CORRELATION_FRESHNESS_STATES.current && (
+          <PageSection>
+            <CorrelationFreshnessBanner
+              state={freshnessPreview}
+              onLoadUpdatedResults={() =>
+                setFreshnessPreview(CORRELATION_FRESHNESS_STATES.current)
+              }
+            />
+          </PageSection>
+        )}
       <PageSection>
         <Tabs
           {...tabsProps}
@@ -363,7 +421,18 @@ export const SbomDetails: React.FC = () => {
           ref={vulnerabilitiesTabRef}
           aria-label="Vulnerabilities within the SBOM"
         >
-          {sbomId && <VulnerabilitiesBySbom sbomId={sbomId} />}
+          {sbomId && (
+            <VulnerabilitiesBySbom
+              sbomId={sbomId}
+              onViewEvidence={(vulnerabilityId, assessment) =>
+                setDrawerItem({
+                  kind: "evidence",
+                  vulnerabilityId,
+                  assessment,
+                })
+              }
+            />
+          )}
         </TabContent>
         <TabContent
           {...getTabContentProps("packages")}

@@ -13,6 +13,8 @@ import {
 } from "@patternfly/react-core";
 import pageStyles from "@patternfly/react-styles/css/components/Page/page";
 
+import "./page-drawer.css";
+
 const usePageDrawerState = () => {
   const [isDrawerExpanded, setIsDrawerExpanded] = React.useState(false);
   const [drawerPanelContent, setDrawerPanelContent] =
@@ -66,7 +68,7 @@ export const PageContentWithDrawerProvider: React.FC<
   } = pageDrawerState;
   return (
     <PageDrawerContext.Provider value={pageDrawerState}>
-      <div className={pageStyles.pageDrawer}>
+      <div className={`${pageStyles.pageDrawer} app-page-drawer`}>
         <Drawer
           isExpanded={isDrawerExpanded}
           onExpand={() => drawerFocusRef?.current?.focus()}
@@ -170,6 +172,8 @@ export const PageDrawerContent: React.FC<IPageDrawerContentProps> = ({
     const drawerHead = header === null ? children : header;
     const drawerPanelBody = header === null ? null : children;
 
+    // Scroll lives on panel-main (see page-drawer.css), not a nested body box
+    // and not the page drawer grid cell.
     setDrawerPanelContent(
       <>
         <DrawerHead>
@@ -180,11 +184,9 @@ export const PageDrawerContent: React.FC<IPageDrawerContentProps> = ({
             <DrawerCloseButton onClick={onCloseClick} />
           </DrawerActions>
         </DrawerHead>
-        <DrawerPanelBody
-          style={{ overflowY: "auto", maxHeight: "calc(100vh - 130px)" }}
-        >
-          {drawerPanelBody}
-        </DrawerPanelBody>
+        {drawerPanelBody != null ? (
+          <DrawerPanelBody>{drawerPanelBody}</DrawerPanelBody>
+        ) : null}
       </>,
     );
   }, [

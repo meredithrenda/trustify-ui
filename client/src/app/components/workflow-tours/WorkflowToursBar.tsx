@@ -11,6 +11,8 @@ import {
 } from "@patternfly/react-core";
 import InfoCircleIcon from "@patternfly/react-icons/dist/esm/icons/info-circle-icon";
 
+import { PrototypeModeSwitcher } from "@app/components/prototype-mode";
+
 import { WORKFLOW_TOURS } from "./tours";
 import { useWorkflowTours } from "./WorkflowToursProvider";
 
@@ -38,43 +40,46 @@ export const WorkflowToursBar: React.FC = () => {
   return (
     <div className="workflow-tours-bar" role="region" aria-label="Workflow tours">
       <div className="workflow-tours-bar__inner">
-        <span className="workflow-tours-bar__label">
-          Workflow tours
-          <Tooltip content={WORKFLOW_TOURS_HELP} position="bottom-start">
-            <Button
-              variant="plain"
-              aria-label="About workflow tours"
-              className="workflow-tours-bar__help"
-              icon={<InfoCircleIcon />}
-            />
-          </Tooltip>
-        </span>
-        <Select
-          id="workflow-tours-select-list"
-          isOpen={isOpen}
-          selected={activeTour?.id}
-          onOpenChange={setIsOpen}
-          onSelect={(_event, value) => {
-            setIsOpen(false);
-            if (value === undefined) {
-              return;
-            }
-            startTour(String(value));
-          }}
-          toggle={toggle}
-        >
-          <SelectList>
-            {WORKFLOW_TOURS.map((tour) => (
-              <SelectOption
-                key={tour.id}
-                value={tour.id}
-                description={tour.summary}
-              >
-                {tour.label}
-              </SelectOption>
-            ))}
-          </SelectList>
-        </Select>
+        <div className="workflow-tours-bar__start">
+          <span className="workflow-tours-bar__label">
+            Workflow tours
+            <Tooltip content={WORKFLOW_TOURS_HELP} position="bottom-start">
+              <Button
+                variant="plain"
+                aria-label="About workflow tours"
+                className="workflow-tours-bar__help"
+                icon={<InfoCircleIcon />}
+              />
+            </Tooltip>
+          </span>
+          <Select
+            id="workflow-tours-select-list"
+            isOpen={isOpen}
+            selected={activeTour?.id}
+            onOpenChange={setIsOpen}
+            onSelect={(_event, value) => {
+              setIsOpen(false);
+              if (value === undefined) {
+                return;
+              }
+              startTour(String(value));
+            }}
+            toggle={toggle}
+          >
+            <SelectList>
+              {WORKFLOW_TOURS.map((tour) => (
+                <SelectOption
+                  key={tour.id}
+                  value={tour.id}
+                  description={tour.summary}
+                >
+                  {tour.label}
+                </SelectOption>
+              ))}
+            </SelectList>
+          </Select>
+        </div>
+        <PrototypeModeSwitcher />
       </div>
     </div>
   );

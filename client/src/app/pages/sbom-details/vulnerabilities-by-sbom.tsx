@@ -1,5 +1,15 @@
+import {
+	CorrelationAssessmentDetails,
+	CorrelationConflictLabel,
+	CorrelationFailedInfo,
+	correlationVerdictLabels,
+	getMockCorrelationAssessment,
+	type CorrelationAssessment,
+} from "@app/components/correlation";
+import { FilterToolbar, FilterType } from "@app/components/FilterToolbar";
 import { LoadingWrapper } from "@app/components/LoadingWrapper";
 import { PackageQualifiers } from "@app/components/PackageQualifiers";
+import { usePrototypeModeOptional } from "@app/components/prototype-mode";
 import { ReadOnlyContext } from "@app/components/ReadOnlyContext";
 import { SbomVulnerabilitiesDonutChart } from "@app/components/SbomVulnerabilitiesDonutChart";
 import { SeverityShieldAndText } from "@app/components/SeverityShieldAndText";
@@ -12,6 +22,7 @@ import {
 import { TdWithFocusStatus } from "@app/components/TdWithFocusStatus";
 import { VulnerabilityDescription } from "@app/components/VulnerabilityDescription";
 import { WithPackage } from "@app/components/WithPackage";
+import { FILTER_TEXT_CATEGORY_KEY } from "@app/Constants";
 import { useExploitIntelligenceOfSbom } from "@app/hooks/domain-controls/useExploitIntelligenceOfSbom";
 import {
 	buildVexByPurl,
@@ -52,6 +63,7 @@ import {
 	Tooltip,
 } from "@patternfly/react-core";
 import { OutlinedQuestionCircleIcon } from "@patternfly/react-icons";
+import spacing from "@patternfly/react-styles/css/utilities/Spacing/spacing";
 import {
 	ActionsColumn,
 	ExpandableRowContent,
@@ -70,14 +82,23 @@ import { generatePath, Link } from "react-router-dom";
 import { ExploitIntelligenceAnalysisCell } from "./components/exploit-intelligence-analysis-cell";
 import { VulnerabilityScoreBreakdown } from "./components/vulnerability-score-breakdown";
 
+import "@app/components/correlation/correlation-status-cell.css";
+
 interface VulnerabilitiesBySbomProps {
 	sbomId: string;
+	onViewEvidence?: (
+		vulnerabilityId: string,
+		assessment: CorrelationAssessment,
+	) => void;
 }
 
 export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 	sbomId,
+	onViewEvidence,
 }) => {
 	const [includeResolved, setIncludeResolved] = React.useState(false);
+	const { isCorrelationMode } = usePrototypeModeOptional();
+	const effectiveIncludeResolved = isCorrelationMode ? false : includeResolved;
 
 	const {
 		sbom,
@@ -89,7 +110,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 		advisories: rawAdvisories,
 		isFetching: isFetchingVulnerabilities,
 		fetchError: fetchErrorVulnerabilities,
-	} = useVulnerabilitiesOfSbom(sbomId, includeResolved);
+	} = useVulnerabilitiesOfSbom(sbomId, effectiveIncludeResolved);
 
 	const { areMutationsDisabled } = React.useContext(ReadOnlyContext);
 	const isEiEnabled = useIsExploitIntelligenceEnabled();
@@ -133,8 +154,9 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 	}, [vulnerabilities]);
 
 	const vexByPurl = React.useMemo(
-		() => (includeResolved ? buildVexByPurl(rawAdvisories) : new Map()),
-		[rawAdvisories, includeResolved],
+		() =>
+			effectiveIncludeResolved ? buildVexByPurl(rawAdvisories) : new Map(),
+		[rawAdvisories, effectiveIncludeResolved],
 	);
 
 	// Build a map of CVE ID → Set of PURLs that have upstream fixed_versions
@@ -172,6 +194,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 		columnNames: {
 			id: "Id",
 			description: "Description",
+			...(isCorrelationMode ? { correlation: "Correlation" } : {}),
 			cvss: "CVSS",
 			exploitAnalysis: "Exploit Intelligence",
 			affectedDependencies: "Affected dependencies",
@@ -200,7 +223,43 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 				: 0,
 		}),
 		isPaginationEnabled: true,
-		isFilterEnabled: false,
+		isFilterEnabled: isCorrelationMode,
+		filterCategories: isCorrelationMode
+			? [
+					{
+						categoryKey: FILTER_TEXT_CATEGORY_KEY,
+						title: "Filter text",
+						placeholderText: "Search",
+						type: FilterType.search,
+						getItemValue: (item) =>
+							[
+								item.vulnerability.identifier,
+								item.vulnerability.title,
+								item.vulnerability.description,
+							]
+								.filter(Boolean)
+								.join(" "),
+					},
+					{
+						categoryKey: "correlationStatus",
+						title: "Correlation status",
+						type: FilterType.multiselect,
+						logicOperator: "OR",
+						placeholderText: "Filter by correlation status",
+						selectOptions: Object.entries(correlationVerdictLabels).map(
+							([value, { name }]) => ({
+								value,
+								label: name,
+							}),
+						),
+						matcher: (filter, item) =>
+							getMockCorrelationAssessment(
+								item.vulnerability.identifier,
+								item.vulnerabilityStatus,
+							).verdict === filter,
+					},
+				]
+			: [],
 		isExpansionEnabled: true,
 		expandableVariant: "compound",
 	});
@@ -210,6 +269,7 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 		numRenderedColumns,
 		propHelpers: {
 			toolbarProps,
+			filterToolbarProps,
 			paginationToolbarItemProps,
 			paginationProps,
 			tableProps,
@@ -219,7 +279,14 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 			getExpandedContentTdProps,
 		},
 		expansionDerivedState: { isCellExpanded },
+		filterState: { setFilterValues },
 	} = tableControls;
+
+	React.useEffect(() => {
+		if (!isCorrelationMode) {
+			setFilterValues({});
+		}
+	}, [isCorrelationMode, setFilterValues]);
 
 	const allPurls = React.useMemo(
 		() =>
@@ -302,16 +369,23 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 				)}
 				<Toolbar {...toolbarProps}>
 					<ToolbarContent>
-						<ToolbarItem>
-							<Tooltip content="When enabled, shows VEX resolution data alongside affected vulnerabilities to help identify suppressed findings">
-								<Switch
-									id="include-resolved-toggle"
-									label="Show VEX resolutions"
-									isChecked={includeResolved}
-									onChange={(_event, checked) => setIncludeResolved(checked)}
-								/>
-							</Tooltip>
-						</ToolbarItem>
+						{isCorrelationMode && (
+							<FilterToolbar {...filterToolbarProps} />
+						)}
+						{!isCorrelationMode && (
+							<ToolbarItem>
+								<Tooltip content="When enabled, shows VEX resolution data alongside affected vulnerabilities to help identify suppressed findings">
+									<Switch
+										id="include-resolved-toggle"
+										label="Show VEX resolutions"
+										isChecked={includeResolved}
+										onChange={(_event, checked) =>
+											setIncludeResolved(checked)
+										}
+									/>
+								</Tooltip>
+							</ToolbarItem>
+						)}
 						<ToolbarItem {...paginationToolbarItemProps}>
 							<SimplePagination
 								idPrefix="vulnerability-table"
@@ -328,6 +402,14 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 							<TableHeaderContentWithControls {...tableControls}>
 								<Th {...getThProps({ columnKey: "id" })} />
 								<Th {...getThProps({ columnKey: "description" })} />
+								{isCorrelationMode && (
+									<Th {...getThProps({ columnKey: "correlation" })}>
+										Correlation{" "}
+										<Tooltip content="How this vulnerability is matched to components in the SBOM using advisory data. The status is the correlation verdict; expand a row for match confidence and supporting details.">
+											<OutlinedQuestionCircleIcon />
+										</Tooltip>
+									</Th>
+								)}
 								<Th {...getThProps({ columnKey: "cvss" })} />
 								{isEiEnabled && (
 									<Th {...getThProps({ columnKey: "exploitAnalysis" })} />
@@ -384,6 +466,12 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 								Array.from(item.purls.values()).some(
 									(p) => !p.isOrphan && purlResolutions.has(p.purlSummary.purl),
 								);
+							const correlationAssessment = isCorrelationMode
+								? getMockCorrelationAssessment(
+										item.vulnerability.identifier,
+										item.vulnerabilityStatus,
+									)
+								: null;
 
 							return (
 								<Tbody
@@ -449,6 +537,52 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 													</Td>
 												)}
 											</TdWithFocusStatus>
+											{correlationAssessment && (
+												<Td
+													width={15}
+													className="correlation-status-cell"
+													{...getTdProps({
+														columnKey: "correlation",
+														isCompoundExpandToggle:
+															!correlationAssessment.isLoading &&
+															!correlationAssessment.isFailed &&
+															correlationAssessment.verdict !== "none",
+														item: item,
+														rowIndex,
+													})}
+												>
+													{correlationAssessment.isLoading ? (
+														<Skeleton
+															width="5rem"
+															screenreaderText="Loading correlation"
+														/>
+													) : correlationAssessment.isFailed ? (
+														<CorrelationFailedInfo
+															message={
+																correlationAssessment.failureMessage
+															}
+														/>
+													) : (
+														<Flex
+															direction={{ default: "column" }}
+															spaceItems={{ default: "spaceItemsXs" }}
+														>
+															<FlexItem>
+																{
+																	correlationVerdictLabels[
+																		correlationAssessment.verdict
+																	].name
+																}
+															</FlexItem>
+															{correlationAssessment.hasConflict && (
+																<FlexItem>
+																	<CorrelationConflictLabel />
+																</FlexItem>
+															)}
+														</Flex>
+													)}
+												</Td>
+											)}
 											<Td width={15} {...getTdProps({ columnKey: "cvss" })}>
 												<Flex>
 													<FlexItem>
@@ -573,7 +707,20 @@ export const VulnerabilitiesBySbom: React.FC<VulnerabilitiesBySbomProps> = ({
 												})}
 											>
 												<ExpandableRowContent>
-													{isCellExpanded(item, "affectedDependencies") ? (
+													{correlationAssessment &&
+													isCellExpanded(item, "correlation") ? (
+														<div className={spacing.pLg}>
+															<CorrelationAssessmentDetails
+																assessment={correlationAssessment}
+																onViewEvidence={() =>
+																	onViewEvidence?.(
+																		item.vulnerability.identifier,
+																		correlationAssessment,
+																	)
+																}
+															/>
+														</div>
+													) : isCellExpanded(item, "affectedDependencies") ? (
 														<Table variant="compact">
 															<Thead>
 																<Tr>
